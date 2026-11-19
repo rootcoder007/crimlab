@@ -156,6 +156,8 @@ r$slopes
 ``` r
 
 plot(r)
+#> Warning in graphics::arrows(x0[!z], y0[!z], x1[!z], y1[!z], length = 0.03, :
+#> zero-length arrow is of indeterminate angle and so skipped
 ```
 
 ![](environmental-crime-and-rescue_files/figure-html/fepnl-plot-1.png)

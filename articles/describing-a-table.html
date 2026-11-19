@@ -295,7 +295,7 @@ complete pairs each figure rests on.</p>
 <span><span class="co">#&gt;  b c      0.0151  100</span></span>
 <span></span>
 <span><span class="co"># Pearson instead of Spearman</span></span>
-<span><span class="fu"><a href="../reference/cortbl.html">cortbl</a></span><span class="op">(</span><span class="va">df</span>, meth <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cortbl.html">cortbl</a></span><span class="op">(</span><span class="va">df</span>, mthd <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Correlations (pearson): 3 pairs</span></span>
 <span><span class="co">#&gt;  x y correlation nprs</span></span>
 <span><span class="co">#&gt;  a b   -0.000994  100</span></span>
@@ -353,10 +353,10 @@ and the relationships worth a closer look.</p>
 <span></span>
 <span><span class="co"># The curved pair is ranked correctly by Spearman and understated by</span></span>
 <span><span class="co"># Pearson, which is why Spearman is the default.</span></span>
-<span><span class="va">tc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topcors.html">topcors</a></span><span class="op">(</span><span class="va">df</span>, meth <span class="op">=</span> <span class="st">"spearman"</span><span class="op">)</span></span>
+<span><span class="va">tc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topcors.html">topcors</a></span><span class="op">(</span><span class="va">df</span>, mthd <span class="op">=</span> <span class="st">"spearman"</span><span class="op">)</span></span>
 <span><span class="va">tc</span><span class="op">[</span><span class="va">tc</span><span class="op">$</span><span class="va">x</span> <span class="op">==</span> <span class="st">"a"</span> <span class="op">&amp;</span> <span class="va">tc</span><span class="op">$</span><span class="va">y</span> <span class="op">==</span> <span class="st">"d"</span>, <span class="st">"correlation"</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="va">tp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topcors.html">topcors</a></span><span class="op">(</span><span class="va">df</span>, meth <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
+<span><span class="va">tp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/topcors.html">topcors</a></span><span class="op">(</span><span class="va">df</span>, mthd <span class="op">=</span> <span class="st">"pearson"</span><span class="op">)</span></span>
 <span><span class="va">tp</span><span class="op">[</span><span class="va">tp</span><span class="op">$</span><span class="va">x</span> <span class="op">==</span> <span class="st">"a"</span> <span class="op">&amp;</span> <span class="va">tp</span><span class="op">$</span><span class="va">y</span> <span class="op">==</span> <span class="st">"d"</span>, <span class="st">"correlation"</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [1] 0.8496382</span></span>
 <span></span>

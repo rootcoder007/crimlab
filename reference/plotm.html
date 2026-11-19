@@ -175,7 +175,7 @@ colour alone.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'didfe'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span>, type <span class="op">=</span> <span class="st">"dots"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'evtst'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
@@ -188,6 +188,9 @@ colour alone.</p>
 <span></span>
 <span><span class="co"># S3 method for class 'sdidx'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'wcbx'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span>, type <span class="op">=</span> <span class="st">"hist"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'trndrr'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
@@ -205,7 +208,7 @@ colour alone.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'yoypx'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span>, what <span class="op">=</span> <span class="st">"pctchg"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'cumrsk'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, main <span class="op">=</span> <span class="cn">NULL</span>, col <span class="op">=</span> <span class="cn">NULL</span>, pal <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
@@ -340,6 +343,18 @@ colour alone.</p>
 <dd><p><code>NULL</code> (the session palette, see <code><a href="blpal.html">plotopt()</a></code>) or a palette
 name for <code><a href="blpal.html">blpal()</a></code>.</p></dd>
 
+
+<dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
+<dd><p>For <code>didfe</code> with its leave-one-out estimates: <code>"dots"</code> (each
+estimate with its interval) or <code>"hist"</code> (their histogram, with the
+estimate from every unit and a summary). For <code>wcbx(mthd = "perm")</code>:
+<code>"hist"</code> or <code>"density"</code>.</p></dd>
+
+
+<dt id="arg-what">what<a class="anchor" aria-label="anchor" href="#arg-what"></a></dt>
+<dd><p>For <code>yoypx</code>: <code>"pctchg"</code> (the percent change with its
+interval) or <code>"value"</code> (the values themselves over the periods).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -358,10 +373,18 @@ comparisons and leave-one-out estimates when computed), <code>smdbal</code>
 (covariate balance), <code>jmono</code> (rates by judge), <code>relchk</code> (the readings
 of a table against the claim) and <code>dissix</code> (segregation indices).</p></li>
 <li><p>Effects by time since adoption: <code>evtst</code> and <code>stgdid</code>, before adoption
-in open circles and after in filled ones.</p></li>
+in open circles and after in filled ones; <code>pal = "diverging"</code> draws
+them blue before and red after.</p></li>
+<li><p>The power of a design: <code>wcbx(mthd = "power")</code>, the power at each
+effect tried, with the power asked for and the minimum detectable
+effect marked. The permutations of <code>wcbx(mthd = "perm")</code>: the
+statistics of the draws, one panel per outcome, with the observed one
+in red and its p-value in the title.</p></li>
 <li><p>Paths over time: <code>synthc</code> and <code>sdidx</code> (treated against its synthetic
-comparison), <code>trndrr</code> (series and fitted trend), <code>stkflw</code> (population,
-person-days, average daily population and length of stay), <code>dktflw</code>
+comparison, as plain lines with a dotted line at the adoption;
+<code>type = "o"</code> adds a point mark on every period), <code>trndrr</code> (series and
+fitted trend), <code>stkflw</code> (population, person-days, average daily
+population and length of stay), <code>dktflw</code>
 (clearance rate and pending cases), <code>jpipe</code>, <code>hsper</code>, <code>yoypx</code> (percent
 change with its interval), <code>cumrsk</code>, <code>agemix</code> and <code>apcie</code>.</p></li>
 <li><p>Curves: <code>kmrec</code> and <code>lftab</code> (survival), <code>lnroc</code> (lineup ROC curves),
@@ -401,20 +424,25 @@ score).</p></li>
 <span class="r-plt img"><img src="plotm-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="didfe.html">didfe</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, <span class="va">d</span><span class="op">$</span><span class="va">bylaw</span>, bacon <span class="op">=</span> <span class="cn">TRUE</span>, loo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plotm-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="didfe.html">didfe</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, <span class="va">d</span><span class="op">$</span><span class="va">bylaw</span>, loo <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"hist"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plotm-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="wcbx.html">wcbx</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, <span class="va">d</span><span class="op">$</span><span class="va">bylaw</span>, mthd <span class="op">=</span> <span class="st">"perm"</span>, reps <span class="op">=</span> <span class="fl">99</span>,</span></span>
+<span class="r-in"><span>          seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plotm-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">one</span> <span class="op">&lt;-</span> <span class="va">d</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">town</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"I"</span>, <span class="st">"J"</span>, <span class="st">"K"</span>, <span class="st">"L"</span><span class="op">)</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="synthc.html">synthc</a></span><span class="op">(</span><span class="va">one</span><span class="op">$</span><span class="va">rate</span>, <span class="va">one</span><span class="op">$</span><span class="va">town</span>, <span class="va">one</span><span class="op">$</span><span class="va">year</span>, <span class="va">one</span><span class="op">$</span><span class="va">first</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plotm-3.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plotm-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="grprr.html">grprr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">120</span>, b <span class="op">=</span> <span class="fl">95</span>, c <span class="op">=</span> <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">6e4</span>, b <span class="op">=</span> <span class="fl">2.1e4</span>, c <span class="op">=</span> <span class="fl">1.5e4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plotm-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plotm-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="kmrec.html">kmrec</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">20</span>, <span class="fl">24</span><span class="op">)</span>, event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plotm-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plotm-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="trnmat.html">trnmat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"N"</span>, <span class="st">"N"</span>, <span class="st">"E"</span>, <span class="st">"N"</span>, <span class="st">"W"</span>, <span class="st">"W"</span>, <span class="st">"E"</span>, <span class="st">"E"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>, time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plotm-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plotm-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="cconc.html">cconc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">2</span><span class="op">)</span>, nsim <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="plotm-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="plotm-9.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

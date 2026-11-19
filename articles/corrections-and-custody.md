@@ -417,7 +417,7 @@ of it.
 [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)
 classifies each placement and gives the share that meets the rules,
 overall and by group (a year, a region), with three denominators that
-answer different questions (Sprott and Doob 2021):
+answer different questions:
 
 ``` r
 
@@ -439,4 +439,138 @@ mndla(d$days, d$id, d$yr)$tab
 mndla(c(5, 20, 30), hours = c(1, 1.5, 3), miss = c(100, 100, 40))$tab
 #>   group   den n k     share         lo        hi sol tor
 #> 1   all stays 3 2 0.6666667 0.09429932 0.9915962   1   1
+```
+
+### Was the review held, and in time?
+
+[`rvwtim()`](https://rootcoder007.github.io/crimlab/reference/rvwtim.md):
+A stay in a restrictive unit is to be reviewed by a set day.
+[`rvwtim()`](https://rootcoder007.github.io/crimlab/reference/rvwtim.md)
+takes the length of each stay and the day of its first review, and gives
+how many stays of each length were never reviewed, how many of those
+past the day a review was due had none, and how long the reviews that
+were held took. Sprott, Doob and Iftene (2021, Tables 2 and 15) asked
+this of the reviews by Independent External Decision Makers of stays in
+Canada’s Structured Intervention Units; the question is the same for any
+review a rule sets a day for (a bail review, a segregation review, a
+hearing).
+
+``` r
+
+days <- c(12, 40, 75, 90, 130, 150, 64, 20)
+first <- c(NA, 31, 48, NA, 61, NA, 33, NA)
+rvwtim(days, first, due = 60, cuts = c(60, 120))
+#> $cov
+#>   group           band n rev never     share          lo        hi
+#> 1   all       up to 60 3   1     2 0.6666667 0.094299324 0.9915962
+#> 2   all over 60 to 120 3   2     1 0.3333333 0.008403759 0.9057007
+#> 3   all       over 120 2   1     1 0.5000000 0.012579117 0.9874209
+#> 
+#> $sum
+#>   group n rev past pastnever share         lo        hi late  med
+#> 1   all 8   4    5         2   0.4 0.05274495 0.8533672    1 40.5
+#> 
+#> $due
+#> [1] 60
+#> 
+#> $level
+#> [1] 0.95
+```
+
+### Days on which an entitlement was missed
+
+[`entcmp()`](https://rootcoder007.github.io/crimlab/reference/entcmp.md):
+The law may give a person held in a restrictive unit something every
+day: hours out of the cell, time with other people.
+[`entcmp()`](https://rootcoder007.github.io/crimlab/reference/entcmp.md)
+takes, for each stay, the percentage of its days on which that was
+missed, and gives the stays by how often it was missed, the share that
+missed it every day, and the share of all days missed. With the hours
+received on the days it was missed, it shows how far short those days
+fell; with the percentage of days the person refused, how many stays
+missed more days than refusal accounts for. These are the tables of
+Sprott and Doob (2021, Tables 6, 7, 14, 17 and 21) on the four hours out
+of cell and the two hours of human contact in Canada’s Structured
+Intervention Units.
+
+``` r
+
+miss <- c(100, 100, 80, 45, 10, 0, 100, 60)
+entcmp(miss, days = c(20, 35, 16, 40, 18, 5, 62, 30),
+       hours = c(0.4, 1.5, 2.2, 3, 3.5, NA, 0.8, 1),
+       ref = c(10, 100, 5, 0, 0, 0, 30, 60))
+#> $tab
+#>   group                 band n share
+#> 1   all                    0 1 0.125
+#> 2   all         over 0 to 20 1 0.125
+#> 3   all        over 20 to 50 1 0.125
+#> 4   all over 50 to under 100 2 0.250
+#> 5   all                  100 3 0.375
+#> 
+#> $sum
+#>   group n none all share         lo        hi half    dayshr
+#> 1   all 8    1   3 0.375 0.08523341 0.7551368    5 0.7415929
+#> 
+#> $hrs
+#>            band n     share
+#> 1     up to 0.5 1 0.1428571
+#> 2 over 0.5 to 1 2 0.2857143
+#> 3   over 1 to 2 1 0.1428571
+#> 4   over 2 to 3 2 0.2857143
+#> 5        over 3 1 0.1428571
+#> 
+#> $ref
+#>   group n most net
+#> 1   all 8    2   5
+#> 
+#> $level
+#> [1] 0.95
+```
+
+### Do decision makers decide alike?
+
+[`dmvar()`](https://rootcoder007.github.io/crimlab/reference/dmvar.md):
+When cases are shared among several decision makers (reviewers, judges,
+panels), the share of their decisions that go one way should differ by
+no more than chance if the cases are alike.
+[`dmvar()`](https://rootcoder007.github.io/crimlab/reference/dmvar.md)
+gives each decision maker’s rate with its exact interval and the share
+of all such decisions that are theirs, the chi-square test that the
+rates are equal, the same test without the decision makers who decided
+few cases, and the test with each decision maker left out in turn, which
+shows whether one of them makes the difference. Sprott, Doob and Iftene
+(2021, Tables 10 and 11) found the share of reviews that kept a person
+in a Structured Intervention Unit to run from 37.5% to over 75% across
+twelve decision makers, with and without the one who had decided fewest.
+
+``` r
+
+dm <- rep(c("a", "b", "c", "d"), c(30, 28, 25, 4))
+dec <- rep(c("remain", "remove", "remain", "remove", "remain", "remove",
+             "remain"), c(24, 6, 10, 18, 15, 10, 4))
+dmvar(dec, dm, out = "remain")
+#> $tab
+#>   dm  n  k      rate        lo        hi     share
+#> 1  a 30 24 0.8000000 0.6143335 0.9228645 0.4528302
+#> 2  b 28 10 0.3571429 0.1864067 0.5593497 0.1886792
+#> 3  c 25 15 0.6000000 0.3866535 0.7887452 0.2830189
+#> 4  d  4  4 1.0000000 0.3976354 1.0000000 0.0754717
+#> 
+#> $test
+#>         set m     stat df           p low
+#> 1       all 4 14.63426  3 0.002157435   2
+#> 2 n >= nmin 3 11.75893  2 0.002796286   0
+#> 
+#> $drop
+#>   dm      stat df            p
+#> 1  a  7.270408  2 0.0263785505
+#> 2  b  4.356395  2 0.1132454520
+#> 3  c 14.672556  2 0.0006514707
+#> 4  d 11.758926  2 0.0027962859
+#> 
+#> $out
+#> [1] "remain"
+#> 
+#> $level
+#> [1] 0.95
 ```

@@ -22,7 +22,10 @@ plotevgrid(x, ..., main = NULL, col = NULL, pal = NULL)
 
 - ...:
 
-  Passed to the base-graphics call that draws each panel.
+  Passed to the base-graphics call that draws each panel;
+  `style = "stata"` draws hollow points joined by a line with dashed
+  intervals, in place of open points before adoption and filled ones
+  after.
 
 - main:
 

@@ -54,14 +54,16 @@ distinguishable under the common forms of colour-vision deficiency.
 `"diverging"` has three anchors (blue `#2166AC`, grey `#8C8C8C`,
 orange-red `#D6604D`) and is used for changes and residuals;
 `"sequential"` has five blues from light to dark, and `"grey"` five
-greys from dark to light. With `n` given, `"okabe"` and `"grey"` repeat
-their colours and `"diverging"` and `"sequential"` are interpolated.
+greys, black first. With `n` given, `"okabe"` and `"grey"` repeat their
+colours and `"diverging"` and `"sequential"` are interpolated.
 
 The session options are kept in `options(crimlab.plot)`; the defaults
-are `palette = "okabe"`, `grid = TRUE`, `cex = 1`, `las = 1`,
-`bg = "white"` and `panel = "#EEF1F6"` (the fill of the plot region
-behind white grid lines; `NA` for none). Setting some options keeps the
-others; an unusable value set by hand with
+are `palette = "grey"`, `grid = FALSE`, `cex = 1`, `las = 1`,
+`bg = "white"` and `panel = NA` (the fill of the plot region; `NA` for
+none): black and grey on white, as a journal prints it. For colour,
+`plotopt(palette = "okabe")`; for a tinted panel behind white grid
+lines, `plotopt(grid = TRUE, panel = "#EEF1F6")`. Setting some options
+keeps the others; an unusable value set by hand with
 [`options()`](https://rdrr.io/r/base/options.html) falls back to its
 default.
 
@@ -82,7 +84,7 @@ figures and presentations that are friendly to colorblind people.
 blpal("okabe", 3)
 #> [1] "#0072B2" "#D55E00" "#009E73"
 old <- plotopt()
-plotopt(palette = "grey", grid = FALSE)
+plotopt(palette = "okabe", grid = TRUE)
 plotopt(palette = old$palette, grid = old$grid)
 plot(1:8, pch = 19, cex = 3, col = blpal())
 ```

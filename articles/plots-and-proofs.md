@@ -47,18 +47,33 @@ plot(didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE))
 
 ``` r
 
-one <- d[d$town %in% c("A", "I", "J", "K", "L"), ]
-plot(synthc(one$rate, one$town, one$year, one$first))
+plot(didfe(d$rate, d$town, d$year, d$bylaw, loo = TRUE), type = "hist")
 ```
 
 ![](plots-and-proofs_files/figure-html/plotm-3.png)
 
 ``` r
 
-plot(grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4)))
+plot(wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm", reps = 99,
+          seed = 1))
 ```
 
 ![](plots-and-proofs_files/figure-html/plotm-4.png)
+
+``` r
+
+one <- d[d$town %in% c("A", "I", "J", "K", "L"), ]
+plot(synthc(one$rate, one$town, one$year, one$first))
+```
+
+![](plots-and-proofs_files/figure-html/plotm-5.png)
+
+``` r
+
+plot(grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4)))
+```
+
+![](plots-and-proofs_files/figure-html/plotm-6.png)
 
 ``` r
 
@@ -66,7 +81,7 @@ plot(kmrec(c(3, 8, 8, 12, 20, 24), event = c(1, 1, 0, 1, 0, 1),
            grp = c("a", "a", "a", "b", "b", "b")))
 ```
 
-![](plots-and-proofs_files/figure-html/plotm-5.png)
+![](plots-and-proofs_files/figure-html/plotm-7.png)
 
 ``` r
 
@@ -74,7 +89,7 @@ plot(trnmat(c("N", "N", "E", "N", "W", "W", "E", "E"),
             c(1, 1, 1, 2, 2, 2, 3, 3), time = c(1, 2, 3, 1, 2, 3, 1, 2)))
 ```
 
-![](plots-and-proofs_files/figure-html/plotm-6.png)
+![](plots-and-proofs_files/figure-html/plotm-8.png)
 
 ``` r
 
@@ -82,7 +97,7 @@ set.seed(1)
 plot(cconc(rpois(200, 2), nsim = 0))
 ```
 
-![](plots-and-proofs_files/figure-html/plotm-7.png)
+![](plots-and-proofs_files/figure-html/plotm-9.png)
 
 ### Plot styling: palettes and session options
 
@@ -107,7 +122,7 @@ session.
 blpal("okabe", 3)
 #> [1] "#0072B2" "#D55E00" "#009E73"
 old <- plotopt()
-plotopt(palette = "grey", grid = FALSE)
+plotopt(palette = "okabe", grid = TRUE)
 plotopt(palette = old$palette, grid = old$grid)
 plot(1:8, pch = 19, cex = 3, col = blpal())
 ```
@@ -277,6 +292,26 @@ plotevgrid(list(
 
 ![](plots-and-proofs_files/figure-html/plotevgrid-1.png)
 
+### Outcome by adoption cohort
+
+[`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md):
+The mean outcome of each adoption cohort by time since its adoption,
+smoothed by a moving average and scaled to 1 in the period before
+adoption: a look, before any model, at whether the cohorts moved
+together before the policy. The period before adoption is shaded.
+
+``` r
+
+d <- expand.grid(year = 2012:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+d$first <- rep(c(2018, 2021, NA), each = 4)[i]
+d$rate <- 30 + i + 0.5 * (d$year - 2012) + sin(seq_len(156)) -
+  4 * (!is.na(d$first) & d$year >= d$first)
+plotcoh(d$rate, d$town, d$year, d$first, win = c(-4, 3), ma = 1)
+```
+
+![](plots-and-proofs_files/figure-html/plotcoh-1.png)
+
 ## Proofs
 
 ### Machine-checked proofs behind the package
@@ -313,13 +348,14 @@ computation.
 
 r <- hwpwr(0.5)
 r[, c("kind", "name", "scope", "watts", "joules", "how")]
-#>    kind        name  scope watts joules     how
-#> 1   cpu         CPU device    NA     NA unknown
-#> 2 total all devices device    NA     NA     sum
+#>    kind           name  scope watts joules     how
+#> 1   cpu            CPU device    NA     NA unknown
+#> 2   gpu card1 (1414:6) device    NA     NA unknown
+#> 3 total    all devices device    NA     NA     sum
 a <- hwpwr(0)
 x <- sum(sqrt(seq_len(1e6)))
 b <- hwpwr(since = a)
 b[b$kind == "total", c("joules", "why")]
-#>   joules              why
-#> 2     NA not counted: CPU
+#>   joules                              why
+#> 3     NA not counted: CPU; card1 (1414:6)
 ```

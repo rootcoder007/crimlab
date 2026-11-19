@@ -10,7 +10,7 @@ spread.
 ## Usage
 
 ``` r
-lodimp(x, lod, meth = "half")
+lodimp(x, lod, mthd = "half")
 ```
 
 ## Arguments
@@ -28,7 +28,7 @@ lodimp(x, lod, meth = "half")
   The limit of detection: one positive number, or one per value (each
   sample's own limit).
 
-- meth:
+- mthd:
 
   `"half"`, `"sqrt2"` or `"lod"`.
 

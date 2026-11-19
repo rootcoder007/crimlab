@@ -2,6 +2,84 @@
 
 ## crimlab 0.0.2
 
+- The argument that names a method is `mthd` (it was `meth`), and so is
+  the part of a result that records it: in
+  [`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md),
+  [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md),
+  [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md),
+  [`cortbl()`](https://rootcoder007.github.io/crimlab/reference/cortbl.md),
+  [`topcors()`](https://rootcoder007.github.io/crimlab/reference/topcors.md),
+  [`evfilt()`](https://rootcoder007.github.io/crimlab/reference/evfilt.md),
+  [`scboot()`](https://rootcoder007.github.io/crimlab/reference/scboot.md),
+  [`chomap()`](https://rootcoder007.github.io/crimlab/reference/chomap.md),
+  [`smmap()`](https://rootcoder007.github.io/crimlab/reference/smmap.md)
+  and
+  [`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md),
+  in R and in every other language. A call that names the old argument
+  is refused.
+
+- Plots are black and grey on a white ground with a black frame and a
+  bold title, as a journal prints them: the tinted panel and its grid
+  are no longer the default. `plotopt(palette = "okabe")` brings the
+  colours back, and `plotopt(grid = TRUE, panel = "#EEF1F6")` the panel
+  and grid. The `"grey"` palette starts at black and has no grey too
+  pale to read on white.
+
+- Intervals are drawn with a cap at each end.
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  and
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md)
+  with `pal = "diverging"` is blue before adoption and red after.
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
+  power curve of `wcbx(mthd = "power")`.
+  `plotevgrid(x, style = "stata")`, and
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  and
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md)
+  with it, draws hollow points joined by a line with dashed intervals.
+  The Goodman-Bacon panel of `plot(didfe())` names the two-way estimate
+  its line marks.
+
+- New functions for the review of restrictive confinement, after the
+  analyses of Sprott and Doob (2021) and of Sprott, Doob and
+  Iftene (2021) of Canada’s Structured Intervention Units, in R and in
+  every other language.
+  [`rvwtim()`](https://rootcoder007.github.io/crimlab/reference/rvwtim.md):
+  whether a review due by a set day was held, the stays past that day
+  never reviewed, and how long the reviews held took.
+  [`entcmp()`](https://rootcoder007.github.io/crimlab/reference/entcmp.md):
+  the days of a stay on which an entitlement (hours out of cell, human
+  contact) was missed, by how often, with the hours received on those
+  days and the part refusals account for.
+  [`dmvar()`](https://rootcoder007.github.io/crimlab/reference/dmvar.md):
+  whether decision makers decide alike, with each one’s rate, the
+  chi-square test, and the test with the small ones and with each one
+  left out.
+
+- New plots. [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
+  `wcbx(mthd = "perm")` draws the permuted statistics of each outcome
+  with the observed one, as a histogram or a density (the result now
+  keeps them, as `null`, in every language).
+  `plot(didfe(loo = TRUE), type = "hist")` draws the leave-one-out
+  estimates as a histogram with a summary.
+  [`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md)
+  draws the mean outcome of each adoption cohort around its adoption,
+  and returns the points in every language.
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  with `what = "value"` draws the values over the periods.
+
+- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
+  [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
+  and
+  [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md)
+  draws the treated path solid and its comparison dashed, as plain
+  lines, with a dotted line where the policy was adopted.
+  `plot(x, type = "o")` puts a point mark on every period, as before.
+
 - Every package carries the title of the R package, “Statistical Toolkit
   for Criminology and Sociolegal Research”: the Python, JavaScript,
   Rust, Java and Go packages, the command’s manual page, the C header

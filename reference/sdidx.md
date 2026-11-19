@@ -48,7 +48,7 @@ sdidx(y, unit, time, first, reps = 200, seed = NULL, level = 0.95)
 ## Value
 
 An object of class `sdidx`, a list: `est` (`est`, `se`, `lo`, `hi`);
-`meth` (`"placebo"` or `"jackknife"`); `unitw` (`unit`, `w`); `timew`
+`mthd` (`"placebo"` or `"jackknife"`); `unitw` (`unit`, `w`); `timew`
 (`time`, `w`); `path` (`time`, `treated`, the treated mean, and `synth`,
 the weighted comparison units); `level`.
 

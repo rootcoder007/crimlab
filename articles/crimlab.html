@@ -570,8 +570,9 @@ curve of incidents over places:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/cconc.html">cconc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="fl">200</span>, mu <span class="op">=</span> <span class="fl">2</span>, size <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span>, nsim <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="crimlab_files/figure-html/unnamed-chunk-21-2.png" class="r-plt" alt="" width="576"></p>
-<p><code><a href="../reference/blpal.html">plotopt()</a></code> sets the look for the session (for example
-<code>plotopt(palette = "grey")</code>), and each plot takes
+<p>Plots are black and grey on white. <code><a href="../reference/blpal.html">plotopt()</a></code> sets the
+look for the session (for example
+<code>plotopt(palette = "okabe")</code> for colour), and each plot takes
 <code>main</code>, <code>col</code> and <code>pal</code> for one change.
 What this does not license: a plot shows the estimate and its interval
 as computed; a narrow interval drawn on a clean axis is no more credible

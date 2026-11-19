@@ -14,7 +14,7 @@ chomap(
   polys,
   v,
   brk = 5,
-  meth = "quantile",
+  mthd = "quantile",
   ...,
   main = NULL,
   col = NULL,
@@ -39,7 +39,7 @@ chomap(
   The number of classes (a whole number from 1 to 9), or the breaks
   themselves (increasing numbers covering the finite values of `v`).
 
-- meth:
+- mthd:
 
   How a number of classes is cut: `"quantile"` or `"equal"`.
 
@@ -70,10 +70,10 @@ unshaded) and `col` (its fill, `NA` when unshaded); `breaks`; and
 
 ## Details
 
-With `brk` a number of classes, `meth = "quantile"` puts the breaks at
+With `brk` a number of classes, `mthd = "quantile"` puts the breaks at
 R's type-7 quantiles of the finite values (so the classes hold about
 equal counts; breaks that repeat are merged, which leaves fewer classes)
-and `meth = "equal"` cuts their range into classes of equal width, as
+and `mthd = "equal"` cuts their range into classes of equal width, as
 `seq(min, max, length.out = brk + 1)`. A value falls in the class whose
 interval holds it, intervals closed on the left and the last closed on
 both sides, as

@@ -17,7 +17,7 @@ stgdid(
   time,
   first = NULL,
   trt = NULL,
-  meth = "csa",
+  mthd = "csa",
   ctrl = "notyet",
   adj = NULL,
   est = "dr",
@@ -52,9 +52,9 @@ stgdid(
 - trt:
 
   The treatment of each row, 0 or 1, or `NULL` with `first`. For
-  `meth = "csa"` and `"wool"` it must stay on once on.
+  `mthd = "csa"` and `"wool"` it must stay on once on.
 
-- meth:
+- mthd:
 
   `"csa"`, `"wool"` or `"dcdh"`.
 
@@ -98,14 +98,14 @@ An object of class `stgdid`, a list: `att`, the group-time effects
 cohort's size; `NULL` for `"dcdh"`); `overall` (`term`, `est`, `se`,
 `lo`, `hi`, and for `"dcdh"` the rows `"effect"` and `"placebo"` with
 `n`, the switchers); `dynamic`, by event time (`evtm`, `est`, `se`,
-`lo`, `hi`; `NULL` for `"dcdh"`); `meth`; `ctrl`; `reps`; and `level`.
+`lo`, `hi`; `NULL` for `"dcdh"`); `mthd`; `ctrl`; `reps`; and `level`.
 
 ## Details
 
 Let cohort `g` be the units first treated in period `g`, and the
 comparison units those never treated (`ctrl = "never"`) or not yet
 treated by period `max(t, b)` (`"notyet"`, outside cohort `g`). For
-`meth = "csa"`, `ATT(g, t)` is the cohort's mean change in the outcome
+`mthd = "csa"`, `ATT(g, t)` is the cohort's mean change in the outcome
 from the base period `b` less the comparison units', with `b = g - 1`
 from adoption on and `b = t - 1` before (the `"varying"` base of the
 'did' package), so an effect before adoption is a placebo over one
@@ -119,7 +119,7 @@ cohort; `"ipw"` without `m`; `"reg"` without the weights. Comparison
 units with `p` of 0.995 or more are left out, as 'DRDID' does. Use
 covariates fixed before treatment.
 
-For `meth = "wool"`, the regression of the outcome on unit and period
+For `mthd = "wool"`, the regression of the outcome on unit and period
 effects and one indicator for every treated cohort-period cell gives
 each `ATT(g, t)` after adoption as a coefficient (without covariates
 this is the imputation estimator); without units never treated, the
@@ -131,7 +131,7 @@ time `e` averages `ATT(g, g + e)` over the cohorts observed at `e`,
 weighted by cohort size. Event time counts observed periods. Units
 treated from the first period are left out.
 
-For `meth = "dcdh"`, in each period the units that switch into treatment
+For `mthd = "dcdh"`, in each period the units that switch into treatment
 are compared with the units untreated in both periods, and the units
 that switch out with the units treated in both:
 `DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S` over
@@ -191,7 +191,7 @@ s$dynamic
 #> 11    5 -3.92600168 0.1549628 -4.2297231 -3.6222803
 # a by-law some towns repeal
 d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
-stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
+stgdid(d$rate, d$town, d$year, trt = d$law, mthd = "dcdh", reps = 49,
        seed = 1)$overall
 #>      term        est        se         lo         hi n
 #> 1  effect -3.6698465 0.4276516 -4.5080282 -2.8316647 9

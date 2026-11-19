@@ -14,7 +14,7 @@ smmap(
   polys,
   v,
   brk = 5,
-  meth = "quantile",
+  mthd = "quantile",
   ...,
   main = NULL,
   col = NULL,
@@ -40,7 +40,7 @@ smmap(
   The number of classes (a whole number from 1 to 9), or the breaks
   themselves (increasing numbers covering the finite values of `v`).
 
-- meth:
+- mthd:
 
   How a number of classes is cut: `"quantile"` or `"equal"`.
 

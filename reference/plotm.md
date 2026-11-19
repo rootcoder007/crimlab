@@ -97,7 +97,7 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 # S3 method for class 'didfe'
-plot(x, ..., main = NULL, col = NULL, pal = NULL)
+plot(x, ..., main = NULL, col = NULL, pal = NULL, type = "dots")
 
 # S3 method for class 'evtst'
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
@@ -110,6 +110,9 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 # S3 method for class 'sdidx'
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'wcbx'
+plot(x, ..., main = NULL, col = NULL, pal = NULL, type = "hist")
 
 # S3 method for class 'trndrr'
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
@@ -127,7 +130,7 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 # S3 method for class 'yoypx'
-plot(x, ..., main = NULL, col = NULL, pal = NULL)
+plot(x, ..., main = NULL, col = NULL, pal = NULL, what = "pctchg")
 
 # S3 method for class 'cumrsk'
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
@@ -263,6 +266,18 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
   or a palette name for
   [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md).
 
+- type:
+
+  For `didfe` with its leave-one-out estimates: `"dots"` (each estimate
+  with its interval) or `"hist"` (their histogram, with the estimate
+  from every unit and a summary). For `wcbx(mthd = "perm")`: `"hist"` or
+  `"density"`.
+
+- what:
+
+  For `yoypx`: `"pctchg"` (the percent change with its interval) or
+  `"value"` (the values themselves over the periods).
+
 ## Value
 
 Invisibly, the data drawn: a data frame, or for a method of several
@@ -283,13 +298,22 @@ What each method draws:
   of a table against the claim) and `dissix` (segregation indices).
 
 - Effects by time since adoption: `evtst` and `stgdid`, before adoption
-  in open circles and after in filled ones.
+  in open circles and after in filled ones; `pal = "diverging"` draws
+  them blue before and red after.
+
+- The power of a design: `wcbx(mthd = "power")`, the power at each
+  effect tried, with the power asked for and the minimum detectable
+  effect marked. The permutations of `wcbx(mthd = "perm")`: the
+  statistics of the draws, one panel per outcome, with the observed one
+  in red and its p-value in the title.
 
 - Paths over time: `synthc` and `sdidx` (treated against its synthetic
-  comparison), `trndrr` (series and fitted trend), `stkflw` (population,
-  person-days, average daily population and length of stay), `dktflw`
-  (clearance rate and pending cases), `jpipe`, `hsper`, `yoypx` (percent
-  change with its interval), `cumrsk`, `agemix` and `apcie`.
+  comparison, as plain lines with a dotted line at the adoption;
+  `type = "o"` adds a point mark on every period), `trndrr` (series and
+  fitted trend), `stkflw` (population, person-days, average daily
+  population and length of stay), `dktflw` (clearance rate and pending
+  cases), `jpipe`, `hsper`, `yoypx` (percent change with its interval),
+  `cumrsk`, `agemix` and `apcie`.
 
 - Curves: `kmrec` and `lftab` (survival), `lnroc` (lineup ROC curves),
   `lnkpr` (the ROC of the linkage model), `cconc` (Lorenz curve),
@@ -330,6 +354,11 @@ d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * d$bylaw + sin(seq_len(120))
 plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
 
 plot(didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE))
+
+plot(didfe(d$rate, d$town, d$year, d$bylaw, loo = TRUE), type = "hist")
+
+plot(wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm", reps = 99,
+          seed = 1))
 
 one <- d[d$town %in% c("A", "I", "J", "K", "L"), ]
 plot(synthc(one$rate, one$town, one$year, one$first))

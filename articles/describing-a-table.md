@@ -209,7 +209,7 @@ cortbl(df)
 #>  b c      0.0151  100
 
 # Pearson instead of Spearman
-cortbl(df, meth = "pearson")
+cortbl(df, mthd = "pearson")
 #> Correlations (pearson): 3 pairs
 #>  x y correlation nprs
 #>  a b   -0.000994  100
@@ -270,10 +270,10 @@ topcors(df)
 
 # The curved pair is ranked correctly by Spearman and understated by
 # Pearson, which is why Spearman is the default.
-tc <- topcors(df, meth = "spearman")
+tc <- topcors(df, mthd = "spearman")
 tc[tc$x == "a" & tc$y == "d", "correlation"]
 #> [1] 1
-tp <- topcors(df, meth = "pearson")
+tp <- topcors(df, mthd = "pearson")
 tp[tp$x == "a" & tp$y == "d", "correlation"]
 #> [1] 0.8496382
 

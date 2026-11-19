@@ -18,7 +18,7 @@ wcbx(
   trt = NULL,
   adj = NULL,
   clus = NULL,
-  meth = "wild",
+  mthd = "wild",
   reps = NULL,
   wtype = "rad",
   ties = "count",
@@ -37,7 +37,7 @@ wcbx(
 
 - y:
 
-  The outcome: numbers, one per row; for `meth = "perm"` also a matrix
+  The outcome: numbers, one per row; for `mthd = "perm"` also a matrix
   or data frame of several outcomes, one column each.
 
 - unit:
@@ -65,7 +65,7 @@ wcbx(
 
   `NULL` (cluster by unit) or the cluster of each row.
 
-- meth:
+- mthd:
 
   `"wild"`, `"perm"` or `"power"`.
 
@@ -123,12 +123,17 @@ wcbx(
 An object of class `wcbx`, a list: `res`, for `"wild"` one row (`est`,
 `stat`, `p`, `lo`, `hi`), for `"perm"` one row per outcome (`outcome`,
 `est`, `stat`, `p`, `pstep`), for `"power"` one row per effect (`eff`,
-`power`); `meth`; `ncl`; `draws`; `enum` (`TRUE` when every draw was
-enumerated); `mde` and `size` (`"power"`, else `NA`); and `level`.
+`power`); `mthd`; `ncl`; `draws`; `enum` (`TRUE` when every draw was
+enumerated); `mde` and `size` (`"power"`, else `NA`); `level`; and
+`null`, for `"perm"` the statistic of every draw, a matrix with one
+column per outcome (else `NULL`).
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
+permuted statistics with the observed one (`"perm"`) and the power curve
+(`"power"`).
 
 ## Details
 
-`meth = "wild"` is the restricted wild cluster bootstrap-t (WCR) of
+`mthd = "wild"` is the restricted wild cluster bootstrap-t (WCR) of
 Cameron, Gelbach and Miller (2008): the model is fitted with the null
 `b = b0` imposed, each bootstrap outcome is that fit plus its residuals
 multiplied cluster by cluster by a random sign (`wtype = "rad"`) or one
@@ -144,7 +149,7 @@ same draws; with Rademacher weights the smallest attainable p-value is
 `2 / 2^G`, so with four clusters nothing is rejected at 5% and the
 interval is the whole line: the honest answer.
 
-`meth = "perm"` shuffles the adoption period of each cluster (all its
+`mthd = "perm"` shuffles the adoption period of each cluster (all its
 units adopt together; never is a period too) among the clusters, keeping
 the number adopting at each date, and recomputes the t statistic
 (`stat = "t"`) or the estimate (`"est"`). When the distinct assignments
@@ -156,7 +161,7 @@ holds the Westfall-Young stepdown p-values of
 [`wystep()`](https://rootcoder007.github.io/crimlab/reference/wystep.md)
 over the same assignments.
 
-`meth = "power"` draws `ntrt` clusters, gives each an adoption period
+`mthd = "power"` draws `ntrt` clusters, gives each an adoption period
 drawn from `adopt`, adds each effect of `eff` to their outcomes from
 adoption on, and counts the CR1 t tests that reject at `alpha`; on real
 untreated data the serial correlation and clustering are carried, as
@@ -193,7 +198,7 @@ wcbx(d$rate, d$town, d$year, d$bylaw)
 #>        est      stat         p        lo        hi
 #>  -1.987082 -9.207341 0.0078125 -2.524054 -1.431829
 # every assignment of the by-law to three of the eight towns
-wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm")$res
 #>   outcome       est      stat          p      pstep
 #> 1      y1 -1.987082 -9.207341 0.01785714 0.01785714
 # the simulated panel of polex(), its four regions the clusters

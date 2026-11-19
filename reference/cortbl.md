@@ -8,7 +8,7 @@ on.
 ## Usage
 
 ``` r
-cortbl(data, meth = c("spearman", "pearson"), minprs = 3L)
+cortbl(data, mthd = c("spearman", "pearson"), minprs = 3L)
 
 # S3 method for class 'cortbl'
 print(x, ...)
@@ -20,7 +20,7 @@ print(x, ...)
 
   A data frame; its numeric columns are correlated in pairs.
 
-- meth:
+- mthd:
 
   `"spearman"` (default) or `"pearson"`.
 
@@ -59,7 +59,7 @@ listed in column order
 ([`utils::combn()`](https://rdrr.io/r/utils/combn.html)).
 
 Errors: `data` not a data frame; fewer than two numeric columns;
-`minprs` not a whole number of at least 2; an invalid `meth`.
+`minprs` not a whole number of at least 2; an invalid `mthd`.
 
 ## See also
 
@@ -81,7 +81,7 @@ cortbl(df)
 #>  b c      0.0151  100
 
 # Pearson instead of Spearman
-cortbl(df, meth = "pearson")
+cortbl(df, mthd = "pearson")
 #> Correlations (pearson): 3 pairs
 #>  x y correlation nprs
 #>  a b   -0.000994  100

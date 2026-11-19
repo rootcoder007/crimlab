@@ -384,7 +384,7 @@ s$dynamic
 #> 11    5 -3.92600168 0.1549628 -4.2297231 -3.6222803
 # a by-law some towns repeal
 d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
-stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
+stgdid(d$rate, d$town, d$year, trt = d$law, mthd = "dcdh", reps = 49,
        seed = 1)$overall
 #>      term        est        se         lo         hi n
 #> 1  effect -3.6698465 0.4276516 -4.5080282 -2.8316647 9
@@ -503,7 +503,7 @@ wcbx(d$rate, d$town, d$year, d$bylaw)
 #>        est      stat         p        lo        hi
 #>  -1.987082 -9.207341 0.0078125 -2.524054 -1.431829
 # every assignment of the by-law to three of the eight towns
-wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm")$res
 #>   outcome       est      stat          p      pstep
 #> 1      y1 -1.987082 -9.207341 0.01785714 0.01785714
 # the simulated panel of polex(), its four regions the clusters

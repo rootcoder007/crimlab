@@ -9,7 +9,7 @@ closer look.
 ## Usage
 
 ``` r
-topcors(data, n = 10L, meth = c("spearman", "pearson"), minabs = 0)
+topcors(data, n = 10L, mthd = c("spearman", "pearson"), minabs = 0)
 
 # S3 method for class 'topcors'
 print(x, ...)
@@ -25,7 +25,7 @@ print(x, ...)
 
   Number of pairs to return, one positive whole number (default 10).
 
-- meth:
+- mthd:
 
   `"spearman"` (default) or `"pearson"`.
 
@@ -67,7 +67,7 @@ gives every pair, with the number of rows behind each.
 
 Errors: `data` not a data frame; fewer than two numeric columns; `n` not
 one positive whole number; `minabs` not one number in \\\[0, 1\]\\; an
-invalid `meth`.
+invalid `mthd`.
 
 ## See also
 
@@ -98,10 +98,10 @@ topcors(df)
 
 # The curved pair is ranked correctly by Spearman and understated by
 # Pearson, which is why Spearman is the default.
-tc <- topcors(df, meth = "spearman")
+tc <- topcors(df, mthd = "spearman")
 tc[tc$x == "a" & tc$y == "d", "correlation"]
 #> [1] 1
-tp <- topcors(df, meth = "pearson")
+tp <- topcors(df, mthd = "pearson")
 tp[tp$x == "a" & tp$y == "d", "correlation"]
 #> [1] 0.8496382
 

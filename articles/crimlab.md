@@ -581,11 +581,12 @@ plot(cconc(rnbinom(200, mu = 2, size = 0.4), nsim = 0))
 
 ![](crimlab_files/figure-html/unnamed-chunk-21-2.png)
 
+Plots are black and grey on white.
 [`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
-sets the look for the session (for example `plotopt(palette = "grey")`),
-and each plot takes `main`, `col` and `pal` for one change. What this
-does not license: a plot shows the estimate and its interval as
-computed; a narrow interval drawn on a clean axis is no more credible
+sets the look for the session (for example `plotopt(palette = "okabe")`
+for colour), and each plot takes `main`, `col` and `pal` for one change.
+What this does not license: a plot shows the estimate and its interval
+as computed; a narrow interval drawn on a clean axis is no more credible
 than the assumptions of the method that produced it.
 
 ## Published correctional tables: presets

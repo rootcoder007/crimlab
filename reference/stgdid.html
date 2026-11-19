@@ -93,7 +93,7 @@ cluster bootstrap.</p>
 <span>  <span class="va">time</span>,</span>
 <span>  first <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  meth <span class="op">=</span> <span class="st">"csa"</span>,</span>
+<span>  mthd <span class="op">=</span> <span class="st">"csa"</span>,</span>
 <span>  ctrl <span class="op">=</span> <span class="st">"notyet"</span>,</span>
 <span>  adj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  est <span class="op">=</span> <span class="st">"dr"</span>,</span>
@@ -129,10 +129,10 @@ within units; <code>NA</code>, 0 or <code>Inf</code> for never), or <code>NULL</
 
 <dt id="arg-trt">trt<a class="anchor" aria-label="anchor" href="#arg-trt"></a></dt>
 <dd><p>The treatment of each row, 0 or 1, or <code>NULL</code> with <code>first</code>.
-For <code>meth = "csa"</code> and <code>"wool"</code> it must stay on once on.</p></dd>
+For <code>mthd = "csa"</code> and <code>"wool"</code> it must stay on once on.</p></dd>
 
 
-<dt id="arg-meth">meth<a class="anchor" aria-label="anchor" href="#arg-meth"></a></dt>
+<dt id="arg-mthd">mthd<a class="anchor" aria-label="anchor" href="#arg-mthd"></a></dt>
 <dd><p><code>"csa"</code>, <code>"wool"</code> or <code>"dcdh"</code>.</p></dd>
 
 
@@ -176,7 +176,7 @@ effects (<code>cohort</code>, <code>period</code>, <code>evtm</code>, <code>est<
 the cohort's size; <code>NULL</code> for <code>"dcdh"</code>); <code>overall</code> (<code>term</code>, <code>est</code>,
 <code>se</code>, <code>lo</code>, <code>hi</code>, and for <code>"dcdh"</code> the rows <code>"effect"</code> and <code>"placebo"</code>
 with <code>n</code>, the switchers); <code>dynamic</code>, by event time (<code>evtm</code>, <code>est</code>,
-<code>se</code>, <code>lo</code>, <code>hi</code>; <code>NULL</code> for <code>"dcdh"</code>); <code>meth</code>; <code>ctrl</code>; <code>reps</code>; and
+<code>se</code>, <code>lo</code>, <code>hi</code>; <code>NULL</code> for <code>"dcdh"</code>); <code>mthd</code>; <code>ctrl</code>; <code>reps</code>; and
 <code>level</code>.</p>
     </div>
     <div class="section level2">
@@ -184,7 +184,7 @@ with <code>n</code>, the switchers); <code>dynamic</code>, by event time (<code>
     <p>Let cohort <code>g</code> be the units first treated in period <code>g</code>, and the
 comparison units those never treated (<code>ctrl = "never"</code>) or not yet
 treated by period <code>max(t, b)</code> (<code>"notyet"</code>, outside cohort <code>g</code>). For
-<code>meth = "csa"</code>, <code>ATT(g, t)</code> is the cohort's mean change in the outcome
+<code>mthd = "csa"</code>, <code>ATT(g, t)</code> is the cohort's mean change in the outcome
 from the base period <code>b</code> less the comparison units', with <code>b = g - 1</code>
 from adoption on and <code>b = t - 1</code> before (the <code>"varying"</code> base of the
 'did' package), so an effect before adoption is a placebo over one
@@ -196,7 +196,7 @@ the least-squares fit of the change among the comparison units and <code>w = p /
 cohort; <code>"ipw"</code> without <code>m</code>; <code>"reg"</code> without the weights. Comparison
 units with <code>p</code> of 0.995 or more are left out, as 'DRDID' does. Use
 covariates fixed before treatment.</p>
-<p>For <code>meth = "wool"</code>, the regression of the outcome on unit and period
+<p>For <code>mthd = "wool"</code>, the regression of the outcome on unit and period
 effects and one indicator for every treated cohort-period cell gives
 each <code>ATT(g, t)</code> after adoption as a coefficient (without covariates
 this is the imputation estimator); without units never treated, the
@@ -206,7 +206,7 @@ cohort size (the <code>"simple"</code> aggregation of 'did'); the effect at even
 time <code>e</code> averages <code>ATT(g, g + e)</code> over the cohorts observed at <code>e</code>,
 weighted by cohort size. Event time counts observed periods. Units
 treated from the first period are left out.</p>
-<p>For <code>meth = "dcdh"</code>, in each period the units that switch into
+<p>For <code>mthd = "dcdh"</code>, in each period the units that switch into
 treatment are compared with the units untreated in both periods, and
 the units that switch out with the units treated in both: <code>DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S</code> over the
 <code>N_S</code> switchers that have a comparison. The placebo runs the same
@@ -259,7 +259,7 @@ Economic Review</em>, 110(9), 2964-2996. <a href="https://doi.org/10.1257/aer.20
 <span class="r-out co"><span class="r-pr">#&gt;</span> 11    5 -3.92600168 0.1549628 -4.2297231 -3.6222803</span>
 <span class="r-in"><span><span class="co"># a by-law some towns repeal</span></span></span>
 <span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">law</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">on</span> <span class="op">&amp;</span> <span class="op">!</span><span class="op">(</span><span class="va">i</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> <span class="va">d</span><span class="op">$</span><span class="va">year</span> <span class="op">&gt;=</span> <span class="fl">2022</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">stgdid</span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, trt <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">law</span>, meth <span class="op">=</span> <span class="st">"dcdh"</span>, reps <span class="op">=</span> <span class="fl">49</span>,</span></span>
+<span class="r-in"><span><span class="fu">stgdid</span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, trt <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">law</span>, mthd <span class="op">=</span> <span class="st">"dcdh"</span>, reps <span class="op">=</span> <span class="fl">49</span>,</span></span>
 <span class="r-in"><span>       seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">overall</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      term        est        se         lo         hi n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  effect -3.6698465 0.4276516 -4.5080282 -2.8316647 9</span>

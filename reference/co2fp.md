@@ -14,7 +14,7 @@ measured.
 co2fp(
   expr,
   loc = NULL,
-  meth = c("auto", "rapl", "model"),
+  mthd = c("auto", "rapl", "model"),
   cpupwrw = NULL,
   usage = "process",
   loadcur = c("linear", "codecarbon"),
@@ -45,7 +45,7 @@ print(x, ...)
   It is a location code, alpha-3 code or name, a number in gCO2e/kWh, or
   `NULL` (the default) to detect it.
 
-- meth:
+- mthd:
 
   Character scalar: `"auto"` (the default; RAPL when readable, else the
   model), `"rapl"` (measured; an error when the counters are not
@@ -136,7 +136,7 @@ summary.
 
 ## Details
 
-**Measured** (`meth = "rapl"`): the CPU package energy counters (RAPL,
+**Measured** (`mthd = "rapl"`): the CPU package energy counters (RAPL,
 microjoules, read from `rapldir`) before and after, with wrap-around
 handled through `max_energy_range_uj`. This is what codecarbon does on
 Linux; the counters cover the CPU packages only, so memory is still
@@ -144,7 +144,7 @@ modelled. Available when
 [`raplok()`](https://rootcoder007.github.io/crimlab/reference/raplok.md)
 is `TRUE`.
 
-**Modelled** (`meth = "model"`): the Green Algorithms formula
+**Modelled** (`mthd = "model"`): the Green Algorithms formula
 (Lannelongue, Grealey and Inouye 2021), \$\$E = t \\(P\_{cpu}\\ u + M\\
 P\_{mem})\\ PUE\$\$ with \\t\\ the running time, \\P\_{cpu}\\ the CPU's
 thermal design power in watts, \\u\\ its utilisation, \\M\\ the memory
@@ -205,7 +205,7 @@ Every argument is checked, and the carbon intensity looked up, before
 Errors: an unknown `loc`; `pue` below 1 or not a single finite number;
 `cpupwrw` or `cores` not a single positive number (`cores` also whole);
 `memgb` or `mempwrwpergb` negative; `usage` other than `"process"`,
-`"machine"` or one number in \\\[0, 1\]\\; `meth = "rapl"` where the
+`"machine"` or one number in \\\[0, 1\]\\; `mthd = "rapl"` where the
 counters are not readable; a `devices` table without its columns or with
 a negative or infinite figure. An error inside `expr` propagates
 unchanged. Nothing is written and nothing is fetched.
@@ -235,20 +235,20 @@ Quantifying the carbon emissions of machine learning. arXiv:1910.09700.
 ``` r
 fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
-#> [1] 2.678431e-08
+#> [1] 2.684137e-08
 fp$co2eg
-#> [1] 2.436569e-06
+#> [1] 2.441759e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
 #> [1] "CPU power unknown: 85 W x 50% (codecarbon fallback)"
-#> [2] "memory charged: the machine's total 15.3 GB"        
+#> [2] "memory charged: the machine's total 15.6 GB"        
 print(fp)
 #> Computation footprint (modelled)
 #>   Time: 0.002 s wall, 0.002 s CPU; utilisation 0.25 (process) on 4 cores
-#>   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.17e-09)
+#>   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.23e-09)
 #>   CO2e: 2.44e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
-#>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.3 GB
+#>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB
 # wherever you are, offline: the location is detected and recorded
 co2fp(1 + 1, cpupwrw = 45, memgb = 8)$assumptions
 #> [1] "location WORLD via fallback, no location found in environment, time zone or locale"
@@ -271,22 +271,22 @@ fp2 <- co2fp(
   cpupwrw = 65,
   memgb = 16,
   pue = 1.67,
-  meth = "model"
+  mthd = "model"
 )
 fp2$enekwh
 #> $cpu
-#> [1] 3.015278e-08
+#> [1] 4.522917e-08
 #> 
 #> $memory
-#> [1] 5.529556e-09
+#> [1] 8.294333e-09
 #> 
 #> $total
-#> [1] 3.568233e-08
+#> [1] 5.35235e-08
 #> 
 fpeqv(fp2$co2eg)
 #> Footprint in everyday terms
-#>   Car travel: 6.117e-09 km
-#>   Tree uptake: 1.167e-09 tree-months
+#>   Car travel: 9.175e-09 km
+#>   Tree uptake: 1.751e-09 tree-months
 # a graphics card measured at 120 W on average (a simulated reading) and
 # a CPU row, which is not counted twice
 dev <- data.frame(
@@ -295,7 +295,7 @@ dev <- data.frame(
   how = c("simulated reading", "simulated reading")
 )
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
-             memgb = 16, meth = "model", devices = dev)
+             memgb = 16, mthd = "model", devices = dev)
 fp3$devices
 #>   kind  vendor      name               how   kwh counted
 #> 1  gpu example    card 0 simulated reading 1e-07    TRUE

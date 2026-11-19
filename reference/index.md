@@ -336,6 +336,7 @@ concentration and series over time.
   [`plot(`*`<stgdid>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<synthc>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<sdidx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<wcbx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<trndrr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<stkflw>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<dktflw>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
@@ -401,6 +402,8 @@ concentration and series over time.
   charts
 - [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
   : Event studies for several outcomes in one grid
+- [`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md)
+  : Outcome by adoption cohort
 
 ## Checks
 
@@ -527,10 +530,18 @@ models (zero-inflated Poisson and multivariate normal).
 ## Segregation and the Mandela Rules
 
 Placements that meet the Mandela Rules’ limits on solitary confinement,
-by group and denominator.
+by group and denominator; whether a review due by a set day was held;
+the days on which an entitlement was missed; and whether decision makers
+decide alike.
 
 - [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)
   : Segregation placements under the Mandela Rules
+- [`rvwtim()`](https://rootcoder007.github.io/crimlab/reference/rvwtim.md)
+  : Was the review held, and in time?
+- [`entcmp()`](https://rootcoder007.github.io/crimlab/reference/entcmp.md)
+  : Days on which an entitlement was missed
+- [`dmvar()`](https://rootcoder007.github.io/crimlab/reference/dmvar.md)
+  : Do decision makers decide alike?
 
 ## Custody and court flow
 
