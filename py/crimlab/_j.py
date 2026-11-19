@@ -7872,17 +7872,18 @@ def plotsvg(
 
     Runs the plot function named by ``plot`` (``plotlrnz``, ``plotgain``,
     ``plotcdfs``, ``plotrdg``, ``plotvln``, ``plothex``, ``plotfnl``,
-    ``plotcal``, ``plotmult``, ``plotbump``, ``plothrz``, ``plotevgrid`` or
-    ``plotcoh``) on ``args``, a dict of that function's own arguments, and
-    draws the rows it returns the way R draws them: a white page, a black
+    ``plotcal``, ``plotmult``, ``plotbump``, ``plothrz``, ``plotevgrid``,
+    ``plotcoh``, or ``evtst``, ``stgdid``, ``synthc``, ``sdidx``, whose
+    results R draws with ``plot()``) on ``args``, a dict of that function's
+    own arguments, and draws what it returns the way R draws it: a white page, a black
     box, a bold title, the ``palette`` of :func:`plotopt` (``"grey"`` by
     default; ``"okabe"`` for colours), a ``grid`` only when asked for.
     ``main``, ``xlab`` and ``ylab`` replace the title and the axis titles;
     ``width`` and ``height`` are the size in pixels (720 by 480).
 
     The result has the document as text in ``svg`` (write it to a file
-    ending in ``.svg``, or show it in a notebook) and the rows drawn in
-    ``data``.
+    ending in ``.svg``, or show it in a notebook) and what the function
+    returned in ``data``.
 
     Examples
     --------

@@ -3,7 +3,8 @@
 // plotsvg() for clab_jrun(): the plots of R/plotx.R drawn outside R. It
 // runs the plot function named by `plot` on `args` (that function's own
 // arguments, checked by it) and draws the rows it returns the way the R
-// function draws them, as one standalone SVG document: a white page, a
+// function draws them (for evtst, stgdid, synthc and sdidx: the result,
+// the way plot() of it draws it), as one standalone SVG document: a white page, a
 // black box, a bold title, the palette of plotopt() (grey by default),
 // no grid unless asked for. The result is the document (`svg`) and the
 // rows drawn (`data`). Coordinates are written by integer arithmetic and
@@ -902,6 +903,83 @@ inline bool bcoh(In s) {
   return true;
 }
 
+// plot() of evtst() and stgdid(): the effects by time since adoption.
+inline bool bevt(In s) {
+  const Val &e = get(s.d, "est").t == Val::OBJ ? get(s.d, "est") : get(s.d, "dynamic");
+  Pan p = evpan(s.f, get(s.d, "dynamic").t == Val::OBJ ? "Effect by time since adoption" : "Event study",
+                nv(e, "evtm"), nv(e, "est"), nv(e, "lo"), nv(e, "hi"));
+  p.ylab = "Effect, with its interval";
+  s.f.p.push_back(p);
+  return true;
+}
+
+// .ptwo(): the treated path and its comparison, both black in the grey
+// palette and told apart by the line type.
+inline ax::Cols two(const Fig &f) {
+  return f.palette == "grey" ? ax::Cols{"#000000", "#000000"} : cols(f, 2);
+}
+// .padopt(): halfway between the last period before the adoption and the
+// first after it (NA when there is none).
+inline double adopt(const std::vector<double> &t, double last) {
+  double nx = HUGE_VAL;
+  for (double v : t) {
+    if (v > last) nx = std::min(nx, v);
+  }
+  return std::isfinite(last) && std::isfinite(nx) ? (last + nx) / 2 : NA;
+}
+// Paths over the periods, one line type each, with a dotted line at the
+// adoption `v` and, with `zero`, a dashed line at 0.
+inline Pan paths(const char *main, const char *ylab, const std::vector<double> &t,
+                 const std::vector<std::vector<double>> &ys, const ax::Cols &lab, const ax::Cols &cl, double v,
+                 bool zero) {
+  Pan p = frame(main, "Period", ylab);
+  rng(t, p.x0, p.x1);
+  std::vector<double> all;
+  for (const std::vector<double> &y : ys) all.insert(all.end(), y.begin(), y.end());
+  if (zero) all.push_back(0);
+  rng(all, p.y0, p.y1);
+  const double wx = p.x1 - p.x0, wy = p.y1 - p.y0;
+  if (zero) p.it.push_back(ref(p.x0 - wx, 0, p.x1 + wx, 0, 2));
+  if (std::isfinite(v)) p.it.push_back(ref(v, p.y0 - wy, v, p.y1 + wy, 3));
+  for (std::size_t i = 0; i < ys.size(); ++i) {
+    const int lty = sat<int>(i) + 1;
+    p.it.push_back(line(t, ys[i], cl[i % cl.size()], lty, 2));
+    if (ys.size() > 1) p.key.push_back({lab[i], cl[i % cl.size()], lty, -1});
+  }
+  return p;
+}
+
+// plot() of synthc(): the treated unit and its synthetic control, and the
+// gap between them.
+inline bool bsyn(In s) {
+  const Val &pa = get(s.d, "path");
+  const std::vector<double> t = nv(pa, "time");
+  // the last period before the first adoption among the units
+  const double f0 = lo(nv(s.a, "first"));
+  double last = -HUGE_VAL;
+  for (double e : t) {
+    if (e < f0) last = std::max(last, e);
+  }
+  const double v = adopt(t, last);
+  const ax::Cols cl = two(s.f);
+  const Val &u = get(s.d, "unit");
+  const std::string un = u.t == Val::STR ? u.s : u.t == Val::ARR && u.a.size() == 1 ? ax::vlab(u.a[0]) : "";
+  s.f.p.push_back(paths(("Synthetic control: " + un).c_str(), "Outcome", t, {nv(pa, "treated"), nv(pa, "synth")},
+                        {"Treated", "Synthetic"}, cl, v, false));
+  s.f.p.push_back(paths("Treated minus synthetic", "Gap", t, {nv(pa, "gap")}, {"gap"}, cl, v, true));
+  return true;
+}
+
+// plot() of sdidx(): the treated path and the weighted comparison.
+inline bool bsdid(In s) {
+  const Val &pa = get(s.d, "path");
+  const std::vector<double> t = nv(pa, "time");
+  s.f.p.push_back(paths("Synthetic difference in differences", "Outcome", t, {nv(pa, "treated"), nv(pa, "synth")},
+                        {"Treated", "Weighted comparison"}, two(s.f), adopt(t, hi(nv(get(s.d, "timew"), "time"))),
+                        false));
+  return true;
+}
+
 // The plots: the function that makes the rows and the one that draws them.
 struct Plot {
   const char *name;
@@ -913,7 +991,8 @@ const Plot plots[] = {
     {"plotrdg", plotrdg, brdg},    {"plotvln", plotvln, bvln},    {"plothex", plothex, bhex},
     {"plotfnl", plotfnl, bfnl},    {"plotcal", plotcal, bcal},    {"plotmult", plotmult, bmult},
     {"plotbump", plotbump, bbump}, {"plothrz", plothrz, bhrz},    {"plotevgrid", plotevgrid, bevg},
-    {"plotcoh", plotcoh, bcoh}};
+    {"plotcoh", plotcoh, bcoh},  {"evtst", evtst, bevt},        {"stgdid", stgdid, bevt},
+    {"synthc", synthc, bsyn},     {"sdidx", sdidx, bsdid}};
 
 // One text option, or "" when it is left out; false when it is not text.
 inline bool str1(const Val &o, std::string &s) {
@@ -929,7 +1008,7 @@ inline bool str1(const Val &o, std::string &s) {
 // plotsvg()
 bool plotsvg(Ctx &c, Val &out) {
   std::string nm, main, xlab, ylab, pal = "grey";
-  if (!sv::str1(c["plot"], nm) || nm.empty()) return c.fail("`plot` must be the name of one plot function.");
+  if (!sv::str1(c["plot"], nm) || nm.empty()) return c.fail("`plot` must be the name of one function that has a plot.");
   const sv::Plot *pl = nullptr;
   std::string all;
   for (const sv::Plot &p : sv::plots) {

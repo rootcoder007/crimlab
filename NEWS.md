@@ -46,7 +46,8 @@
   arguments and returns the picture as a standalone SVG document with the
   rows drawn: `plotlrnz()`, `plotgain()`, `plotcdfs()`, `plotrdg()`,
   `plotvln()`, `plothex()`, `plotfnl()`, `plotcal()`, `plotmult()`,
-  `plotbump()`, `plothrz()`, `plotevgrid()` and `plotcoh()`, with the look
+  `plotbump()`, `plothrz()`, `plotevgrid()` and `plotcoh()`, and the
+  results of `evtst()`, `stgdid()`, `synthc()` and `sdidx()`, with the look
   of the R plots (black and grey, a black frame, a bold title; `palette =
   "okabe"` for colours, `grid = TRUE` for a grid). One drawing code in the
   C++ core serves every language.

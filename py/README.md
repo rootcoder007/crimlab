@@ -181,7 +181,9 @@ of the R plots: black and grey on white, a black frame, a bold title;
 `palette="okabe"` gives colours and `grid=True` a grid. It draws
 `plotlrnz`, `plotgain`, `plotcdfs`, `plotrdg`, `plotvln`, `plothex`,
 `plotfnl`, `plotcal`, `plotmult`, `plotbump`, `plothrz`, `plotevgrid` and
-`plotcoh`.
+`plotcoh`, and the results of `evtst`, `stgdid`, `synthc` and `sdidx` (the
+event study, the effects by time since adoption, the synthetic control
+with its gap, the synthetic difference in differences).
 
 ```python
 >>> from crimlab import plotsvg
