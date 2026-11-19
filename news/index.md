@@ -2,6 +2,42 @@
 
 ## crimlab 0.0.2
 
+- The fits of
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md),
+  [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
+  [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md),
+  [`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md),
+  [`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md),
+  [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md),
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  and
+  [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
+  answer to the usual accessors:
+  [`coef()`](https://rdrr.io/r/stats/coef.html),
+  [`confint()`](https://rdrr.io/r/stats/confint.html),
+  [`vcov()`](https://rdrr.io/r/stats/vcov.html) and
+  [`nobs()`](https://rdrr.io/r/stats/nobs.html) (help page `racc`). The
+  intervals are the fit’s own, at its own level.
+
+- A file written under a name with no suffix is given one:
+  [`wrtxtfb()`](https://rootcoder007.github.io/crimlab/reference/wrtxtfb.md)
+  adds `.txt`, and
+  [`yoycsv()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoytsv()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoyjs()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoymd()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoyhtml()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)
+  and
+  [`yoypdf()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)
+  the suffix of their format. Each returns the path it wrote.
+
+- The rOpenSci standards notes describe the package as it is now: the
+  regression standards are documented (`src/srrre.h`), the general and
+  spatial notes written when the package was small are brought up to
+  date, every internal R function has a roxygen comment, and
+  `tests/README.md` says how the full test suite is switched on.
+
 - The argument that names a method is `mthd` (it was `meth`), and so is
   the part of a result that records it: in
   [`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),

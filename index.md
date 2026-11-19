@@ -536,8 +536,8 @@ No other package found:
 
 ## Life cycle
 
-Experimental. This is a development version: function names, arguments
-and results may change before a first release.
+Experimental: function names, arguments and results may change before
+version 1.0. `NEWS.md` records each change.
 
 ## Installation
 

@@ -22,11 +22,12 @@ wrtxtfb(text, path)
 
 - path:
 
-  The file, one non-empty string; its directory must exist.
+  The file, one non-empty string; its directory must exist. A name with
+  no suffix is given `.txt`.
 
 ## Value
 
-`path`, invisibly.
+The path written, invisibly.
 
 ## Details
 

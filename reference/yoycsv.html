@@ -121,7 +121,8 @@ characters escaped.</p>
 
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
-<dd><p>A file path, or <code>NULL</code> to return the text.</p></dd>
+<dd><p>A file path, or <code>NULL</code> to return the text. A name with no
+suffix is given the format's own (<code>.csv</code>, <code>.tsv</code>, <code>.json</code>, <code>.md</code>).</p></dd>
 
 
 <dt id="arg-digits">digits<a class="anchor" aria-label="anchor" href="#arg-digits"></a></dt>
@@ -152,7 +153,8 @@ settings), written as comments or as the table's caption.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The text when <code>file</code> is <code>NULL</code>, otherwise <code>file</code>, invisibly.</p>
+    <p>The text when <code>file</code> is <code>NULL</code>, otherwise the path written,
+invisibly.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

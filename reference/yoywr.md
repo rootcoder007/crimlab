@@ -19,7 +19,8 @@ yoywr(x, file, format = "auto", ...)
 
 - file:
 
-  The file path.
+  The file path. A name with no suffix is given the format's own
+  (`.html`, `.pdf`).
 
 - format:
 
@@ -32,7 +33,7 @@ yoywr(x, file, format = "auto", ...)
 
 ## Value
 
-`file`, invisibly.
+The path written, invisibly.
 
 ## See also
 

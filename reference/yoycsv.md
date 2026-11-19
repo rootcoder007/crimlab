@@ -36,7 +36,8 @@ yoymd(x, file = NULL, digits = 1L, align = TRUE, meta = NULL)
 
 - file:
 
-  A file path, or `NULL` to return the text.
+  A file path, or `NULL` to return the text. A name with no suffix is
+  given the format's own (`.csv`, `.tsv`, `.json`, `.md`).
 
 - digits:
 
@@ -66,7 +67,7 @@ yoymd(x, file = NULL, digits = 1L, align = TRUE, meta = NULL)
 
 ## Value
 
-The text when `file` is `NULL`, otherwise `file`, invisibly.
+The text when `file` is `NULL`, otherwise the path written, invisibly.
 
 ## Details
 

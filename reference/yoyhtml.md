@@ -50,7 +50,8 @@ yoypdf(
 
 - file:
 
-  The file path.
+  The file path. A name with no suffix is given the format's own
+  (`.html`, `.pdf`).
 
 - title:
 
@@ -95,7 +96,7 @@ yoypdf(
 
 ## Value
 
-`file`, invisibly.
+The path written, invisibly.
 
 ## Details
 

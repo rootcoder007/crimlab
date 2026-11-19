@@ -536,8 +536,8 @@ No other package found:
 
 ## Life cycle
 
-Experimental. This is a development version: function names, arguments
-and results may change before a first release.
+Experimental: function names, arguments and results may change before
+version 1.0. `NEWS.md` records each change.
 
 ## Installation
 
@@ -2005,6 +2005,41 @@ American Economic Journal - Applied Economics 13(4),
   [`summary(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
   [`plot(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
   : Exponential-mean GMM for a count with an endogenous exposure
+- [`coef(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<fepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<gmmpnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<didfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`coef(`*`<sarml>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<fepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<gmmpnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<didfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`confint(`*`<sarml>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<fepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<gmmpnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<didfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`vcov(`*`<sarml>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<fepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<gmmpnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<didfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  [`nobs(`*`<sarml>`*`)`](https://rootcoder007.github.io/crimlab/reference/racc.md)
+  : The parts of a fitted regression
 - [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
   : Wind-direction instruments
 - [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md)
