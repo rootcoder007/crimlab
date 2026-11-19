@@ -32,7 +32,8 @@ the person refused: numbers from 0 to 100.}
 \item{cuts}{The percentages that part the bands between never and
 always: increasing numbers above 0 and below 100.}
 
-\item{level}{The level of the intervals: one number between 0 and 1.}
+\item{level}{The level of the exact intervals: one number between 0 and
+1.}
 }
 \value{
 A list: \code{tab}, a data frame with one row per group (then

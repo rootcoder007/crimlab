@@ -12,14 +12,12 @@
 #' A stay still open is entered with its length to the day the data end.
 #' The shares carry exact (Clopper-Pearson) intervals.
 #'
-#' @param days The length of each stay in days: numbers from 0.
 #' @param first The day of the stay on which it was first reviewed, `NA` for
 #'   a stay never reviewed: numbers from 0.
 #' @param due The day by which a review is due: one number above 0.
-#' @param by `NULL`, or the group of each stay: labels.
+#' @inheritParams mndla
 #' @param cuts `NULL` (two bands of length, up to `due` and over it) or the
 #'   lengths that part the bands: increasing numbers above 0.
-#' @param level The level of the intervals: one number between 0 and 1.
 #' @return A list: `cov`, a data frame with one row per group (then
 #'   `"all"`) and band of length (`group`, `band`, `n`, `rev` the stays
 #'   reviewed, `never`, `share` the share never reviewed, `lo`, `hi`);

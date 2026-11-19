@@ -17,7 +17,8 @@ dmvar(dec, dm, out, nmin = 5, level = 0.95)
 \item{nmin}{The cases below which a decision maker is left out of the
 second test: a whole number from 1.}
 
-\item{level}{The level of the intervals: one number between 0 and 1.}
+\item{level}{The level of the exact intervals: one number between 0 and
+1.}
 }
 \value{
 A list: \code{tab}, a data frame with one row per decision maker

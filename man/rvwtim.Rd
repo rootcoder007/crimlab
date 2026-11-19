@@ -19,7 +19,8 @@ a stay never reviewed: numbers from 0.}
 \item{cuts}{\code{NULL} (two bands of length, up to \code{due} and over it) or the
 lengths that part the bands: increasing numbers above 0.}
 
-\item{level}{The level of the intervals: one number between 0 and 1.}
+\item{level}{The level of the exact intervals: one number between 0 and
+1.}
 }
 \value{
 A list: \code{cov}, a data frame with one row per group (then
