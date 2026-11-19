@@ -174,6 +174,26 @@ caller's choice, with no paths or file handling in the package.
 
 ![A Tippett plot drawn by crimlab](tipplt.svg)
 
+The other plots of the package are drawn by `plotsvg()`: it takes the name
+of a plot function and a dict of that function's arguments, runs it, and
+returns the picture (`svg`) with the rows drawn (`data`). The look is that
+of the R plots: black and grey on white, a black frame, a bold title;
+`palette="okabe"` gives colours and `grid=True` a grid. It draws
+`plotlrnz`, `plotgain`, `plotcdfs`, `plotrdg`, `plotvln`, `plothex`,
+`plotfnl`, `plotcal`, `plotmult`, `plotbump`, `plothrz`, `plotevgrid` and
+`plotcoh`.
+
+```python
+>>> from crimlab import plotsvg
+>>> r = plotsvg("plotcdfs", {"x": [3, 1, 2, 5, 4, 6], "grp": ["b", "a", "b", "a", "b", "a"]},
+...             palette="okabe", main="Two groups")
+>>> r["svg"][:4], "Two groups" in r["svg"]
+('<svg', True)
+>>> with open("cdfs.svg", "w", encoding="utf-8") as f:  # doctest: +SKIP
+...     f.write(r["svg"])
+
+```
+
 ## Optional packages (never required)
 
 NumPy, pandas and matplotlib are never imported by crimlab, but work with

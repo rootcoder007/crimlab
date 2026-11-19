@@ -1660,6 +1660,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jgol.inc"
 #include "jxpr.inc"
 #include "jrvw.inc"
+#include "jsvg.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2167,6 +2168,7 @@ const Ent ents[] = {
     {"plothex", "x y bins?", plothex},
     {"plotevgrid", "x", plotevgrid},
     {"plotcoh", "y unit time first win? ma? norm?", plotcoh},
+    {"plotsvg", "plot args main? xlab? ylab? palette? grid? width? height?", plotsvg},
     {"rvwtim", "days first due by? cuts? level?", rvwtim},
     {"entcmp", "miss days? by? hours? ref? cuts? level?", entcmp},
     {"dmvar", "dec dm out nmin? level?", dmvar},
@@ -2284,8 +2286,10 @@ int run(const char *fn, const char *in, std::string &res) {
     // once here for every data frame: an object of arrays has columns of
     // one length, and the functions index one column by the rows of
     // another. `units`, `polys` and `kind` are lists of vectors of any
-    // lengths
-    if (v.a[i].t == Val::OBJ && !v.a[i].a.empty() && k != "units" && k != "polys" && k != "kind") {
+    // lengths, and `args` holds the arguments of another function, which
+    // plotsvg() checks one by one in the same way
+    if (v.a[i].t == Val::OBJ && !v.a[i].a.empty() && k != "units" && k != "polys" && k != "kind" &&
+        k != "args") {
       bool df = true, rag = false;
       for (const Val &x : v.a[i].a) df = df && x.t == Val::ARR;
       for (const Val &x : v.a[i].a) rag = rag || (df && x.a.size() != v.a[i].a[0].a.size());

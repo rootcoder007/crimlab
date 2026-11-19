@@ -1501,6 +1501,9 @@ func Plotevgrid(args string) (string, error) { return Jrun("plotevgrid", args) }
 // Plotcoh runs plotcoh() of the R package (arguments: y unit time first win? ma? norm?; ? marks an optional one).
 func Plotcoh(args string) (string, error) { return Jrun("plotcoh", args) }
 
+// Plotsvg runs plotsvg() of the R package (arguments: plot args main? xlab? ylab? palette? grid? width? height?; ? marks an optional one).
+func Plotsvg(args string) (string, error) { return Jrun("plotsvg", args) }
+
 // Rvwtim runs rvwtim() of the R package (arguments: days first due by? cuts? level?; ? marks an optional one).
 func Rvwtim(args string) (string, error) { return Jrun("rvwtim", args) }
 

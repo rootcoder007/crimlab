@@ -41,6 +41,16 @@
   points in every language. `plot()` of
   `yoypx()` with `what = "value"` draws the values over the periods.
 
+* Outside R the plots are drawn too. `plotsvg()` (Python, Go, Rust,
+  Java, JavaScript and the command line) runs a plot function on its
+  arguments and returns the picture as a standalone SVG document with the
+  rows drawn: `plotlrnz()`, `plotgain()`, `plotcdfs()`, `plotrdg()`,
+  `plotvln()`, `plothex()`, `plotfnl()`, `plotcal()`, `plotmult()`,
+  `plotbump()`, `plothrz()`, `plotevgrid()` and `plotcoh()`, with the look
+  of the R plots (black and grey, a black frame, a bold title; `palette =
+  "okabe"` for colours, `grid = TRUE` for a grid). One drawing code in the
+  C++ core serves every language.
+
 * `plot()` of `synthc()` and `sdidx()` draws the treated path solid and
   its comparison dashed, as plain lines, with a dotted line where the
   policy was adopted. `plot(x, type = "o")` puts a point mark on every

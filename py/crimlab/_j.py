@@ -7857,6 +7857,55 @@ def plotcoh(
     return jcall("plotcoh", y=y, unit=unit, time=time, first=first, win=win, ma=ma, norm=norm)
 
 
+def plotsvg(
+    plot: Any,
+    args: Any,
+    main: Any = None,
+    xlab: Any = None,
+    ylab: Any = None,
+    palette: Any = None,
+    grid: Any = None,
+    width: Any = None,
+    height: Any = None,
+) -> Any:
+    """A plot of the package drawn as a standalone SVG document.
+
+    Runs the plot function named by ``plot`` (``plotlrnz``, ``plotgain``,
+    ``plotcdfs``, ``plotrdg``, ``plotvln``, ``plothex``, ``plotfnl``,
+    ``plotcal``, ``plotmult``, ``plotbump``, ``plothrz``, ``plotevgrid`` or
+    ``plotcoh``) on ``args``, a dict of that function's own arguments, and
+    draws the rows it returns the way R draws them: a white page, a black
+    box, a bold title, the ``palette`` of :func:`plotopt` (``"grey"`` by
+    default; ``"okabe"`` for colours), a ``grid`` only when asked for.
+    ``main``, ``xlab`` and ``ylab`` replace the title and the axis titles;
+    ``width`` and ``height`` are the size in pixels (720 by 480).
+
+    The result has the document as text in ``svg`` (write it to a file
+    ending in ``.svg``, or show it in a notebook) and the rows drawn in
+    ``data``.
+
+    Examples
+    --------
+    >>> r = plotsvg("plotlrnz", {"x": [5, 1, 3, 0, 8]})
+    >>> r["svg"][:4], "Lorenz curve (Gini 0.471)" in r["svg"]
+    ('<svg', True)
+    >>> r["data"]["share"][-1]
+    1.0
+    """
+    return jcall(
+        "plotsvg",
+        plot=plot,
+        args=args,
+        main=main,
+        xlab=xlab,
+        ylab=ylab,
+        palette=palette,
+        grid=grid,
+        width=width,
+        height=height,
+    )
+
+
 def plotopt(
     palette: Any = None,
     grid: Any = None,
