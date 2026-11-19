@@ -528,17 +528,17 @@ lists every figure that was assumed rather than measured.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">fp2</span><span class="op">$</span><span class="va">enekwh</span></span>
 <span><span class="co">#&gt; $cpu</span></span>
-<span><span class="co">#&gt; [1] 3.015278e-08</span></span>
+<span><span class="co">#&gt; [1] 4.522917e-08</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $memory</span></span>
-<span><span class="co">#&gt; [1] 5.529556e-09</span></span>
+<span><span class="co">#&gt; [1] 8.294333e-09</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $total</span></span>
-<span><span class="co">#&gt; [1] 3.568233e-08</span></span>
+<span><span class="co">#&gt; [1] 5.35235e-08</span></span>
 <span><span class="fu"><a href="../reference/fpeqv.html">fpeqv</a></span><span class="op">(</span><span class="va">fp2</span><span class="op">$</span><span class="va">co2eg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Footprint in everyday terms</span></span>
-<span><span class="co">#&gt;   Car travel: 6.117e-09 km</span></span>
-<span><span class="co">#&gt;   Tree uptake: 1.167e-09 tree-months</span></span>
+<span><span class="co">#&gt;   Car travel: 9.175e-09 km</span></span>
+<span><span class="co">#&gt;   Tree uptake: 1.751e-09 tree-months</span></span>
 <span><span class="co"># a graphics card measured at 120 W on average (a simulated reading) and</span></span>
 <span><span class="co"># a CPU row, which is not counted twice</span></span>
 <span><span class="va">dev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -549,9 +549,9 @@ lists every figure that was assumed rather than measured.</p>
 <span><span class="va">fp3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/co2fp.html">co2fp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">2e5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, loc <span class="op">=</span> <span class="st">"CA-ON"</span>, cpupwrw <span class="op">=</span> <span class="fl">65</span>,</span>
 <span>             memgb <span class="op">=</span> <span class="fl">16</span>, mthd <span class="op">=</span> <span class="st">"model"</span>, devices <span class="op">=</span> <span class="va">dev</span><span class="op">)</span></span>
 <span><span class="va">fp3</span><span class="op">$</span><span class="va">devices</span></span>
-<span><span class="co">#&gt;   kind  vendor      name               how          kwh counted</span></span>
-<span><span class="co">#&gt; 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE</span></span>
-<span><span class="co">#&gt; 2  cpu example package 0 simulated reading          NaN   FALSE</span></span>
+<span><span class="co">#&gt;   kind  vendor      name               how   kwh counted</span></span>
+<span><span class="co">#&gt; 1  gpu example    card 0 simulated reading 1e-07    TRUE</span></span>
+<span><span class="co">#&gt; 2  cpu example package 0 simulated reading   NaN   FALSE</span></span>
 <span><span class="co">#&gt;                                      note</span></span>
 <span><span class="co">#&gt; 1              average power over the run</span></span>
 <span><span class="co">#&gt; 2 already counted as CPU or memory energy</span></span>
@@ -698,7 +698,7 @@ prints, with their sources. Use it to make the <code>co2eg</code> of
 <span>            memgb <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="../reference/fpeqv.html">fpeqv</a></span><span class="op">(</span><span class="va">fp</span><span class="op">$</span><span class="va">co2eg</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"carkm"</span>, <span class="st">"treemon"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        carkm      treemon </span></span>
-<span><span class="co">#&gt; 6.164300e-09 1.176393e-09</span></span>
+<span><span class="co">#&gt; 7.788765e-09 1.486405e-09</span></span>
 <span></span>
 <span><span class="co"># a vector is refused: convert one total at a time</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/fpeqv.html">fpeqv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
