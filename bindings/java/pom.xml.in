@@ -11,7 +11,7 @@
   <packaging>jar</packaging>
   <name>crimlab</name>
   <description>Statistical Toolkit for Criminology and Sociolegal Research: every function of the R and Python packages crimlab, called by name with JSON, from the C++ kernels through the Foreign Function and Memory API (JDK 22 or later); the jar carries the library for Linux, macOS and Windows on x86-64 and arm64.</description>
-  <url>https://github.com/rootcoder007/crimlab</url>
+  <url>https://crimlab.dev/</url>
   <licenses>
     <license>
       <name>Apache-2.0 WITH LLVM-exception</name>

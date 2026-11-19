@@ -19,7 +19,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/rootcoder007/crimlab"
+Homepage = "https://crimlab.dev/"
+Repository = "https://github.com/rootcoder007/crimlab"
 Issues = "https://github.com/rootcoder007/crimlab/issues"
 Citation = "https://github.com/rootcoder007/crimlab/blob/main/CITATION.cff"
 

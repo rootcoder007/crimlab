@@ -1,5 +1,9 @@
 # crimlab for Rust <img src="https://raw.githubusercontent.com/rootcoder007/crimlab/main/man/figures/logo.png" align="right" height="139" alt="crimlab hex logo" />
 
+[![Website](https://img.shields.io/badge/website-crimlab.dev-b8432a)](https://crimlab.dev/)
+
+Documentation, guides and every function: <https://crimlab.dev/>.
+
 Statistical Toolkit for Criminology and Sociolegal Research: the C++ kernels of the R and Python
 packages [crimlab](https://github.com/rootcoder007/crimlab), compiled into
 the crate by its build script with the `cc` crate (a C++17 compiler is all

@@ -5,7 +5,7 @@
   "keywords": ["statistics", "criminology", "forensics", "policing", "courts", "webassembly"],
   "license": "Apache-2.0 WITH LLVM-exception",
   "author": "Vansh Singh Ruhela (https://orcid.org/0009-0004-1750-3592)",
-  "homepage": "https://github.com/rootcoder007/crimlab/tree/main/bindings/npm#readme",
+  "homepage": "https://crimlab.dev/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rootcoder007/crimlab.git",

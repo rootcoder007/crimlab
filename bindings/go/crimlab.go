@@ -5,6 +5,8 @@
 // crimlab, compiled into the package with cgo from the copy in csrc/
 // (tools/vendor.sh makes it); a C++17 compiler is all it needs.
 //
+// Documentation, guides and every function: https://crimlab.dev/
+//
 // Every function takes its named arguments as a JSON object and returns
 // its result as JSON, with the names, checks and results of the R and
 // Python packages: a data frame is an object of columns, a named vector
