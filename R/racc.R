@@ -52,7 +52,7 @@
 #' @param level The level of the intervals: `NULL` (the fit's own; 0.95
 #'   for [sarml()]) or one number between 0 and 1. For every fit but
 #'   that of [sarml()] it must be the fit's level.
-#' @param ... Not used.
+#' @param ... Nothing; the generics of \pkg{stats} have it.
 #' @return `coef()`: a named numeric vector, one estimate per term (per
 #'   method for [rdloc()]). `confint()`: a matrix with a row per term
 #'   and the columns `lower` and `upper`, with the level as the

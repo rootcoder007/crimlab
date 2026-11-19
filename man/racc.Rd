@@ -109,7 +109,7 @@
 \arguments{
 \item{object}{A fit of one of the functions above.}
 
-\item{...}{Not used.}
+\item{...}{Nothing; the generics of \pkg{stats} have it.}
 
 \item{parm}{\code{NULL} (every term) or the terms wanted: names of terms
 or their positions.}

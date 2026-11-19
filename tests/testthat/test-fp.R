@@ -185,7 +185,10 @@ test_that("co2fp() has the reference's shape and assumptions", {
   h <- fp$durs / 3600
   expect_equal(fp$enekwh$memory, h * 8 * 0.3725 / 1000, tolerance = 1e-12)
   expect_equal(fp$enekwh$cpu, h * 45 * 0.5 / 1000, tolerance = 1e-12)
-  expect_identical(fp$co2eg, fp$enekwh$total * 90.969999999999999)
+  # the product is formed in C++, where a fused multiply-add may round
+  # the last bit otherwise than R does
+  expect_equal(fp$co2eg, fp$enekwh$total * 90.969999999999999,
+               tolerance = 1e-14)
   fp2 <- co2fp(1 + 1, loc = 30, cpupwrw = 65, memgb = 16, pue = 1.67,
                mthd = "model", loadcur = "codecarbon")
   expect_identical(

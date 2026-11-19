@@ -23,7 +23,7 @@ rd <- function() {
 test_that("the accessors read a fit", {
   d <- rd()
   f <- ivfe(d, "y", x = c("x", "w"), fe = "u")
-  expect_identical(names(coef(f)), c("x", "w"))
+  expect_named(coef(f), c("x", "w"))
   expect_identical(unname(coef(f)), f$coef$est)
   ci <- confint(f)
   expect_identical(dimnames(ci), list(c("x", "w"), c("lower", "upper")))
@@ -63,7 +63,7 @@ test_that("each regression fit has its accessors", {
     expect_identical(unname(confint(f)[, "upper"]), f$coef$hi, info = nm)
     expect_true(nobs(f) > 0L, info = nm)
   }
-  expect_identical(names(coef(fits$rdloc)), c("robust", "conventional"))
+  expect_named(coef(fits$rdloc), c("robust", "conventional"))
   expect_identical(nobs(fits$rdloc), fits$rdloc$n)
   expect_identical(nobs(fits$fepnl), as.integer(fits$fepnl$fit$n))
   for (nm in c("ppmlfe", "fepnl", "didfe")) {
