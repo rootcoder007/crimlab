@@ -132,7 +132,7 @@ nobs(object, ...)
 
 - ...:
 
-  Not used.
+  Nothing; the generics of stats have it.
 
 - parm:
 
