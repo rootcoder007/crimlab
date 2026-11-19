@@ -33,6 +33,9 @@ jobs:
         with:
           extra-packages: any::lintr, local::.
           needs: lint
+      - name: every source is in one group of the unity build
+        run: python3 dev/unity.py check
+
       - name: Lint
         run: lintr::lint_package()
         shell: Rscript {0}

@@ -1,3 +1,13 @@
 CXX_STD = CXX17
 # the entry points of glue.cpp catch a failed allocation (src/kutil.h)
 PKG_CPPFLAGS = -DCLAB_R
+
+# A unity build: R compiles the groups below and nothing else. Each u_*.cpp
+# includes some twenty of the sources (dev/unity.py makes the groups and
+# checks that every source is in exactly one), so the headers are read
+# once per group: about 40 compiler runs where there were 337.
+OBJECTS = u_g01.o u_g02.o u_g03.o u_g04.o u_g05.o u_g06.o u_g07.o u_g08.o \
+  u_g09.o u_g10.o u_g11.o u_g12.o u_k01.o u_k02.o u_k03.o u_k04.o u_k05.o \
+  u_k06.o u_k07.o u_k08.o u_k09.o u_k10.o u_k11.o u_k12.o u_k13.o u_k14.o \
+  u_k15.o u_k16.o u_k17.o u_k18.o u_k19.o u_k20.o u_k21.o u_k22.o u_k23.o \
+  u_k24.o u_k25.o u_k26.o u_k27.o u_k28.o

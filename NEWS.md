@@ -41,6 +41,10 @@
   points in every language. `plot()` of
   `yoypx()` with `what = "value"` draws the values over the periods.
 
+* The package installs faster: R compiles its C++ sources in 40 groups
+  (a unity build, `src/u_*.cpp`) and no longer one file at a time, so the
+  headers are read 40 times, not 337. Nothing a caller sees changes.
+
 * Outside R the plots are drawn too. `plotsvg()` (Python, Go, Rust,
   Java, JavaScript and the command line) runs a plot function on its
   arguments and returns the picture as a standalone SVG document with the
