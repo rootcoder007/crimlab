@@ -710,6 +710,9 @@ bool spill(Ctx &c, Val &out) {
     rn.push_back("rho");
     rn.push_back("lambda");
     const int nl = sat<int>(val1(col(f, "nlag")));
+    // the lags are among the terms: more of them than terms would read
+    // before the first name
+    if (nl < 0 || nl > pv) return c.fail("`fit` is not a sarml() fit.");
     std::vector<std::string> lg, xs;
     if (nl > 0) lg.assign(rn.begin() + (pv - nl), rn.begin() + pv);
     for (int j = 0; j < pv; ++j) {

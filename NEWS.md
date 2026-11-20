@@ -1,5 +1,10 @@
 # crimlab 0.0.4
 
+* Fixed: `spill` from the command-line program, and from the Python, Go,
+  Java, JavaScript and Rust packages, read outside a list when the fit it
+  was given named more lagged terms than it had terms (a fit not made by
+  `sarml`, as text). Such a fit is now refused. The R function was not
+  affected. Found by the fuzzing of every change.
 * No function changes. The command-line program and the library build on
   systems with an older C library (glibc before 2.34, where the loader and
   the threads are outside libc): the Makefile and the Python, Go and Rust

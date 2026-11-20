@@ -43,6 +43,7 @@
 #define CLAB_TTY() (_isatty(_fileno(stderr)) != 0)
 #else
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <unistd.h>
 #define CLAB_TTY() (isatty(2) != 0)
 #endif
@@ -574,7 +575,15 @@ void notice() {
   std::string ver = v;
   if (now < t || now - t >= 86400) {
     ver = latest(2);
-    if (std::FILE *c = std::fopen(f.c_str(), "w")) {
+    // a file of the user alone
+#ifdef _WIN32
+    std::FILE *c = std::fopen(f.c_str(), "w");
+#else
+    const int fd = open(f.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
+    std::FILE *c = fd >= 0 ? fdopen(fd, "w") : nullptr;
+    if (c == nullptr && fd >= 0) close(fd);
+#endif
+    if (c != nullptr) {
       std::fprintf(c, "%lld %s\n", now, ver.c_str());
       std::fclose(c);
     }

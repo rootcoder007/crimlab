@@ -113,6 +113,10 @@ err "choice" 'sqrtlw: `metric` must be one of "euclid", "grid".' 1 "$c" sqrtlw -
 err "by name" 'impfpr: `ppv` must name the same units as `p`; `ppv` has no b.' 1 "$c" impfpr --p '{"a":0.3,"b":0.5}' --ppv '{"a":0.6,"c":0.7}' --fnr '{"a":0.1,"b":0.2}'
 err "no function" 'crimlab: no function nope (crimlab -l lists them).' 2 "$c" nope
 err "bad JSON" 'crimlab: --p: the value is not JSON: [1,' 2 "$c" cllr --p '[1,'
+# a fit that names more lags than it has terms, or fewer than none
+badfit='{"model":"lag","coef":{"term":["x","rho"],"est":[1,0.4]},"vcov":[[1,0,0],[0,1,0],[0,0,1]],"nlag":NL}'
+err "more lags than terms" 'spill: `fit` is not a sarml() fit.' 1 "$c" spill --fit "$(echo "$badfit" | sed 's/NL/5/')"
+err "a negative number of lags" 'spill: `fit` is not a sarml() fit.' 1 "$c" spill --fit "$(echo "$badfit" | sed 's/NL/-3/')"
 # a NUL byte in a CSV cell, invalid UTF-8 in a text argument or a CSV cell
 nulcsv() { printf 'group,day,night\na,4\0000,50\nb,60,50\n' | "$c" vodtst -j 2>&1 >/dev/null; }
 eq "csv NUL" "$(nulcsv)" 'crimlab: CSV row 2, column 2 holds a NUL byte.'
