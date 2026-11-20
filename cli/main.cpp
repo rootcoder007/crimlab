@@ -21,12 +21,9 @@
 #include <io.h>
 #endif
 
-// The notice of a newer release (below): not in the WebAssembly build,
-// which has no network.
+// --update (below): not in the WebAssembly build, which has no network.
 #if !defined(CLAB_CMAIN) && !defined(__wasi__) && !defined(__EMSCRIPTEN__)
 #define CLAB_UPD 1
-#include <ctime>
-#include <sys/stat.h>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -34,18 +31,13 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <direct.h>
 #include <windows.h>
 #include <winhttp.h>
 #ifdef _MSC_VER
 #pragma comment(lib, "winhttp")
 #endif
-#define CLAB_TTY() (_isatty(_fileno(stderr)) != 0)
 #else
 #include <dlfcn.h>
-#include <fcntl.h>
-#include <unistd.h>
-#define CLAB_TTY() (isatty(2) != 0)
 #endif
 #endif
 
@@ -368,7 +360,8 @@ int fail(const std::string &m, int rc) {
 
 #ifdef CLAB_UPD
 // A newer release. The page of the latest release answers with the address
-// of its tag. Nothing is sent but that request.
+// of its tag. Nothing is sent but that request, nothing is kept, and the
+// program asks only when told to (--update).
 #define CLAB_REL "https://github.com/rootcoder007/crimlab/releases/"
 
 // Is version a later than version b (numbers between dots).
@@ -530,71 +523,6 @@ std::string latest(int secs) {
   return s;
 }
 
-// The file that keeps the last answer and its time, or "" without a
-// place for it.
-std::string updfile() {
-#ifdef _WIN32
-  const char *d = std::getenv("LOCALAPPDATA");
-  if (d == nullptr || *d == 0) return "";
-  const std::string dir = std::string(d) + "\\crimlab";
-  _mkdir(dir.c_str());
-  return dir + "\\update";
-#else
-  const char *x = std::getenv("XDG_CACHE_HOME"), *h = std::getenv("HOME");
-  std::string dir;
-  if (x != nullptr && *x != 0) {
-    dir = x;
-  } else if (h != nullptr && *h != 0) {
-    dir = std::string(h) + "/.cache";
-  } else {
-    return "";
-  }
-  mkdir(dir.c_str(), 0700);
-  dir += "/crimlab";
-  mkdir(dir.c_str(), 0700);
-  return dir + "/update";
-#endif
-}
-
-// One line on standard error when a newer release exists: only at a
-// terminal, never under CI or with CRIMLAB_NO_UPDATE_CHECK set, and the
-// question is asked at most once a day (two seconds at most), the answer
-// kept in a file between.
-void notice() {
-  const char *off = std::getenv("CRIMLAB_NO_UPDATE_CHECK");
-  if ((off != nullptr && *off != 0) || std::getenv("CI") != nullptr || !CLAB_TTY()) return;
-  const std::string f = updfile();
-  if (f.empty()) return;
-  long long t = 0;
-  char v[32] = "";
-  if (std::FILE *c = std::fopen(f.c_str(), "r")) {
-    if (std::fscanf(c, "%lld %24[0-9.]", &t, v) < 1) t = 0;
-    std::fclose(c);
-  }
-  const long long now = static_cast<long long>(std::time(nullptr));
-  std::string ver = v;
-  if (now < t || now - t >= 86400) {
-    ver = latest(2);
-    // a file of the user alone
-#ifdef _WIN32
-    std::FILE *c = std::fopen(f.c_str(), "w");
-#else
-    const int fd = open(f.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
-    std::FILE *c = fd >= 0 ? fdopen(fd, "w") : nullptr;
-    if (c == nullptr && fd >= 0) close(fd);
-#endif
-    if (c != nullptr) {
-      std::fprintf(c, "%lld %s\n", now, ver.c_str());
-      std::fclose(c);
-    }
-  }
-  if (!ver.empty() && later(ver, CLAB_VER)) {
-    std::fprintf(stderr,
-                 "crimlab: version %s is available (this is %s): " CLAB_REL "latest\n"
-                 "crimlab: CRIMLAB_NO_UPDATE_CHECK=1 stops this notice.\n",
-                 ver.c_str(), CLAB_VER);
-  }
-}
 #endif
 
 }  // namespace
@@ -732,12 +660,7 @@ static int mainb(int argc, char **argv) {
 int main(int argc, char **argv) {
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
   try {
-    const int rc = mainb(argc, argv);
-#ifdef CLAB_UPD
-    // after the result of a function, never after -h, -l, -V or --update
-    if (rc == 0 && argc > 1 && argv[1][0] != '-') notice();
-#endif
-    return rc;
+    return mainb(argc, argv);
   } catch (...) {
     std::fputs("crimlab: not enough memory for this size.\n", stderr);
     return 1;

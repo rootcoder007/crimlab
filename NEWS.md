@@ -23,14 +23,14 @@
   built with debug records (about 40 MB a wheel at 0.0.3), and is now built
   without them. A wheel over 20 MB stops the build.
 * A notice of a newer release. In an interactive R session, attaching the
-  package says in one line when a newer release exists; `import crimlab`
-  does the same at the Python prompt or in a notebook, and the command-line
-  program after a result at a terminal, where `crimlab --update` asks at
-  once. The page of the latest release is asked for at most once a day,
-  with a limit of two seconds, and nothing is sent but that request. A
-  script, a test or a pipe never asks. `options(crimlab.update = FALSE)`
-  in R, or the environment variable `CRIMLAB_NO_UPDATE_CHECK`, turns it
-  off.
+  package says in one line when a newer release exists, and `import
+  crimlab` does the same at the Python prompt or in a notebook: the page
+  of the latest release is asked for at most once a day, with a limit of
+  two seconds, and a script or a test never asks.
+  `options(crimlab.update = FALSE)` in R, or the environment variable
+  `CRIMLAB_NO_UPDATE_CHECK`, turns it off. The command-line program asks
+  only when told to, with `crimlab --update`, and keeps nothing. Nothing
+  is sent but that request.
 
 # crimlab 0.0.3
 

@@ -132,8 +132,8 @@ u=$("$c" --update 2>&1)
 s=$?
 { [ "$s" -le 1 ] && [ "$(printf '%s\n' "$u" | wc -l)" -eq 1 ] && printf '%s' "$u" | grep -q '^crimlab'; } ||
   { bad=$((bad + 1)); echo "FAIL --update: status $s: $u"; }
-# away from a terminal a function writes nothing but its result
-[ -z "$("$c" orrisk --or 2 --rate 0.1 --share 0.3 2>&1 >/dev/null)" ] || { bad=$((bad + 1)); echo "FAIL notice away from a terminal"; }
+# a function writes nothing but its result
+[ -z "$("$c" orrisk --or 2 --rate 0.1 --share 0.3 2>&1 >/dev/null)" ] || { bad=$((bad + 1)); echo "FAIL a function wrote to standard error"; }
 # every function of the Python package has its entry in clab_jrun()
 pyi="$here/../py/crimlab/__init__.py"
 if [ -f "$pyi" ]; then
