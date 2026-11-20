@@ -1,0 +1,64 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# The command-line program and the library on FreeBSD, OpenBSD and NetBSD,
+# each in a virtual machine on the runner: built with the system's own
+# compiler and make as a package would be, the whole test table, an
+# install into a scratch root, and the installed program run.
+name: bsd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bsd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bsd:
+    name: ${{ matrix.os.name }} ${{ matrix.os.version }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: cpa.sh {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - { name: freebsd, version: "15.1", setup: "sudo pkg install -y gmake" }
+          - { name: openbsd, version: "8.0", setup: "sudo pkg_add gmake" }
+          - { name: netbsd, version: "11.0", setup: "sudo pkgin -y install gmake" }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: cross-platform-actions/action@30cde56b87a128507bebea9531205087890ee360 # v1.8.0
+        with:
+          operating_system: ${{ matrix.os.name }}
+          version: ${{ matrix.os.version }}
+          architecture: x86-64
+          cpu_count: 4
+          memory: 8G
+      - name: the system
+        run: |
+          uname -a
+          c++ --version | head -n 1
+          ${{ matrix.os.setup }}
+          gmake --version | head -n 1
+      - name: build, with warnings as errors
+        run: gmake -C cli -j4 CXX=c++
+      - name: the command's test table
+        run: gmake -C cli CXX=c++ check
+      - name: install into a scratch root and run what was installed
+        run: |
+          gmake -C cli CXX=c++ install DESTDIR=/tmp/i PREFIX=/usr/local
+          test -z "$(find /tmp/i -type d -empty)"
+          /tmp/i/usr/local/bin/crimlab orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+          /tmp/i/usr/local/bin/crimlab selftest -j | grep '"nfail":0'
