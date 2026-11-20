@@ -1,7 +1,9 @@
 # Community recipes
 
 The files each outside repository wants when crimlab is submitted there.
-They build the published release tarball and carry its checksum.
+Here they carry the version 0.0.0 and no checksums: `fill.sh` writes them
+for a release from its archives, and every release ships the result as
+`crimlab-recipes-X.Y.Z.tar.gz`.
 
 | Directory | Goes to |
 |---|---|
@@ -15,8 +17,6 @@ They build the published release tarball and carry its checksum.
 system when they change and when a release is published, and builds this
 tree on glibc 2.17.
 
-At a release the version, the URL and the checksums here move to the new
-tarball once it is published: the recipes name a tarball that exists.
 The T2 checksum is T2's own, the SHA-224 of the decompressed tarball
 (`gzip -dc crimlab-X.Y.Z.tar.gz | sha224sum`), and `crimlab.cache` is the
 file a T2 build of the package writes (`t2/ci.sh` prints it).

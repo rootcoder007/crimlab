@@ -20,10 +20,10 @@
 [C] extra/scientific
 
 [L] APL
-[V] 0.0.3
+[V] 0.0.0
 [P] X -----5---9 200.000
 
-[D] a1625101fea9ff99acb76d784c89bc9483d2aa56da35d575cc584fdc crimlab-0.0.3.tar.gz https://github.com/rootcoder007/crimlab/releases/download/v0.0.3/
+[D] 00000000000000000000000000000000000000000000000000000000 crimlab-0.0.0.tar.gz https://github.com/rootcoder007/crimlab/releases/download/v0.0.0/
 
 hook_add premake 5 'cd cli'
 # one 'install -d' names four directories; the install wrapper takes the

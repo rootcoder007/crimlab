@@ -1,5 +1,5 @@
 context:
-  version: "0.0.3"
+  version: "0.0.0"
 
 package:
   name: crimlab
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/rootcoder007/crimlab/releases/download/v${{ version }}/crimlab-${{ version }}.tar.gz
-  sha256: 0aeb53b4d01460daf55771a916fcd25f5711c8b19421aca2fa14f07d3fd99bdc
+  sha256: 0000000000000000000000000000000000000000000000000000000000000000
 
 build:
   number: 0

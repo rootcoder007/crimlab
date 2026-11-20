@@ -203,6 +203,14 @@ jobs:
           pattern: dist-*
           merge-multiple: true
           path: dist
+      - name: the community recipes of this version, filled in from these archives
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          sh packaging/community/fill.sh "$V" dist "$RUNNER_TEMP/recipes"
+          tar -C "$RUNNER_TEMP/recipes" --sort=name --owner=0 --group=0 --numeric-owner \
+            --mtime=@0 -czf "dist/crimlab-recipes-$V.tar.gz" .
+          tar -tzf "dist/crimlab-recipes-$V.tar.gz"
       - name: SHA256SUMS
         env:
           V: ${{ needs.meta.outputs.version }}
