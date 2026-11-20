@@ -208,7 +208,7 @@ jobs:
           V: ${{ needs.meta.outputs.version }}
         run: |
           n=$(find dist -name "crimlab-$V-*" | wc -l)
-          [ "$n" -eq 5 ] || { echo "::error::expected 5 archives, found $n"; ls dist; exit 1; }
+          [ "$n" -eq 6 ] || { echo "::error::expected 6 archives, found $n"; ls dist; exit 1; }
           cp install.sh install.ps1 dist/
           cd dist
           sha256sum -- * | LC_ALL=C sort -k2 > ../SHA256SUMS
