@@ -41,10 +41,9 @@ placement volatility, a posterior from a likelihood ratio, hot spots,
 spatial autocorrelation, the command-line program, and the theorems
 behind a function
 
-It is written for researchers and analysts in criminology, sociolegal
-studies, policing, corrections and forensic science who need these
-quantities computed correctly and want to know what each one does and
-does not show.
+Use it to test a stop record for disparity, weigh DNA and score-based
+evidence, evaluate a policy, audit a risk score, and describe sentences,
+custody and crime places.
 [`vignette("crimlab")`](https://rootcoder007.github.io/crimlab/articles/crimlab.md)
 walks through one example from each family.
 

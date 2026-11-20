@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,10 @@
       <small>Source: <a href="https://github.com/rootcoder007/crimlab/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.3" id="crimlab-003">crimlab 0.0.3<a class="anchor" aria-label="anchor" href="#crimlab-003"></a></h2>
+<ul><li>No function changes. The command-line build can lower the compiler flags of its JSON layer alone (<code>JOPT</code>), which the Fedora package does on riscv64: that one file took the emulated builders over an hour, and the packages of 0.0.2 were not built there.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.2" id="crimlab-002">crimlab 0.0.2<a class="anchor" aria-label="anchor" href="#crimlab-002"></a></h2>
 <ul><li><p>The fits of <code><a href="../reference/ppmlfe.html">ppmlfe()</a></code>, <code><a href="../reference/ivfe.html">ivfe()</a></code>, <code><a href="../reference/ppmlcf.html">ppmlcf()</a></code>, <code><a href="../reference/expgmm.html">expgmm()</a></code>, <code><a href="../reference/fepnl.html">fepnl()</a></code>, <code><a href="../reference/gmmpnl.html">gmmpnl()</a></code>, <code><a href="../reference/didfe.html">didfe()</a></code>, <code><a href="../reference/rdloc.html">rdloc()</a></code> and <code><a href="../reference/sarml.html">sarml()</a></code> answer to the usual accessors: <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code>, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> and <code><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs()</a></code> (help page <code>racc</code>). The intervals are the fit’s own, at its own level.</p></li>
