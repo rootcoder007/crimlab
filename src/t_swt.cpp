@@ -169,7 +169,9 @@ void famtest(tk &T, int big) {
         cross += W[i * n + j] * v[i] * v[j];
         if (i != j) all += v[i] * v[j];
       }
-    const double N = n, b2 = N * m4 / (m2 * m2);
+    // m2 > 0 for these values; said so for a compiler that cannot see it
+    // (MSVC for arm64, C4723)
+    const double N = n, b2 = m2 > 0 ? N * m4 / (m2 * m2) : 0;
     double o[9];
     vd wk(n);
     clab_gearc(v.data(), n, rp.data(), ci.data(), w.data(), 0, 1, wk.data(), o);
