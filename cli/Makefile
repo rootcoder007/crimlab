@@ -49,6 +49,17 @@ SO = libcrimlab.so.$(SOVER)
 SOFLAGS = -shared -Wl,-soname,$(SO)
 endif
 
+# The libraries of the loader (dlopen) and of the threads, named after the
+# objects so that --as-needed keeps them: glibc before 2.34 has both outside
+# libc, and a link without them stops at dlopen and dlsym there.
+# By the machine the compiler builds for (MACH), so a cross build links
+# what its target has: macOS and Windows keep both in their system library.
+ifneq ($(findstring linux,$(MACH)),)
+LDLIBS ?= -pthread -ldl
+else ifeq ($(findstring darwin,$(MACH))$(findstring mingw,$(MACH))$(findstring windows,$(MACH)),)
+LDLIBS ?= -pthread
+endif
+
 all: crimlab libcrimlab.a $(SO)
 
 $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
@@ -87,16 +98,19 @@ libcrimlab.a: $(KO)
 	$(AR) rcs $@ $(KO)
 
 $(SO): $(KO)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SOFLAGS) -o $@ $(KO)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SOFLAGS) -o $@ $(KO) $(LDLIBS)
 
 crimlab: $(B)/main.o libcrimlab.a
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(B)/main.o libcrimlab.a
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(B)/main.o libcrimlab.a $(LDLIBS)
 
 check: crimlab
 	sh test.sh ./crimlab
 
 install: all
-	install -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCDIR)/crimlab $(DESTDIR)$(MANDIR)/man1
+	install -d $(DESTDIR)$(BINDIR)
+	install -d $(DESTDIR)$(LIBDIR)
+	install -d $(DESTDIR)$(INCDIR)/crimlab
+	install -d $(DESTDIR)$(MANDIR)/man1
 	install -m 755 crimlab $(DESTDIR)$(BINDIR)/crimlab
 	install -m 755 $(SO) $(DESTDIR)$(LIBDIR)/$(SO)
 	ln -sf $(SO) $(DESTDIR)$(LIBDIR)/$(if $(filter Darwin,$(shell uname -s)),libcrimlab.dylib,libcrimlab.so)

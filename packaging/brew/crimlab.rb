@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# Homebrew formula (macOS and Linux) for the tap rootcoder007/crimlab
-# (the repository rootcoder007/homebrew-crimlab):
+# Homebrew formula (macOS and Linux) for the taps rootcoder007/crimlab
+# and rootcoder007/morie (the repositories homebrew-crimlab and
+# homebrew-morie):
 #   brew install rootcoder007/crimlab/crimlab
 # Builds the crimlab command from the release's source tarball. tap.yml
 # sets url and sha256 for each published release; `brew install --HEAD`

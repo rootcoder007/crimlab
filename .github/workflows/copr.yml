@@ -58,4 +58,10 @@ jobs:
           unset CFG
           # shellcheck disable=SC2086 # the targets are words
           sh packaging/rpm/copr.sh "$PROJ" out/crimlab-*.src.rpm $CHROOTS
+          # a green rehearsal leaves nothing behind: the record that
+          # publish.yml asks for is this run, not the scratch project
+          # (a failed one stays, for its logs)
+          if [ "$PROJ" = crimlab-ci ]; then
+            copr-cli delete "$PROJ" || echo "::warning::the scratch project was not deleted"
+          fi
           rm -f "$HOME/.config/copr"

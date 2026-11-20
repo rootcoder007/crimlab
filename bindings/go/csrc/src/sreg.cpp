@@ -746,7 +746,7 @@ int sarml0(const double *y, const double *x, int n, int p, const int *rp, const 
     }
     rho = sx[bst][0];
     lam = sx[bst][1];
-    double sse;
+    double sse = 0.0;
     if (!m.fit(rho, lam, beta.data(), &sse)) return CLAB_EDOM;
     s2 = sse / n;
     // the information matrix in (beta, rho, lambda, s2): with SA = A^-1,

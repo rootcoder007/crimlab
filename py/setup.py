@@ -13,6 +13,7 @@ so it builds on its own.
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 
 from setuptools import Extension, setup
@@ -86,6 +87,8 @@ setup(
             sources=["ext/clab.cpp"] + sorted(f"ext/k/{f.name}" for f in (here / "ext" / "k").glob("*.cpp")),
             include_dirs=["ext/k"],
             define_macros=[("Py_LIMITED_API", "0x030A0000")],
+            # dlopen() and the threads: outside libc in glibc before 2.34
+            libraries=["dl", "pthread"] if sys.platform.startswith("linux") else [],
             py_limited_api=True,
             language="c++",
         )

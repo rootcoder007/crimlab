@@ -33,6 +33,12 @@ jobs:
         with:
           extra-packages: any::lintr, local::.
           needs: lint
+      - name: no build output is tracked
+        run: |
+          if git ls-files | grep -E "\\.(o|so|a|dylib|dll|pyc|whl)$|(^|/)(build[^/]*|__pycache__)/|\\.egg-info/"; then
+            echo "::error::build output is in the repository"
+            exit 1
+          fi
       - name: every source is in one group of the unity build
         run: python3 dev/unity.py check
 

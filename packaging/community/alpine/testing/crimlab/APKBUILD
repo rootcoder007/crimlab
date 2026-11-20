@@ -1,0 +1,28 @@
+# Contributor: Vansh Singh Ruhela <vsruhela@proton.me>
+# Maintainer: Vansh Singh Ruhela <vsruhela@proton.me>
+pkgname=crimlab
+pkgver=0.0.3
+pkgrel=0
+pkgdesc="Statistical toolkit for criminology and sociolegal research"
+url="https://crimlab.dev/"
+arch="all"
+license="Apache-2.0 WITH LLVM-exception"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+source="https://github.com/rootcoder007/crimlab/releases/download/v$pkgver/crimlab-$pkgver.tar.gz"
+
+build() {
+	make -C cli WERROR= CXXFLAGS="$CXXFLAGS"
+}
+
+check() {
+	make -C cli WERROR= CXXFLAGS="$CXXFLAGS" check
+}
+
+package() {
+	make -C cli WERROR= CXXFLAGS="$CXXFLAGS" DESTDIR="$pkgdir" PREFIX=/usr install
+	install -Dm644 LICENSE NOTICE -t "$pkgdir"/usr/share/licenses/$pkgname
+}
+
+sha512sums="
+feeb1aef23dbd8c2ff717d34b8cce3613c8341be7391fc24a208b3ed84ffc536ac73d7cc4d1847207b2ba0be7117d2e8bc5e7b9a172154eb9a3225eb23a26931  crimlab-0.0.3.tar.gz
+"

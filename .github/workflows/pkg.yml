@@ -58,8 +58,16 @@ jobs:
           make -C cli check
 
   msvc:
-    runs-on: windows-2025
+    # x86_64 and arm64, as release.yml builds the two Windows archives
+    name: msvc ${{ matrix.a }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { a: x86_64, os: windows-2025, vc: vcvars64.bat }
+          - { a: arm64, os: windows-11-arm, vc: vcvarsarm64.bat }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -73,7 +81,7 @@ jobs:
       - name: build with cl, /W4 /WX for cli/ (the kernels at /W3 /WX, as py.yml builds them)
         shell: cmd
         run: |
-          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\${{ matrix.vc }}"
           cl /nologo /c /std:c++17 /EHsc /O2 /W3 /WX /Fob\ @b\k.rsp || exit /b 1
           cl /nologo /c /std:c++17 /EHsc /bigobj /O2 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
           cl /nologo /Fecli\crimlab.exe b\*.obj || exit /b 1

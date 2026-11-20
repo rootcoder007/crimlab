@@ -1,0 +1,64 @@
+context:
+  version: "0.0.3"
+
+package:
+  name: crimlab
+  version: ${{ version }}
+
+source:
+  url: https://github.com/rootcoder007/crimlab/releases/download/v${{ version }}/crimlab-${{ version }}.tar.gz
+  sha256: 0aeb53b4d01460daf55771a916fcd25f5711c8b19421aca2fa14f07d3fd99bdc
+
+build:
+  number: 0
+  skip:
+    - win
+  script:
+    # glibc before 2.34 keeps dlopen() in libdl and threads in libpthread; the
+    # Makefile names neither, and --as-needed would drop a -ldl placed first
+    - if [[ "${target_platform}" == linux-* ]]; then export LDFLAGS="${LDFLAGS} -pthread -Wl,--no-as-needed -ldl -Wl,--as-needed"; fi
+    - make -C cli -j${CPU_COUNT} WERROR= CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" AR="${AR}" LIBDIR="${PREFIX}/lib"
+    - if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" != "1" ]]; then make -C cli WERROR= CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" AR="${AR}" LIBDIR="${PREFIX}/lib" check; fi
+    - make -C cli WERROR= CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" AR="${AR}" PREFIX="${PREFIX}" LIBDIR="${PREFIX}/lib" install
+
+requirements:
+  build:
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    - make
+    - sed
+    - grep
+  run_exports:
+    - ${{ pin_subpackage('crimlab', upper_bound='x.x.x') }}
+
+tests:
+  - package_contents:
+      include:
+        - crimlab/crimlab.h
+      lib:
+        - crimlab
+      bin:
+        - crimlab
+  - script:
+      - crimlab orrisk --or 2 --rate 0.1 --share 0.3
+      - crimlab selftest -j
+
+about:
+  homepage: https://crimlab.dev/
+  repository: https://github.com/rootcoder007/crimlab
+  documentation: https://crimlab.dev/
+  summary: Statistical toolkit for criminology and sociolegal research
+  description: |
+    crimlab is a statistical toolkit for criminology and sociolegal research:
+    a command-line tool and C library over one C++17 core, with no
+    third-party dependencies. Use it to test a stop record for disparity,
+    weigh DNA and score-based evidence, evaluate a policy, audit a risk
+    score, and describe sentences, custody and crime places.
+  license: Apache-2.0 WITH LLVM-exception
+  license_file:
+    - LICENSE
+    - NOTICE
+
+extra:
+  recipe-maintainers:
+    - rootcoder007

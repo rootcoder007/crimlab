@@ -8,7 +8,8 @@
 #
 # In order, stopping at the first failure: downloads the release's
 # SHA256SUMS (with CRIMLAB_SIGNER set, checks its SSH signature
-# SHA256SUMS.sig), downloads crimlab-<version>-windows-x86_64.zip and
+# SHA256SUMS.sig), downloads crimlab-<version>-windows-x86_64.zip (or
+# -windows-arm64.zip on an arm64 machine) and
 # checks its SHA-256 against SHA256SUMS, checks every path in it stays
 # inside its top folder, and copies bin\ into the prefix. Windows on ARM
 # runs the x86-64 build under emulation.
@@ -56,7 +57,13 @@ function Install-Crimlab {
       $base -notmatch '^http://(127\.0\.0\.1|localhost)(:[0-9]{1,5})?(/[^@]*)?$') {
     Fail "CRIMLAB_BASE must be https (or http to localhost): $base"
   }
+  # the machine's own kind, also when this PowerShell is the x64 one of an
+  # arm64 Windows; a release without an arm64 archive (before 0.0.4) gives
+  # the x86_64 one, which arm64 Windows runs
+  $arch = $env:PROCESSOR_ARCHITEW6432
+  if (-not $arch) { $arch = $env:PROCESSOR_ARCHITECTURE }
   $target = 'windows-x86_64'
+  if ($arch -eq 'ARM64') { $target = 'windows-arm64' }
   if ($ver) { $url = "$base/download/v$ver" } else { $url = "$base/latest/download" }
 
   $tmp = Join-Path ([IO.Path]::GetTempPath()) ('crimlab-' + [guid]::NewGuid().ToString('N'))
@@ -71,6 +78,11 @@ function Install-Crimlab {
         if ($table.ContainsKey($Matches[2])) { Fail "SHA256SUMS lists $($Matches[2]) twice" }
         $table[$Matches[2]] = $Matches[1].ToLowerInvariant()
       }
+    }
+    if ($target -eq 'windows-arm64' -and
+        -not @($table.Keys | Where-Object { $_ -match '^crimlab-[0-9]+\.[0-9]+\.[0-9]+-windows-arm64\.zip$' }).Count) {
+      Say 'this release has no arm64 archive: taking the x86_64 one'
+      $target = 'windows-x86_64'
     }
     if ($ver) {
       $name = "crimlab-$ver-$target.zip"

@@ -18,6 +18,7 @@ package crimlab
 
 /*
 #cgo CXXFLAGS: -std=c++17 -O2 -I${SRCDIR}/csrc/src -I${SRCDIR}/csrc/cli
+#cgo linux LDFLAGS: -ldl -lpthread
 #include <stdlib.h>
 int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need);
 const char *clab_jfns(void);

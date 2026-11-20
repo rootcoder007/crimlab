@@ -48,6 +48,11 @@ fn main() {
         b.flag("-std=c++17");
     }
     b.compile("crimlab");
+    // dlopen() and the threads: outside libc in glibc before 2.34
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux") {
+        println!("cargo:rustc-link-lib=dl");
+        println!("cargo:rustc-link-lib=pthread");
+    }
 
     // the table of jrun.cpp: {"name", "args", f},
     let t = fs::read_to_string(cli.join("jrun.cpp")).unwrap();

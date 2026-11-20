@@ -1,3 +1,20 @@
+# crimlab 0.0.4
+
+* No function changes. The command-line program and the library build on
+  systems with an older C library (glibc before 2.34, where the loader and
+  the threads are outside libc): the Makefile and the Python, Go and Rust
+  builds name those libraries at the link. A build with an older compiler
+  (gcc 8) no longer stops at a warning, and `make install` creates each
+  directory in a command of its own.
+* A Windows arm64 archive of the command-line program, beside the x86_64
+  one; `install.ps1` and the Scoop manifest take the one that fits the
+  machine.
+* The pages of the package on PyPI, npm, crates.io, pkg.go.dev and Maven
+  Central carry the badges of the main README, and the README lists every
+  way to install.
+* The source archive no longer carries build output of the Python package,
+  which the archive of 0.0.3 included by mistake.
+
 # crimlab 0.0.3
 
 * No function changes. The command-line build can lower the compiler

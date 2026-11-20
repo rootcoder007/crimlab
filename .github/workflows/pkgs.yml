@@ -1,0 +1,214 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Builds every recipe in packaging/community (the files sent to Alpine,
+# T2 SDE, conda-forge, Conan and winget) on the system it is for, from the
+# release tarball the recipe names, with the crimlab tests; and builds this
+# tree on glibc 2.17, with its own compiler and with an older one.
+name: pkgs
+
+on:
+  push:
+    branches: [main]
+    paths: ["packaging/community/**", "cli/Makefile", ".github/workflows/pkgs.yml"]
+  pull_request:
+    paths: ["packaging/community/**", "cli/Makefile", ".github/workflows/pkgs.yml"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: pkgs-${{ github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  alpine:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    # alpine:edge
+    container: alpine@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: abuild, check, install, use
+        run: |
+          apk add -q alpine-sdk sudo
+          adduser -D b
+          addgroup b abuild
+          echo "b ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/b
+          mkdir -p /home/b/aports/testing
+          cp -r packaging/community/alpine/testing/crimlab /home/b/aports/testing/
+          chown -R b /home/b
+          su b -c "abuild-keygen -a -i -n; cd ~/aports/testing/crimlab && abuild verify && REPODEST=/home/b/packages abuild -r"
+          ls /home/b/packages/testing/x86_64/
+          apk add --allow-untrusted /home/b/packages/testing/x86_64/crimlab-[0-9]*.apk
+          crimlab orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+          crimlab selftest -j | grep '"nfail":0'
+
+  oldsys:
+    # This tree on systems older than any other job has: glibc 2.17
+    # (CentOS 7, manylinux2014, the conda-forge sysroot), where dlopen()
+    # and the threads are outside libc, and gcc 8 (AlmaLinux 8). docker
+    # run, not container:, since the runner's node cannot start on glibc
+    # 2.17. -Werror stays on: an old compiler's warning is seen here.
+    name: oldsys (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: glibc 2.17
+            image: quay.io/pypa/manylinux2014_x86_64@sha256:5f0bcf92ed65391c7df442763168887d97ae734f2fbb17012eb6bed4a8aef98f
+            setup: "true"
+          - name: gcc 8
+            image: docker.io/library/almalinux:8
+            setup: dnf -q -y install gcc-c++ make diffutils
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: build this tree and run the command's test table
+        env:
+          IMAGE: ${{ matrix.image }}
+          SETUP: ${{ matrix.setup }}
+        run: |
+          cat > og.sh <<'SH'
+          set -eu
+          eval "$SETUP" >/dev/null
+          ldd --version | head -n 1
+          c++ --version | head -n 1
+          cp -a /src /w
+          make -C /w/cli -j"$(nproc)" check
+          make -C /w/cli install DESTDIR=/tmp/i PREFIX=/usr
+          find /tmp/i -type d -empty | grep . && exit 1
+          /tmp/i/usr/bin/crimlab selftest -j | grep '"nfail":0'
+          SH
+          docker run --rm -e SETUP -v "$PWD:/src:ro" -v "$PWD/og.sh:/og.sh:ro" "$IMAGE" sh /og.sh
+
+  t2:
+    # T2 SDE publishes ISOs, not container images: the job makes an image of
+    # the root file system of a T2 ISO (pinned by its SHA-256) and builds the
+    # package there with T2's own scripts, from the T2 tree at a fixed commit
+    # (packaging/community/t2/ci.sh); arm64 runs natively on an arm runner
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x86_64
+            iso: t2-26.6-x86-64-base-wayland-bootstrap-gcc-nocona.iso
+            sum: e176704d9a10b5fbdee494a29822b956cc72a41b6690417b21ea5d5f8be0b3eb
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+            iso: t2-26.7-arm64-base-wayland-bootstrap-gcc.iso
+            sum: 388c2c2142c6409ac5a22308356a25f2ee8d4e6eb7517a18de5710707a9f6eb1
+    name: t2 (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: T2 userland from the ISO
+        env:
+          ISO: ${{ matrix.iso }}
+          SUM: ${{ matrix.sum }}
+        run: |
+          curl -sSfL -o t2.iso "https://dl.t2sde.org/binary/2026/incoming/$ISO"
+          echo "$SUM  t2.iso" | sha256sum -c -
+          # alpine:edge, as in the alpine job
+          docker run --rm -v "$PWD:/w" alpine@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000 sh -c \
+            "apk add -q squashfs-tools xorriso >&2 &&
+            xorriso -osirrox on -indev /w/t2.iso -extract /rootfs.sqf /tmp/r.sqf 2>/dev/null &&
+            unsquashfs -q -n -d /tmp/r /tmp/r.sqf >&2 && tar -C /tmp/r -cf - ." | docker import - t2
+          rm t2.iso
+      - name: the T2 tree (rxrbln/t2sde, the git mirror of svn t2/trunk)
+        run: |
+          git init -q /tmp/t2
+          git -C /tmp/t2 fetch -q --depth 1 https://github.com/rxrbln/t2sde.git 1d1bca4a3e2b0102d8af6ab241ec4ab0b358de41
+          git -C /tmp/t2 checkout -q FETCH_HEAD
+      - name: Check-PkgFormat, Download, Emerge-Pkg (with the tests), use
+        run: |
+          docker run --rm -v /tmp/t2:/t2:ro -v "$PWD:/cl:ro" t2 \
+            sh /cl/packaging/community/t2/ci.sh
+
+  conda:
+    # Windows is not built: the recipe skips it (the Makefile has no
+    # Windows build)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the C++ toolchain conda-forge pins on this system
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Linux) printf 'c_compiler: [gcc]\nc_compiler_version: ["14"]\ncxx_compiler: [gxx]\ncxx_compiler_version: ["14"]\nc_stdlib: [sysroot]\nc_stdlib_version: ["2.17"]\n' > cf.yaml ;;
+            macOS) printf 'c_compiler: [clang]\nc_compiler_version: ["19"]\ncxx_compiler: [clangxx]\ncxx_compiler_version: ["19"]\nc_stdlib: [macosx_deployment_target]\nc_stdlib_version: ["11.0"]\n' > cf.yaml ;;
+          esac
+          cat cf.yaml
+      - uses: prefix-dev/rattler-build-action@1ca5f45832f419a46d1326ccc5861d7e14d67c44 # v0.2.39
+        with:
+          recipe-path: packaging/community/conda-forge/recipes/crimlab/recipe.yaml
+          build-args: -c conda-forge -m cf.yaml
+          upload-artifact: false
+
+  conan:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: conan create (static and shared, with test_package)
+        shell: bash
+        run: |
+          pip install -q --require-hashes -r .github/pkgs/conan.txt
+          conan profile detect
+          v=$(sed -n 's/^  "\([0-9.]*\)":$/\1/p' packaging/community/conan/recipes/crimlab/config.yml)
+          conan create packaging/community/conan/recipes/crimlab/all --version "$v" --build=missing -s compiler.cppstd=17
+          conan create packaging/community/conan/recipes/crimlab/all --version "$v" --build=missing -s compiler.cppstd=17 -o "crimlab/*:shared=True"
+
+  winget:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: validate the manifests and run the installer the way winget does
+        shell: pwsh
+        run: |
+          $m = (Get-ChildItem packaging/community/winget/manifests/r/rootcoder007/crimlab -Directory | Select-Object -Last 1).FullName
+          $v = Split-Path $m -Leaf
+          if (Get-Command winget -ErrorAction SilentlyContinue) { winget validate --manifest $m } else { Write-Host "winget not on this runner; checking against the schemas instead" }
+          pip install -q --require-hashes -r .github/pkgs/jsonschema.txt
+          check-jsonschema --schemafile https://aka.ms/winget-manifest.version.1.10.0.schema.json "$m/rootcoder007.crimlab.yaml"
+          check-jsonschema --schemafile https://aka.ms/winget-manifest.installer.1.10.0.schema.json "$m/rootcoder007.crimlab.installer.yaml"
+          check-jsonschema --schemafile https://aka.ms/winget-manifest.defaultLocale.1.10.0.schema.json "$m/rootcoder007.crimlab.locale.en-US.yaml"
+          $inst = Get-Content "$m/rootcoder007.crimlab.installer.yaml" -Raw
+          $url = ([regex]'InstallerUrl: (\S+x86_64\.zip)').Match($inst).Groups[1].Value
+          $sha = ([regex]'(?s)x86_64\.zip\s+InstallerSha256: (\S+)').Match($inst).Groups[1].Value
+          Invoke-WebRequest $url -OutFile c.zip
+          if ((Get-FileHash c.zip -Algorithm SHA256).Hash -ne $sha) { throw "InstallerSha256 does not match" }
+          Expand-Archive c.zip -DestinationPath c
+          $o = & "./c/crimlab-$v-windows-x86_64/bin/crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
+          $o
+          if (-not ($o -match '0\.1475205')) { throw 'wrong result' }

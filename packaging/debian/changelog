@@ -1,3 +1,12 @@
+crimlab (0.0.4-1) unstable; urgency=medium
+
+  * The loader and thread libraries are named at the link, for C
+    libraries that keep them outside libc.
+  * make install creates each directory in a command of its own.
+  * No change to the functions.
+
+ -- rootcoder007 <278967282+rootcoder007@users.noreply.github.com>  Fri, 20 Nov 2026 04:00:00 -0500
+
 crimlab (0.0.3-1) unstable; urgency=medium
 
   * The build can lower the flags of the JSON layer alone (JOPT), which

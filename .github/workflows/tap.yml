@@ -2,12 +2,13 @@
 #
 # Once the maintainer publishes a release (release.yml leaves it a
 # draft): the Homebrew formula (packaging/brew/crimlab.rb) into the tap
-# rootcoder007/homebrew-crimlab as Formula/crimlab.rb, and the Scoop
+# rootcoder007/homebrew-crimlab (and rootcoder007/homebrew-morie) as
+# Formula/crimlab.rb, and the Scoop
 # manifest (packaging/scoop/crimlab.json) into the bucket
 # rootcoder007/scoop-crimlab as bucket/crimlab.json, each with the
 # release's version and the SHA-256 its SHA256SUMS gives. In the
 # protected environment "release"; secret CLAB_TAP_TOKEN, a fine-grained
-# token with Contents read and write on those two repositories only.
+# token with Contents read and write on those three repositories only.
 # workflow_dispatch redoes it for a tag already published.
 name: tap
 
@@ -42,12 +43,14 @@ jobs:
           gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir "$RUNNER_TEMP"
           s=$(awk -v n="crimlab-$v.tar.gz" '$2 == n {print $1}' "$RUNNER_TEMP/SHA256SUMS")
           w=$(awk -v n="crimlab-$v-windows-x86_64.zip" '$2 == n {print $1}' "$RUNNER_TEMP/SHA256SUMS")
-          [ ${#s} -eq 64 ] && [ ${#w} -eq 64 ] || { echo "::error::SHA256SUMS lacks the source or the Windows archive"; exit 1; }
+          wa=$(awk -v n="crimlab-$v-windows-arm64.zip" '$2 == n {print $1}' "$RUNNER_TEMP/SHA256SUMS")
+          [ ${#s} -eq 64 ] && [ ${#w} -eq 64 ] && [ ${#wa} -eq 64 ] || { echo "::error::SHA256SUMS lacks the source or a Windows archive"; exit 1; }
           mkdir -p out/Formula out/bucket
           sed -e "s|/v0\.0\.0/crimlab-0\.0\.0\.tar\.gz|/v$v/crimlab-$v.tar.gz|" \
               -e "s|sha256 \"0\{64\}\"|sha256 \"$s\"|" packaging/brew/crimlab.rb > out/Formula/crimlab.rb
-          sed -e "s|0\.0\.0|$v|g" -e "s|\"0\{64\}\"|\"$w\"|" packaging/scoop/crimlab.json > out/bucket/crimlab.json
-          if grep -q '0\{64\}' out/Formula/crimlab.rb out/bucket/crimlab.json; then
+          sed -e "s|0\.0\.0|$v|g" -e "s|\"0\{64\}\"|\"$w\"|" -e "s|\"1\{64\}\"|\"$wa\"|" \
+            packaging/scoop/crimlab.json > out/bucket/crimlab.json
+          if grep -q -e '0\{64\}' -e '1\{64\}' out/Formula/crimlab.rb out/bucket/crimlab.json; then
             echo "::error::a placeholder SHA-256 is left"; exit 1
           fi
           python3 -m json.tool out/bucket/crimlab.json > /dev/null
@@ -61,9 +64,15 @@ jobs:
             echo "::warning::CLAB_TAP_TOKEN is not set: the tap and the bucket are not updated"
             exit 0
           fi
-          for r in homebrew-crimlab:Formula scoop-crimlab:bucket; do
+          for r in homebrew-crimlab:Formula scoop-crimlab:bucket homebrew-morie:Formula; do
             repo=${r%%:*}; d=${r#*:}
-            git clone -q "https://x-access-token:$T@github.com/rootcoder007/$repo.git" "$RUNNER_TEMP/$repo"
+            if ! git clone -q "https://x-access-token:$T@github.com/rootcoder007/$repo.git" "$RUNNER_TEMP/$repo"; then
+              # the tap rootcoder007/morie carries the formula too, once
+              # the token may write there
+              [ "$repo" = homebrew-morie ] || exit 1
+              echo "::warning::CLAB_TAP_TOKEN cannot reach $repo: its formula is not updated"
+              continue
+            fi
             mkdir -p "$RUNNER_TEMP/$repo/$d"
             cp "out/$d"/* "$RUNNER_TEMP/$repo/$d/"
             git -C "$RUNNER_TEMP/$repo" add -A

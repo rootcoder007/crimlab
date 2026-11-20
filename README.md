@@ -290,14 +290,28 @@ version 1.0. `NEWS.md` records each change.
 
 ## Installation
 
-From GitHub:
-
-```r
-# install.packages("remotes")
-remotes::install_github("rootcoder007/crimlab")
+```bash
+Rscript -e 'install.packages("crimlab",
+  repos = "https://rootcoder007.r-universe.dev")'                     # R
+pip install crimlab                                                   # Python
+brew install rootcoder007/crimlab/crimlab                             # macOS/Linux
+curl -fsSL https://github.com/rootcoder007/crimlab/releases/latest/download/install.sh | sh
+sudo dnf copr enable rootcoder007/crimlab && sudo dnf install crimlab # Fedora, EPEL
+docker run --rm ghcr.io/rootcoder007/crimlab crimlab -l               # container (Wolfi)
+npm install crimlab                                                   # JavaScript (WebAssembly)
+cargo add crimlab                                                     # Rust
+go get github.com/rootcoder007/crimlab/bindings/go@latest             # Go
 ```
 
-The package needs a C++17 compiler and no R package beyond those that ship
+```powershell
+irm https://github.com/rootcoder007/crimlab/releases/latest/download/install.ps1 | iex   # Windows
+scoop bucket add crimlab https://github.com/rootcoder007/scoop-crimlab                   # Windows, Scoop
+scoop install crimlab/crimlab
+```
+
+Java (Maven Central): `io.github.rootcoder007:crimlab`. Debian, Ubuntu and openSUSE: the [openSUSE Build Service repositories](https://build.opensuse.org/package/show/home:rootcoder007/crimlab) (commands on [crimlab.dev](https://crimlab.dev/)).
+
+The R package needs a C++17 compiler and no R package beyond those that ship
 with R.
 
 ## Examples
