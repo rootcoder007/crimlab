@@ -122,12 +122,6 @@ bool ioc(HANDLE h, DWORD code, void *in, DWORD nin, void *out, DWORD nout, DWORD
   return DeviceIoControl(h, code, in, nin, out, nout, &got, nullptr) != 0;
 }
 
-std::string s8(const std::wstring &w) {
-  std::string s;
-  for (wchar_t c : w) s += c < 128 ? static_cast<char>(c) : '?';
-  return s;
-}
-
 void emi(Snap &s) {
   const std::vector<std::wstring> dv = ifaces(gemi);
   bool any = false;

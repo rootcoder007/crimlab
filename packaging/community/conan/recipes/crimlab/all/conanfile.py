@@ -55,8 +55,9 @@ class CrimlabConan(ConanFile):
 
     def build(self):
         args = ["WERROR="]
-        if is_apple_os(self):
-            args.append(f"SOFLAGS=-dynamiclib -install_name @rpath/{self._soname}")
+        if is_apple_os(self) and self.options.shared:
+            # one make word: the value has spaces
+            args.append(f'SOFLAGS="-dynamiclib -install_name @rpath/{self._soname}"')
         target = self._soname if self.options.shared else "libcrimlab.a"
         autotools = Autotools(self)
         with chdir(self, os.path.join(self.source_folder, "cli")):
