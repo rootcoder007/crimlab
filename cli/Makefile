@@ -76,8 +76,14 @@ $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
 $(B)/jrun.o: jrun.cpp jrun.h ../src/json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h ../DESCRIPTION | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) $(JOPT) -fPIC -I../src -c $< -o $@
 
+# A statically linked program cannot load a shared library (with glibc it
+# stops at dlopen): --update then asks through the curl program alone.
+ifneq ($(findstring -static,$(LDFLAGS)),)
+UPDDEF = -DCLAB_NODL
+endif
+
 $(B)/main.o: main.cpp jrun.h ../src/json.h ../src/crimlab.h ../DESCRIPTION | $(B)
-	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -I../src -DCLAB_VER='"$(VER)"' -c $< -o $@
+	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) $(UPDDEF) -I../src -DCLAB_VER='"$(VER)"' -c $< -o $@
 
 # the proof table of the R binding
 thm.inc: ../src/bind.cpp thm.sh

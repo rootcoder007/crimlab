@@ -36,7 +36,7 @@
 #ifdef _MSC_VER
 #pragma comment(lib, "winhttp")
 #endif
-#else
+#elif !defined(CLAB_NODL)
 #include <dlfcn.h>
 #endif
 #endif
@@ -382,7 +382,8 @@ bool later(const std::string &a, const std::string &b) {
  * bytes, ended with 0); the length, or 0 when it cannot be had within secs
  * seconds. Nothing is linked for this: Windows asks through WinHTTP, which
  * is part of it; elsewhere the libcurl of the system is loaded when there
- * is one, and the curl program is the last resort. */
+ * is one (not by a statically linked program, built with CLAB_NODL), and
+ * the curl program is the last resort. */
 #ifdef _WIN32
 static size_t asknet(int secs, char *buf, size_t cap) {
   HINTERNET s, c = NULL, r = NULL;
@@ -430,6 +431,7 @@ static size_t asknet(int secs, char *buf, size_t cap) {
   return k;
 }
 #else
+#ifndef CLAB_NODL
 /* libcurl, by the numbers of its stable interface (curl/curl.h):
  * CURLOPT_URL 10002, NOBODY 44, TIMEOUT 13, NOSIGNAL 99, USERAGENT 10018,
  * CURLINFO_REDIRECT_URL 0x100000 + 31. */
@@ -489,13 +491,18 @@ static size_t asklib(int secs, char *buf, size_t cap) {
   buf[k] = '\0';
   return k;
 }
+#endif
 
 static size_t asknet(int secs, char *buf, size_t cap) {
   char cmd[256];
-  size_t n = asklib(secs, buf, cap);
+  size_t n = 0;
   FILE *f;
+#ifndef CLAB_NODL
+  /* not in a statically linked program, which cannot load a library */
+  n = asklib(secs, buf, cap);
   if (n > 0)
     return n;
+#endif
   /* the curl program; the command is a constant but for the seconds */
   snprintf(cmd, sizeof cmd,
            "curl -fsS -m %d -o /dev/null -w \"%%{redirect_url}\" " CLAB_REL
