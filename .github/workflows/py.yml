@@ -106,6 +106,16 @@ jobs:
           CIBW_ENVIRONMENT: CLAB_WERROR=1
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest -q {package}/tests
+      - name: No wheel over 10 MB
+        shell: bash
+        run: |
+          # the extension is a few MB; a wheel beyond this carries debug
+          # records or files that do not belong in it
+          for w in wheelhouse/*.whl; do
+            n=$(wc -c < "$w")
+            echo "$w: $n bytes"
+            [ "$n" -le 10000000 ] || { echo "::error::$w is over 10 MB"; exit 1; }
+          done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: wheels-${{ matrix.os }}

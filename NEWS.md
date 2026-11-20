@@ -14,6 +14,9 @@
   way to install.
 * The source archive no longer carries build output of the Python package,
   which the archive of 0.0.3 included by mistake.
+* The Linux wheels on PyPI are a tenth of their size: the extension was
+  built with debug records (about 40 MB a wheel at 0.0.3), and is now built
+  without them. A wheel over 10 MB stops the build.
 
 # crimlab 0.0.3
 

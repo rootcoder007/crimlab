@@ -65,11 +65,13 @@ def sync():
 class Build(build_ext):
     """C++17 on every compiler; warnings shown, and errors with CLAB_WERROR=1
     (set here rather than through CXXFLAGS, which would replace Python's
-    own compile flags, the optimisation among them)."""
+    own compile flags, the optimisation among them). No debug records
+    (-g0): the Python of the manylinux images compiles with -g, which made
+    the Linux extension 158 MB, 148 MB of it debug sections."""
 
     def build_extensions(self):
         msvc = self.compiler.compiler_type == "msvc"
-        flags = ["/std:c++17", "/EHsc", "/bigobj", "/W3"] if msvc else ["-std=c++17", "-Wall", "-Wextra"]
+        flags = ["/std:c++17", "/EHsc", "/bigobj", "/W3"] if msvc else ["-std=c++17", "-Wall", "-Wextra", "-g0"]
         if os.environ.get("CLAB_WERROR") == "1":
             flags.append("/WX" if msvc else "-Werror")
         for e in self.extensions:
