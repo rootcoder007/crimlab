@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,6 +62,16 @@
       <small>Source: <a href="https://github.com/rootcoder007/crimlab/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.4" id="crimlab-004">crimlab 0.0.4<a class="anchor" aria-label="anchor" href="#crimlab-004"></a></h2>
+<ul><li>Fixed: <code>spill</code> from the command-line program, and from the Python, Go, Java, JavaScript and Rust packages, read outside a list when the fit it was given named more lagged terms than it had terms (a fit not made by <code>sarml</code>, as text). Such a fit is now refused. The R function was not affected. Found by the fuzzing of every change.</li>
+<li>No function changes. The command-line program and the library build on systems with an older C library (glibc before 2.34, where the loader and the threads are outside libc): the Makefile and the Python, Go and Rust builds name those libraries at the link. A build with an older compiler (gcc 8) no longer stops at a warning, and <code>make install</code> creates each directory in a command of its own.</li>
+<li>A Windows arm64 archive of the command-line program, beside the x86_64 one; <code>install.ps1</code> and the Scoop manifest take the one that fits the machine.</li>
+<li>The pages of the package on PyPI, npm, crates.io, pkg.go.dev and Maven Central carry the badges of the main README, and the README lists every way to install.</li>
+<li>The source archive no longer carries build output of the Python package, which the archive of 0.0.3 included by mistake.</li>
+<li>The Linux wheels on PyPI are a tenth of their size: the extension was built with debug records (about 40 MB a wheel at 0.0.3), and is now built without them. A wheel over 20 MB stops the build.</li>
+<li>A notice of a newer release. In an interactive R session, attaching the package says in one line when a newer release exists, and <code>import crimlab</code> does the same at the Python prompt or in a notebook: the page of the latest release is asked for at most once a day, with a limit of two seconds, and a script or a test never asks. <code>options(crimlab.update = FALSE)</code> in R, or the environment variable <code>CRIMLAB_NO_UPDATE_CHECK</code>, turns it off. The command-line program asks only when told to, with <code>crimlab --update</code>, and keeps nothing. Nothing is sent but that request.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.3" id="crimlab-003">crimlab 0.0.3<a class="anchor" aria-label="anchor" href="#crimlab-003"></a></h2>
 <ul><li>No function changes. The command-line build can lower the compiler flags of its JSON layer alone (<code>JOPT</code>), which the Fedora package does on riscv64: that one file took the emulated builders over an hour, and the packages of 0.0.2 were not built there.</li>

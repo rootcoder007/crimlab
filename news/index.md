@@ -1,5 +1,39 @@
 # Changelog
 
+## crimlab 0.0.4
+
+- Fixed: `spill` from the command-line program, and from the Python, Go,
+  Java, JavaScript and Rust packages, read outside a list when the fit
+  it was given named more lagged terms than it had terms (a fit not made
+  by `sarml`, as text). Such a fit is now refused. The R function was
+  not affected. Found by the fuzzing of every change.
+- No function changes. The command-line program and the library build on
+  systems with an older C library (glibc before 2.34, where the loader
+  and the threads are outside libc): the Makefile and the Python, Go and
+  Rust builds name those libraries at the link. A build with an older
+  compiler (gcc 8) no longer stops at a warning, and `make install`
+  creates each directory in a command of its own.
+- A Windows arm64 archive of the command-line program, beside the x86_64
+  one; `install.ps1` and the Scoop manifest take the one that fits the
+  machine.
+- The pages of the package on PyPI, npm, crates.io, pkg.go.dev and Maven
+  Central carry the badges of the main README, and the README lists
+  every way to install.
+- The source archive no longer carries build output of the Python
+  package, which the archive of 0.0.3 included by mistake.
+- The Linux wheels on PyPI are a tenth of their size: the extension was
+  built with debug records (about 40 MB a wheel at 0.0.3), and is now
+  built without them. A wheel over 20 MB stops the build.
+- A notice of a newer release. In an interactive R session, attaching
+  the package says in one line when a newer release exists, and
+  `import crimlab` does the same at the Python prompt or in a notebook:
+  the page of the latest release is asked for at most once a day, with a
+  limit of two seconds, and a script or a test never asks.
+  `options(crimlab.update = FALSE)` in R, or the environment variable
+  `CRIMLAB_NO_UPDATE_CHECK`, turns it off. The command-line program asks
+  only when told to, with `crimlab --update`, and keeps nothing. Nothing
+  is sent but that request.
+
 ## crimlab 0.0.3
 
 - No function changes. The command-line build can lower the compiler

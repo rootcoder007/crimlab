@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -187,11 +187,21 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>From GitHub:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"rootcoder007/crimlab"</span><span class="op">)</span></span></code></pre></div>
-<p>The package needs a C++17 compiler and no R package beyond those that ship with R.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'install.packages("crimlab",</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="st">  repos = "https://rootcoder007.r-universe.dev")'</span>                     <span class="co"># R</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="ex">pip</span> install crimlab                                                   <span class="co"># Python</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="ex">brew</span> install rootcoder007/crimlab/crimlab                             <span class="co"># macOS/Linux</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsSL</span> https://github.com/rootcoder007/crimlab/releases/latest/download/install.sh <span class="kw">|</span> <span class="fu">sh</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">sudo</span> dnf copr enable rootcoder007/crimlab <span class="kw">&amp;&amp;</span> <span class="fu">sudo</span> dnf install crimlab <span class="co"># Fedora, EPEL</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> ghcr.io/rootcoder007/crimlab crimlab <span class="at">-l</span>               <span class="co"># container (Wolfi)</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="ex">npm</span> install crimlab                                                   <span class="co"># JavaScript (WebAssembly)</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="ex">cargo</span> add crimlab                                                     <span class="co"># Rust</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="ex">go</span> get github.com/rootcoder007/crimlab/bindings/go@latest             <span class="co"># Go</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">irm</span> https<span class="op">://</span>github<span class="op">.</span><span class="fu">com</span><span class="op">/</span>rootcoder007<span class="op">/</span>crimlab<span class="op">/</span>releases<span class="op">/</span>latest<span class="op">/</span>download<span class="op">/</span>install<span class="op">.</span><span class="fu">ps1</span> <span class="op">|</span> <span class="fu">iex</span>   <span class="co"># Windows</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>scoop bucket add crimlab https<span class="op">://</span>github<span class="op">.</span><span class="fu">com</span><span class="op">/</span>rootcoder007<span class="op">/</span>scoop-crimlab                   <span class="co"># Windows, Scoop</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>scoop install crimlab<span class="op">/</span>crimlab</span></code></pre></div>
+<p>Java (Maven Central): <code>io.github.rootcoder007:crimlab</code>. Debian, Ubuntu and openSUSE: the <a href="https://build.opensuse.org/package/show/home:rootcoder007/crimlab" class="external-link">openSUSE Build Service repositories</a> (commands on <a href="https://crimlab.dev/" class="external-link">crimlab.dev</a>).</p>
+<p>The R package needs a C++17 compiler and no R package beyond those that ship with R.</p>
 </div>
 <div class="section level2">
 <h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
@@ -199,7 +209,7 @@
 <div class="section level3">
 <h3 id="disparities-in-policing">Disparities in policing<a class="anchor" aria-label="anchor" href="#disparities-in-policing"></a>
 </h3>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crimlab.dev" class="external-link">crimlab</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># veil of darkness: does visibility change who is stopped?</span></span>
@@ -229,7 +239,7 @@
 <div class="section level3">
 <h3 id="clearance-rates">Clearance rates<a class="anchor" aria-label="anchor" href="#clearance-rates"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># both offence types clear better in B, yet B's aggregate rate is lower</span></span>
 <span><span class="fu"><a href="reference/clrsmp.html">clrsmp</a></span><span class="op">(</span>clra <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>minor <span class="op">=</span> <span class="fl">90</span>, serious <span class="op">=</span> <span class="fl">20</span><span class="op">)</span>, reca <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>minor <span class="op">=</span> <span class="fl">100</span>, serious <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span>
 <span>       clrb <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>minor <span class="op">=</span> <span class="fl">19</span>, serious <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>, recb <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>minor <span class="op">=</span> <span class="fl">20</span>, serious <span class="op">=</span> <span class="fl">140</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -237,7 +247,7 @@
 <div class="section level3">
 <h3 id="corrections">Corrections<a class="anchor" aria-label="anchor" href="#corrections"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># custody against a community sentence, with no assumption about who got which</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"community"</span>, <span class="st">"community"</span>, <span class="st">"custody"</span>, <span class="st">"custody"</span>, <span class="st">"custody"</span>,</span>
@@ -251,7 +261,7 @@
 <div class="section level3">
 <h3 id="dna-match-statistics">DNA match statistics<a class="anchor" aria-label="anchor" href="#dna-match-statistics"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># match probability with the Balding-Nichols correction</span></span>
 <span><span class="fu"><a href="reference/gtmp.html">gtmp</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>D3 <span class="op">=</span> <span class="fl">0.1</span>, vWA <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>, q <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="cn">NA</span><span class="op">)</span>, hom <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">FALSE</span>, <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>     theta <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span></span>
@@ -265,7 +275,7 @@
 <div class="section level3">
 <h3 id="kinship-paternity-and-mixtures">Kinship, paternity and mixtures<a class="anchor" aria-label="anchor" href="#kinship-paternity-and-mixtures"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/kinidx.html">kinidx</a></span><span class="op">(</span>g1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">14</span><span class="op">)</span>, g2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">14</span><span class="op">)</span>, freq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.2</span><span class="op">)</span>, rel <span class="op">=</span> <span class="st">"sibling"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/patidx.html">patidx</a></span><span class="op">(</span>child <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">14</span><span class="op">)</span>, father <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">14</span>, <span class="fl">15</span><span class="op">)</span>, freq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.2</span><span class="op">)</span>,</span>
 <span>       mother <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
@@ -295,7 +305,7 @@
 <div class="section level3">
 <h3 id="performance-of-likelihood-ratios">Performance of likelihood ratios<a class="anchor" aria-label="anchor" href="#performance-of-likelihood-ratios"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">same</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">200</span>, <span class="fl">8</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">diff</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.2</span>, <span class="fl">1.5</span>, <span class="fl">0.001</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/cllr.html">cllr</a></span><span class="op">(</span><span class="va">same</span>, <span class="va">diff</span><span class="op">)</span></span>
@@ -307,7 +317,7 @@
 <div class="section level3">
 <h3 id="co-offending-networks">Co-offending networks<a class="anchor" aria-label="anchor" href="#co-offending-networks"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># offenders recorded together in an incident are tied, weighted by the</span></span>
 <span><span class="co"># number of incidents they share</span></span>
 <span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span></span>
@@ -323,7 +333,7 @@
 <div class="section level3">
 <h3 id="spatial-input">Spatial input<a class="anchor" aria-label="anchor" href="#spatial-input"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># planar coordinates (metres, say): two vectors, a matrix or a data frame</span></span>
 <span><span class="co"># with columns x and y; longitude and latitude only with lonlat = TRUE</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
@@ -346,7 +356,7 @@
 <div class="section level3">
 <h3 id="hot-spots-space-time-and-journey-to-crime">Hot spots, space-time and journey to crime<a class="anchor" aria-label="anchor" href="#hot-spots-space-time-and-journey-to-crime"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">6</span>, <span class="fl">0.3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">40</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">6</span>, <span class="fl">0.3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">40</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
@@ -371,7 +381,7 @@
 <div class="section level3">
 <h3 id="spatial-weights-and-autocorrelation">Spatial weights and autocorrelation<a class="anchor" aria-label="anchor" href="#spatial-weights-and-autocorrelation"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">p</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">&gt;</span> <span class="fl">0.7</span> <span class="op">&amp;</span> <span class="va">p</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&gt;</span> <span class="fl">0.7</span>, <span class="fl">5</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span>, sd <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
@@ -385,7 +395,7 @@
 <div class="section level3">
 <h3 id="near-repeats-hot-spots-scans-and-spatial-regression">Near repeats, hot spots, scans and spatial regression<a class="anchor" aria-label="anchor" href="#near-repeats-hot-spots-scans-and-spatial-regression"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">0</span>, <span class="fl">3000</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">0</span>, <span class="fl">3000</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">0</span>, <span class="fl">365</span><span class="op">)</span></span>
@@ -410,7 +420,7 @@
 <div class="section level3">
 <h3 id="risk-tools-trace-evidence-time-and-data-screens">Risk tools, trace evidence, time and data screens<a class="anchor" aria-label="anchor" href="#risk-tools-trace-evidence-time-and-data-screens"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">g</span> <span class="op">==</span> <span class="st">"a"</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
@@ -425,7 +435,7 @@
 <div class="section level3">
 <h3 id="audits-of-risk-tools-and-predictive-policing">Audits of risk tools and predictive policing<a class="anchor" aria-label="anchor" href="#audits-of-risk-tools-and-predictive-policing"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fairsim.html">fairsim</a></span><span class="op">(</span><span class="fl">4000</span>, nareas <span class="op">=</span> <span class="fl">24</span>, bias <span class="op">=</span> <span class="fl">0.5</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>  <span class="co"># a known disparity</span></span>
 <span><span class="fu"><a href="reference/fairdf.html">fairdf</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">det</span>, <span class="va">d</span><span class="op">$</span><span class="va">group</span>, base <span class="op">=</span> <span class="st">"A"</span><span class="op">)</span><span class="op">$</span><span class="va">tab</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"dp"</span>, <span class="st">"di"</span>, <span class="st">"dilo"</span>, <span class="st">"dihi"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="fu"><a href="reference/calaud.html">calaud</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">area</span>, <span class="va">d</span><span class="op">$</span><span class="va">risk</span>, <span class="va">d</span><span class="op">$</span><span class="va">det</span>, <span class="va">d</span><span class="op">$</span><span class="va">group</span>, nperm <span class="op">=</span> <span class="fl">499</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">groups</span></span>
@@ -437,7 +447,7 @@
 <div class="section level3">
 <h3 id="checking-reports-and-inputs">Checking reports and inputs<a class="anchor" aria-label="anchor" href="#checking-reports-and-inputs"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># which reference group and event give a reported odds ratio of 0.44?</span></span>
 <span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">10</span>, <span class="fl">80</span>, <span class="fl">90</span><span class="op">)</span>, <span class="fl">2</span>,</span>
 <span>              dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -452,7 +462,7 @@
 <div class="section level3">
 <h3 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"vodtst"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -460,9 +470,9 @@
 <h2 id="checking-the-proofs">Checking the proofs<a class="anchor" aria-label="anchor" href="#checking-the-proofs"></a>
 </h2>
 <p>The Lean 4 files are in <code>inst/lean</code> (installed under <code>system.file("lean", package = "crimlab")</code>). With <a href="https://github.com/leanprover/elan" class="external-link">elan</a> installed:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
 <p>A build with no error and no <code>sorry</code> is the check.</p>
 </div>
 <div class="section level2">
@@ -477,7 +487,7 @@
 <li>
 <code><a href="reference/mndla.html">mndla()</a></code> reads segregation placements against the Mandela Rules. Where the hours out of cell are recorded it offers the operational definition that Professor Jane B. Sprott and Professor Emeritus Anthony N. Doob applied to stays in Canada’s Structured Intervention Units (<a href="https://www.crimsl.utoronto.ca/sites/www.crimsl.utoronto.ca/files/TortureSolitarySIUsSprottDoob23Feb2021_0.pdf" class="external-link">Sprott and Doob 2021</a>); the reading of Ontario’s segregation tables, which publish durations and alerts, is the package’s own. Their reports, and the work of the Structured Intervention Unit Implementation Advisory Panel that Professor Doob chaired, informed the analyses of Ontario’s tables here. The presets on the tables of Professor Doob’s affidavit in <em>Canadian Civil Liberties Association et al. v. The Attorney General of Canada</em> (Federal Court file T-539-20, 2020) reproduce its analyses of releases, of the flow of prisoners and of age (<code><a href="reference/grprr.html">grprr()</a></code>, <code><a href="reference/stkflw.html">stkflw()</a></code>); its question, whether imprisonment follows crime, is put to two series by <code><a href="reference/xcser.html">xcser()</a></code> and <code><a href="reference/stpcp.html">stpcp()</a></code>. <code><a href="reference/rvwtim.html">rvwtim()</a></code>, <code><a href="reference/entcmp.html">entcmp()</a></code> and <code><a href="reference/dmvar.html">dmvar()</a></code> make general functions of the analyses in Sprott and Doob (2021) and in Sprott, Doob and Iftene (2021) of reviews, of hours out of cell and of the decisions of Independent External Decision Makers.</li>
 <li>The presets read tables that public bodies publish: Ontario’s Ministry of the Solicitor General (segregation and deaths in custody, from the Offender Tracking Information System), the Special Investigations Unit, the Toronto Police Service, the Correctional Service of Canada and Statistics Canada. The check of a reported contrast against every labelling of its table (<code><a href="reference/relchk.html">relchk()</a></code>) takes its case from the correction the Ontario Human Rights Commission published in 2023.</li>
-<li>Results were checked against these R packages, and speed compared with them: bacondecomp, cobalt, DasGuptR, data.table, ddml, DemoDecomp, did, DRDID, EValue, Familias, fixest, forensim, forrel, geosphere, glmnet, grf, igraph, MatchIt, mlr3, netmem, paramlink, pedtools, ranger, relSim, sna, spatstat, spdep, SuperLearner, survey, tmle, tnet and WeightIt. None of them is needed to use crimlab.</li>
+<li>Results were checked against these R packages, and speed compared with them: bacondecomp, cobalt, DasGuptR, data.table, ddml, DemoDecomp, did, DRDID, EValue, Familias, fixest, forensim, forrel, geosphere, glmnet, grf, igraph, MatchIt, mlr3, netmem, paramlink, pedtools, ranger, relSim, sna, spatstat, spdep, SuperLearner, survey, tmle, tnet and WeightIt.</li>
 </ul>
 <p>Thanks, too, to the people who gave their time: Uwe Ligges and his colleagues at CRAN; Jeroen Ooms, for R-universe; Mark Padgham and Mauro Lepore, in rOpenSci’s review, whose reviews and tools shaped the checks here; the Fedora community, and especially its system administrators, for their help with COPR; the maintainers of the CRAN Task Views and of the distributions’ package collections who answered and reviewed the requests; and everyone who reviewed this work before it was a package.</p>
 </div>
@@ -499,8 +509,8 @@
 </h2>
 <p><code>py/</code> holds a Python package, also named crimlab, that compiles the same kernels from <code>src/</code> and gives the same functions, argument names and results; its tests check every number against the R package. It has no runtime dependencies. Install it from a clone with <code>pip install ./py</code>; see <code>py/README.md</code> for how inputs are matched by name and the few differences from R.</p>
 <p><code>cli/</code> builds the command-line program <code>crimlab</code> and the library libcrimlab, whose one entry point <code>clab_jrun()</code> (<code>cli/jrun.h</code>) runs a function of the package by its R name with its arguments as a JSON object and returns its result as JSON, with R’s checks and messages. The Go, Rust, Java and JavaScript packages under <code>bindings/</code> call it, and so do most functions of the Python package. It holds every exported function of the R package but those that are in R only: the tables of the open data service (<code><a href="reference/odtab.html">odtab()</a></code>, <code><a href="reference/odtab.html">odls()</a></code>) and the functions of placement volatility and alert complexity (<code><a href="reference/plcvol.html">plcvol()</a></code>, <code><a href="reference/alrtcx.html">alrtcx()</a></code>, <code><a href="reference/otpyr.html">otpyr()</a></code>, <code><a href="reference/cntmix.html">cntmix()</a></code>, <code><a href="reference/cxvol.html">cxvol()</a></code>, <code><a href="reference/cxdml.html">cxdml()</a></code>, <code><a href="reference/cxyoy.html">cxyoy()</a></code>, <code><a href="reference/cxsim.html">cxsim()</a></code>). <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> of a result is R’s as well; the plot functions return the data they draw everywhere. <code>crimlab -l</code> lists the functions it holds and their arguments, and <code>cli/test.tsv</code> holds the values the R package gives for them (<code>dev/clref.R</code>), which every front end is tested against. A warning R would give is returned in the result as <code>warnings</code>, an array of its messages. Outside R a matrix is an array of its rows, without row or column names, so a result names its columns as R does for an unnamed matrix; and an argument that R takes as a function (the <code>stat</code> of <code><a href="reference/bandx.html">bandx()</a></code>) has no counterpart.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>crimlab orrisk <span class="sc">--</span>or <span class="dv">2</span> <span class="sc">--</span>rate <span class="fl">0.1</span> <span class="sc">--</span>share <span class="fl">0.3</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>echo <span class="st">'{"from": ["a", "a", "b"], "to": ["b", "c", "c"]}'</span> <span class="sc">|</span> crimlab ntdeg <span class="sc">-</span>j</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>crimlab orrisk <span class="sc">--</span>or <span class="dv">2</span> <span class="sc">--</span>rate <span class="fl">0.1</span> <span class="sc">--</span>share <span class="fl">0.3</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>echo <span class="st">'{"from": ["a", "a", "b"], "to": ["b", "c", "c"]}'</span> <span class="sc">|</span> crimlab ntdeg <span class="sc">-</span>j</span></code></pre></div>
 <p>A function whose result is random takes <code>seed</code> outside R, where there is no generator of R’s to draw it from.</p>
 </div>
 </div>
