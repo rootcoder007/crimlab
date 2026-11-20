@@ -9,3 +9,20 @@ authors:
 license: Apache-2.0 WITH LLVM-exception
 repository-code: "https://github.com/rootcoder007/crimlab"
 url: "https://crimlab.dev"
+abstract: >-
+  Statistical methods for courts, corrections, policing, forensic science
+  and sociolegal research, computed in a compiled C++17 core with bindings
+  for R, Python, the command line, Go, Rust, Java and JavaScript.
+keywords:
+  - statistics
+  - criminology
+  - sociolegal research
+  - forensic science
+  - policing
+  - courts
+  - corrections
+  - sentencing
+  - disparity
+  - likelihood ratio
+  - causal inference
+  - spatial statistics

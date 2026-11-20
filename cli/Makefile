@@ -54,8 +54,12 @@ all: crimlab libcrimlab.a $(SO)
 $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -c $< -o $@
 
-$(B)/jrun.o: jrun.cpp jrun.h ../src/json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h | $(B)
-	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -I../src -c $< -o $@
+# The JSON layer is one large file, the costliest to compile by far. JOPT
+# is added to its flags alone, after the others: packaging/rpm lowers its
+# optimisation and its debug information on riscv64, where the builders
+# are emulated. The kernels keep the flags they are given.
+$(B)/jrun.o: jrun.cpp jrun.h ../src/json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h ../DESCRIPTION | $(B)
+	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) $(JOPT) -fPIC -I../src -c $< -o $@
 
 $(B)/main.o: main.cpp jrun.h ../src/json.h ../src/crimlab.h ../DESCRIPTION | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -I../src -DCLAB_VER='"$(VER)"' -c $< -o $@

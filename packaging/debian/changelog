@@ -1,3 +1,11 @@
+crimlab (0.0.3-1) unstable; urgency=medium
+
+  * The build can lower the flags of the JSON layer alone (JOPT), which
+    the RPM does on riscv64.
+  * No change to the functions.
+
+ -- rootcoder007 <278967282+rootcoder007@users.noreply.github.com>  Thu, 19 Nov 2026 20:00:00 -0500
+
 crimlab (0.0.2-1) unstable; urgency=medium
 
   * Every package is described by the title of the R package and says how

@@ -2,7 +2,7 @@
     "##": "SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception. Scoop manifest for the bucket rootcoder007/scoop-crimlab; tap.yml sets version, url and hash for each published release.",
     "version": "0.0.0",
     "description": "Statistical Toolkit for Criminology and Sociolegal Research, from the command line",
-    "homepage": "https://github.com/rootcoder007/crimlab",
+    "homepage": "https://crimlab.dev/",
     "license": "Apache-2.0 WITH LLVM-exception",
     "architecture": {
         "64bit": {

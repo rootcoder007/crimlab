@@ -1,3 +1,10 @@
+# crimlab 0.0.3
+
+* No function changes. The command-line build can lower the compiler
+  flags of its JSON layer alone (`JOPT`), which the Fedora package does
+  on riscv64: that one file took the emulated builders over an hour, and
+  the packages of 0.0.2 were not built there.
+
 # crimlab 0.0.2
 
 * The fits of `ppmlfe()`, `ivfe()`, `ppmlcf()`, `expgmm()`, `fepnl()`,

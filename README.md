@@ -24,10 +24,10 @@ Lean, `proof()` names the theorem.
 
 ![crimlab in one minute: a veil-of-darkness table, a reported odds ratio checked against every labelling of its table, a clearance paradox, a categorical audit, a cross-table with an interval for its association, placement volatility, a posterior from a likelihood ratio, hot spots, spatial autocorrelation, the command-line program, and the theorems behind a function](man/figures/demo.svg)
 
-It is written for researchers and analysts in criminology, sociolegal
-studies, policing, corrections and forensic science who need these
-quantities computed correctly and want to know what each one does and does
-not show. `vignette("crimlab")` walks through one example from each family.
+Use it to test a stop record for disparity, weigh DNA and score-based
+evidence, evaluate a policy, audit a risk score, and describe sentences,
+custody and crime places. `vignette("crimlab")` walks through one example
+from each family.
 
 ## What it takes
 

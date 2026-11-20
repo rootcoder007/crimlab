@@ -1,0 +1,61 @@
+# A build on Fedora COPR, started by hand, of the commit it is started
+# on. Into the scratch project (the default) it is the rehearsal of a
+# release: the builders, the targets and the flags a release meets,
+# riscv64 and aarch64 among them, and nothing that a user installs.
+# publish.yml refuses a tag whose commit has no green run of it with
+# every target. Into the project crimlab it builds the targets that a
+# release left unbuilt.
+name: copr
+run-name: "copr: ${{ inputs.project }} ${{ inputs.chroots || 'every target' }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "COPR project (crimlab-ci is the scratch project)"
+        default: crimlab-ci
+      chroots:
+        description: "targets, separated by spaces (empty: every target)"
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: copr-${{ inputs.project }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # secret CLAB_COPR_CONFIG, the text of ~/.config/copr
+    runs-on: ubuntu-24.04
+    # COPR gives a target five hours
+    timeout-minutes: 345
+    environment: release
+    permissions:
+      contents: read
+    # fedora:latest
+    container: docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+    steps:
+      - name: tools
+        run: dnf -y install rpm-build copr-cli git make curl python3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the source RPM
+        run: make -f .copr/Makefile srpm outdir="$PWD/out"
+      - name: build on COPR and wait for every target
+        env:
+          CFG: ${{ secrets.CLAB_COPR_CONFIG }}
+          PROJ: ${{ inputs.project }}
+          CHROOTS: ${{ inputs.chroots }}
+        run: |
+          if [ -z "$CFG" ]; then
+            echo "::error::CLAB_COPR_CONFIG is not set: no COPR build"
+            exit 1
+          fi
+          mkdir -p "$HOME/.config"
+          (umask 077 && printf '%s\n' "$CFG" > "$HOME/.config/copr")
+          unset CFG
+          # shellcheck disable=SC2086 # the targets are words
+          sh packaging/rpm/copr.sh "$PROJ" out/crimlab-*.src.rpm $CHROOTS
+          rm -f "$HOME/.config/copr"

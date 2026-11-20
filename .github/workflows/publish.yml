@@ -23,11 +23,13 @@ env:
 
 jobs:
   versions:
-    # every package carries the tag's version
+    # every package carries the tag's version, and the commit was built on
+    # COPR's own builders before it was tagged
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -40,13 +42,18 @@ jobs:
           grep -q "^crimlab ($v-" packaging/debian/changelog
           grep -qx "version = \"$v\"" bindings/rust/Cargo.toml
           grep -q "\"version\": \"$v\"" bindings/npm/package.json
+      - name: the commit has a green COPR scratch build of every target (workflow copr)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: sh dev/coprgate.sh "$GITHUB_REPOSITORY" "$GITHUB_SHA"
 
   copr:
     # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the
     # project rootcoder007/crimlab must exist)
     needs: versions
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    # COPR gives a target five hours; copr.sh waits for every one
+    timeout-minutes: 345
     environment: release
     permissions:
       contents: read
@@ -54,7 +61,7 @@ jobs:
     container: docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
     steps:
       - name: tools
-        run: dnf -y install rpm-build copr-cli git make
+        run: dnf -y install rpm-build copr-cli git make curl python3
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
@@ -71,7 +78,11 @@ jobs:
           mkdir -p "$HOME/.config"
           (umask 077 && printf '%s\n' "$CFG" > "$HOME/.config/copr")
           unset CFG
-          copr-cli build crimlab out/crimlab-*.src.rpm
+          # the project page: the logo, what it is, how to install
+          copr-cli modify crimlab \
+            --description "$(cat packaging/rpm/copr-description.md)" \
+            --instructions "$(cat packaging/rpm/copr-instructions.md)"
+          sh packaging/rpm/copr.sh crimlab out/crimlab-*.src.rpm
           rm -f "$HOME/.config/copr"
 
   obs:
@@ -118,9 +129,18 @@ jobs:
           (umask 077 && printf '[general]\napiurl = https://api.opensuse.org\n[https://api.opensuse.org]\nuser = %s\npass = %s\ncredentials_mgr_class = osc.credentials.PlaintextConfigFileCredentialsManager\n' "$U" "$P" > "$HOME/.config/osc/oscrc")
           unset P
           prj="home:$U"
-          if ! osc meta pkg "$prj" crimlab > /dev/null 2>&1; then
-            printf '<package name="crimlab" project="%s"><title>crimlab</title><description>Statistical Toolkit for Criminology and Sociolegal Research</description><url>https://github.com/rootcoder007/crimlab</url></package>\n' "$prj" > meta.xml
-            osc meta pkg "$prj" crimlab -F meta.xml
+          # the package page, written at every release so that it says what
+          # the package says now
+          printf '<package name="crimlab" project="%s"><title>Statistical Toolkit for Criminology and Sociolegal Research</title><description>Statistical methods for courts, corrections, policing, forensic science and crime places: the shared library libcrimlab and the crimlab command, which runs every function of the R and Python packages crimlab on JSON or CSV input.</description><url>https://github.com/rootcoder007/crimlab</url></package>\n' "$prj" > meta.xml
+          osc meta pkg "$prj" crimlab -F meta.xml
+          # the project page, shared with the other packages: a title and a
+          # description when it has none (never fatal: the build is what matters)
+          osc meta prj "$prj" > prj.xml || true
+          if grep -q '<title></title>\|<title/>' prj.xml; then
+            sed -e 's|<title></title>|<title>Packages of rootcoder007</title>|' -e 's|<title/>|<title>Packages of rootcoder007</title>|' \
+              -e 's|<description></description>|<description>crimlab, a Statistical Toolkit for Criminology and Sociolegal Research (https://crimlab.dev), and noqtis, post-quantum signing and sealed file capsules (https://noqtis.dev).</description>|' \
+              -e 's|<description/>|<description>crimlab, a Statistical Toolkit for Criminology and Sociolegal Research (https://crimlab.dev), and noqtis, post-quantum signing and sealed file capsules (https://noqtis.dev).</description>|' prj.xml > prj2.xml
+            osc meta prj "$prj" -F prj2.xml || echo "::warning::the OBS project page was not updated"
           fi
           osc checkout -o co "$prj" crimlab
           find co -maxdepth 1 -type f ! -name '.*' -delete
