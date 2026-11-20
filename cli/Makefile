@@ -56,7 +56,11 @@ endif
 # what its target has: macOS and Windows keep both in their system library.
 ifneq ($(findstring linux,$(MACH)),)
 LDLIBS ?= -pthread -ldl
-else ifeq ($(findstring darwin,$(MACH))$(findstring mingw,$(MACH))$(findstring windows,$(MACH)),)
+else ifneq ($(findstring mingw,$(MACH))$(findstring windows,$(MACH)),)
+# WinHTTP, a part of Windows: the program asks through it whether a newer
+# release exists
+LDLIBS ?= -lwinhttp
+else ifeq ($(findstring darwin,$(MACH)),)
 LDLIBS ?= -pthread
 endif
 

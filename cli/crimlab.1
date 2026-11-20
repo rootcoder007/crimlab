@@ -12,7 +12,7 @@ crimlab \- statistical toolkit for criminology and sociolegal research
 .IR value " ...]"
 .br
 .B crimlab
-.BR \-l " | " \-h " | " \-V
+.BR \-l " | " \-h " | " \-V " | " \-\-update
 .SH DESCRIPTION
 .B crimlab
 runs the function
@@ -65,6 +65,23 @@ print a short help.
 .TP
 .B \-V
 print the version.
+.TP
+.B \-\-update
+ask whether a newer release exists and say so.
+.SH UPDATES
+After the result of a function, at a terminal, the program says in one
+line on standard error when a newer release exists. It asks at most once
+a day, with a limit of two seconds, and keeps the answer in the cache
+directory of the user. Nothing is sent but the request for the page of
+the latest release. Nothing is linked for it: on Windows the request is
+made by the system (WinHTTP); elsewhere by the libcurl of the system when
+there is one, else by
+.BR curl (1);
+with neither, nothing is asked. It never asks when standard error is not a terminal, when
+.B CI
+is set, or when
+.B CRIMLAB_NO_UPDATE_CHECK
+is set to anything.
 .SH EXIT STATUS
 0 on success, 1 when the function refuses its arguments or there is not
 enough memory for the sizes asked (the message goes to standard error), 2

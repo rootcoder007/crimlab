@@ -122,6 +122,14 @@ badu8csv() { printf 'group,day,night\n\376,40,50\nb,60,50\n' | "$c" vodtst -j 2>
 eq "invalid UTF-8 in CSV" "$(badu8csv)" 'vodtst: `day` holds text that is not valid UTF-8.'
 "$c" -l | grep -q '^vodtst day night \[ref\] \[shift\]$' || { bad=$((bad + 1)); echo "FAIL -l"; }
 "$c" -V | grep -q '^crimlab ' || { bad=$((bad + 1)); echo "FAIL -V"; }
+# --update: one line that starts with the name, and status 0 (an answer)
+# or 1 (no curl, no network, or a build without processes)
+u=$("$c" --update 2>&1)
+s=$?
+{ [ "$s" -le 1 ] && [ "$(printf '%s\n' "$u" | wc -l)" -eq 1 ] && printf '%s' "$u" | grep -q '^crimlab'; } ||
+  { bad=$((bad + 1)); echo "FAIL --update: status $s: $u"; }
+# away from a terminal a function writes nothing but its result
+[ -z "$("$c" orrisk --or 2 --rate 0.1 --share 0.3 2>&1 >/dev/null)" ] || { bad=$((bad + 1)); echo "FAIL notice away from a terminal"; }
 # every function of the Python package has its entry in clab_jrun()
 pyi="$here/../py/crimlab/__init__.py"
 if [ -f "$pyi" ]; then

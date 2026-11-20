@@ -21,6 +21,33 @@
 #include <io.h>
 #endif
 
+// The notice of a newer release (below): not in the WebAssembly build,
+// which has no network.
+#if !defined(CLAB_CMAIN) && !defined(__wasi__) && !defined(__EMSCRIPTEN__)
+#define CLAB_UPD 1
+#include <ctime>
+#include <sys/stat.h>
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <direct.h>
+#include <windows.h>
+#include <winhttp.h>
+#ifdef _MSC_VER
+#pragma comment(lib, "winhttp")
+#endif
+#define CLAB_TTY() (_isatty(_fileno(stderr)) != 0)
+#else
+#include <dlfcn.h>
+#include <unistd.h>
+#define CLAB_TTY() (isatty(2) != 0)
+#endif
+#endif
+
 #ifndef CLAB_VER
 #include "ver.h"
 #define CLAB_VER CLAB_VERSION
@@ -38,7 +65,7 @@ namespace {
 
 const char *const usage =
     "usage: crimlab FN [-j] [-f FILE] [--ARG VALUE ...]\n"
-    "       crimlab -l | -h | -V\n"
+    "       crimlab -l | -h | -V | --update\n"
     "\n"
     "Runs the crimlab function FN (the name of the R function, such as\n"
     "orrisk) and prints its result as a table, or as JSON with -j.\n"
@@ -54,6 +81,7 @@ const char *const usage =
     "  -l  the functions and their arguments ([optional])\n"
     "  -h  this help\n"
     "  -V  the version\n"
+    "  --update  ask whether a newer release exists\n"
     "\n"
     "example: crimlab orrisk --or 2 --rate 0.1 --share 0.3\n"
     "         echo '{\"done\": [30, 45, 60], \"open\": [100, 150]}' | crimlab losbnd\n";
@@ -337,6 +365,229 @@ int fail(const std::string &m, int rc) {
   return rc;
 }
 
+#ifdef CLAB_UPD
+// A newer release. The page of the latest release answers with the address
+// of its tag. Nothing is sent but that request.
+#define CLAB_REL "https://github.com/rootcoder007/crimlab/releases/"
+
+// Is version a later than version b (numbers between dots).
+bool later(const std::string &a, const std::string &b) {
+  std::size_t i = 0, j = 0;
+  while (i < a.size() || j < b.size()) {
+    unsigned long x = 0, y = 0;
+    while (i < a.size() && a[i] >= '0' && a[i] <= '9') x = x * 10 + static_cast<unsigned long>(a[i++] - '0');
+    while (j < b.size() && b[j] >= '0' && b[j] <= '9') y = y * 10 + static_cast<unsigned long>(b[j++] - '0');
+    if (x != y) return x > y;
+    ++i;
+    ++j;
+  }
+  return false;
+}
+
+/* The address the page of the latest release redirects to, in buf (cap
+ * bytes, ended with 0); the length, or 0 when it cannot be had within secs
+ * seconds. Nothing is linked for this: Windows asks through WinHTTP, which
+ * is part of it; elsewhere the libcurl of the system is loaded when there
+ * is one, and the curl program is the last resort. */
+#ifdef _WIN32
+static size_t asknet(int secs, char *buf, size_t cap) {
+  HINTERNET s, c = NULL, r = NULL;
+  wchar_t w[200];
+  DWORD n = sizeof w, nored = WINHTTP_DISABLE_REDIRECTS;
+  size_t k = 0, i;
+  const int ms = secs * 1000;
+  s = WinHttpOpen(L"crimlab", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                  WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+  if (s == NULL)
+    return 0;
+  WinHttpSetTimeouts(s, ms, ms, ms, ms);
+  c = WinHttpConnect(s, L"github.com", INTERNET_DEFAULT_HTTPS_PORT, 0);
+  if (c != NULL)
+    r = WinHttpOpenRequest(c, L"HEAD", L"/rootcoder007/crimlab/releases/latest",
+                           NULL, WINHTTP_NO_REFERER,
+                           WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+  if (r != NULL &&
+      WinHttpSetOption(r, WINHTTP_OPTION_DISABLE_FEATURE, &nored,
+                       sizeof nored) &&
+      WinHttpSendRequest(r, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+                         WINHTTP_NO_REQUEST_DATA, 0, 0, 0) &&
+      WinHttpReceiveResponse(r, NULL) &&
+      WinHttpQueryHeaders(r, WINHTTP_QUERY_LOCATION,
+                          WINHTTP_HEADER_NAME_BY_INDEX, w, &n,
+                          WINHTTP_NO_HEADER_INDEX)) {
+    k = (size_t)n / sizeof w[0];
+    if (k >= cap)
+      k = 0;
+    for (i = 0; i < k; i++) {
+      /* an address is ASCII; anything else is not the answer looked for */
+      if (w[i] < 0x21 || w[i] > 0x7e) {
+        k = 0;
+        break;
+      }
+      buf[i] = (char)w[i];
+    }
+  }
+  if (r != NULL)
+    WinHttpCloseHandle(r);
+  if (c != NULL)
+    WinHttpCloseHandle(c);
+  WinHttpCloseHandle(s);
+  buf[k] = '\0';
+  return k;
+}
+#else
+/* libcurl, by the numbers of its stable interface (curl/curl.h):
+ * CURLOPT_URL 10002, NOBODY 44, TIMEOUT 13, NOSIGNAL 99, USERAGENT 10018,
+ * CURLINFO_REDIRECT_URL 0x100000 + 31. */
+typedef void *(*askinit)(void);
+typedef int (*askset)(void *, int, ...);
+typedef int (*askrun)(void *);
+typedef int (*askinfo)(void *, int, ...);
+typedef void (*askend)(void *);
+
+static size_t asklib(int secs, char *buf, size_t cap) {
+  static const char *const names[] = {"libcurl.so.4", "libcurl-gnutls.so.4",
+                                      "libcurl.4.dylib", "libcurl.so"};
+  void *h = NULL, *p[5], *c;
+  askinit finit;
+  askset fset;
+  askrun frun;
+  askinfo finfo;
+  askend fend;
+  const char *url = NULL;
+  size_t i, k = 0;
+  for (i = 0; h == NULL && i < sizeof names / sizeof names[0]; i++)
+    h = dlopen(names[i], RTLD_NOW | RTLD_LOCAL);
+  if (h == NULL)
+    return 0;
+  p[0] = dlsym(h, "curl_easy_init");
+  p[1] = dlsym(h, "curl_easy_setopt");
+  p[2] = dlsym(h, "curl_easy_perform");
+  p[3] = dlsym(h, "curl_easy_getinfo");
+  p[4] = dlsym(h, "curl_easy_cleanup");
+  for (i = 0; i < 5; i++) {
+    if (p[i] == NULL)
+      return 0;
+  }
+  /* an object pointer to a function pointer, as POSIX has dlsym give it */
+  memcpy(&finit, &p[0], sizeof finit);
+  memcpy(&fset, &p[1], sizeof fset);
+  memcpy(&frun, &p[2], sizeof frun);
+  memcpy(&finfo, &p[3], sizeof finfo);
+  memcpy(&fend, &p[4], sizeof fend);
+  c = finit();
+  if (c == NULL)
+    return 0;
+  fset(c, 10002, CLAB_REL "latest");
+  fset(c, 44, 1L);
+  fset(c, 13, (long)secs);
+  fset(c, 99, 1L);
+  fset(c, 10018, "crimlab");
+  if (frun(c) == 0 && finfo(c, 0x100000 + 31, &url) == 0 && url != NULL) {
+    k = strlen(url);
+    if (k >= cap)
+      k = 0;
+    memcpy(buf, url, k);
+  }
+  fend(c);
+  /* the library stays loaded: the program is about to end, and unloading
+   * a TLS library is not safe everywhere */
+  buf[k] = '\0';
+  return k;
+}
+
+static size_t asknet(int secs, char *buf, size_t cap) {
+  char cmd[256];
+  size_t n = asklib(secs, buf, cap);
+  FILE *f;
+  if (n > 0)
+    return n;
+  /* the curl program; the command is a constant but for the seconds */
+  snprintf(cmd, sizeof cmd,
+           "curl -fsS -m %d -o /dev/null -w \"%%{redirect_url}\" " CLAB_REL
+           "latest 2>/dev/null",
+           secs);
+  f = popen(cmd, "r");
+  if (f == NULL)
+    return 0;
+  n = fread(buf, 1, cap - 1, f);
+  pclose(f);
+  buf[n] = '\0';
+  return n;
+}
+#endif
+
+// The version of the latest release, or "" when it cannot be had (no
+// network within secs seconds, no way to ask, an answer of another form).
+std::string latest(int secs) {
+  char buf[160];
+  std::string s(buf, asknet(secs, buf, sizeof buf));
+  const std::string pre = CLAB_REL "tag/v";
+  if (s.compare(0, pre.size(), pre) != 0) return "";
+  s.erase(0, pre.size());
+  if (s.empty() || s.size() > 24 || s.find_first_not_of("0123456789.") != std::string::npos) return "";
+  return s;
+}
+
+// The file that keeps the last answer and its time, or "" without a
+// place for it.
+std::string updfile() {
+#ifdef _WIN32
+  const char *d = std::getenv("LOCALAPPDATA");
+  if (d == nullptr || *d == 0) return "";
+  const std::string dir = std::string(d) + "\\crimlab";
+  _mkdir(dir.c_str());
+  return dir + "\\update";
+#else
+  const char *x = std::getenv("XDG_CACHE_HOME"), *h = std::getenv("HOME");
+  std::string dir;
+  if (x != nullptr && *x != 0) {
+    dir = x;
+  } else if (h != nullptr && *h != 0) {
+    dir = std::string(h) + "/.cache";
+  } else {
+    return "";
+  }
+  mkdir(dir.c_str(), 0700);
+  dir += "/crimlab";
+  mkdir(dir.c_str(), 0700);
+  return dir + "/update";
+#endif
+}
+
+// One line on standard error when a newer release exists: only at a
+// terminal, never under CI or with CRIMLAB_NO_UPDATE_CHECK set, and the
+// question is asked at most once a day (two seconds at most), the answer
+// kept in a file between.
+void notice() {
+  const char *off = std::getenv("CRIMLAB_NO_UPDATE_CHECK");
+  if ((off != nullptr && *off != 0) || std::getenv("CI") != nullptr || !CLAB_TTY()) return;
+  const std::string f = updfile();
+  if (f.empty()) return;
+  long long t = 0;
+  char v[32] = "";
+  if (std::FILE *c = std::fopen(f.c_str(), "r")) {
+    if (std::fscanf(c, "%lld %24[0-9.]", &t, v) < 1) t = 0;
+    std::fclose(c);
+  }
+  const long long now = static_cast<long long>(std::time(nullptr));
+  std::string ver = v;
+  if (now < t || now - t >= 86400) {
+    ver = latest(2);
+    if (std::FILE *c = std::fopen(f.c_str(), "w")) {
+      std::fprintf(c, "%lld %s\n", now, ver.c_str());
+      std::fclose(c);
+    }
+  }
+  if (!ver.empty() && later(ver, CLAB_VER)) {
+    std::fprintf(stderr,
+                 "crimlab: version %s is available (this is %s): " CLAB_REL "latest\n"
+                 "crimlab: CRIMLAB_NO_UPDATE_CHECK=1 stops this notice.\n",
+                 ver.c_str(), CLAB_VER);
+  }
+}
+#endif
+
 }  // namespace
 
 static int mainb(int argc, char **argv) {
@@ -356,6 +607,20 @@ static int mainb(int argc, char **argv) {
   if (fn == "-V" || fn == "--version") {
     std::printf("crimlab %s\n", CLAB_VER);
     return 0;
+  }
+  if (fn == "--update") {
+#ifdef CLAB_UPD
+    const std::string v = latest(10);
+    if (v.empty()) return fail("the latest release could not be asked for (no network, or nothing to ask with).", 1);
+    if (later(v, CLAB_VER)) {
+      std::printf("crimlab %s is available (this is %s): " CLAB_REL "latest\n", v.c_str(), CLAB_VER);
+    } else {
+      std::printf("crimlab %s is up to date.\n", CLAB_VER);
+    }
+    return 0;
+#else
+    return fail("this build cannot ask for the latest release.", 1);
+#endif
   }
   const Val all = fns();
   if (fn == "-l") {
@@ -458,7 +723,12 @@ static int mainb(int argc, char **argv) {
 int main(int argc, char **argv) {
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
   try {
-    return mainb(argc, argv);
+    const int rc = mainb(argc, argv);
+#ifdef CLAB_UPD
+    // after the result of a function, never after -h, -l, -V or --update
+    if (rc == 0 && argc > 1 && argv[1][0] != '-') notice();
+#endif
+    return rc;
   } catch (...) {
     std::fputs("crimlab: not enough memory for this size.\n", stderr);
     return 1;

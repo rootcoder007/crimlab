@@ -507,6 +507,10 @@ from ._out import Ece, Record, Table, Tip, Vector
 from ._pol import clrsmp, expbnd, misrd, rtmhs, sqrtlw
 from ._proof import proof
 from ._version import __version__
+from . import _upd as _upd
+
+# a newer release, said once in an interactive session (see _upd)
+_upd.notify(__version__)
 
 __all__ = [
     "spsir",
