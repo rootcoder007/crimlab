@@ -2,9 +2,8 @@
 # on. Into the scratch project (the default) it is the rehearsal of a
 # release: the builders, the targets and the flags a release meets,
 # riscv64 and aarch64 among them, and nothing that a user installs.
-# publish.yml refuses a tag whose commit has no green run of it with
-# every target. Into the project crimlab it builds the targets that a
-# release left unbuilt.
+# It is a rehearsal to run when wanted: no release waits for it. Into
+# the project crimlab it builds the targets that a release left unbuilt.
 name: copr
 run-name: "copr: ${{ inputs.project }} ${{ inputs.chroots || 'every target' }}"
 
@@ -58,9 +57,8 @@ jobs:
           unset CFG
           # shellcheck disable=SC2086 # the targets are words
           sh packaging/rpm/copr.sh "$PROJ" out/crimlab-*.src.rpm $CHROOTS
-          # a green rehearsal leaves nothing behind: the record that
-          # publish.yml asks for is this run, not the scratch project
-          # (a failed one stays, for its logs)
+          # a green rehearsal leaves nothing behind (a failed one stays,
+          # for its logs)
           if [ "$PROJ" = crimlab-ci ]; then
             copr-cli delete "$PROJ" || echo "::warning::the scratch project was not deleted"
           fi

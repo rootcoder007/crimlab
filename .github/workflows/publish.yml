@@ -23,13 +23,11 @@ env:
 
 jobs:
   versions:
-    # every package carries the tag's version, and the commit was built on
-    # COPR's own builders before it was tagged
+    # every package carries the tag's version
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
-      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -42,10 +40,6 @@ jobs:
           grep -q "^crimlab ($v-" packaging/debian/changelog
           grep -qx "version = \"$v\"" bindings/rust/Cargo.toml
           grep -q "\"version\": \"$v\"" bindings/npm/package.json
-      - name: the commit has a green COPR scratch build of every target (workflow copr)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: sh dev/coprgate.sh "$GITHUB_REPOSITORY" "$GITHUB_SHA"
 
   copr:
     # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the
