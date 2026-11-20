@@ -649,7 +649,6 @@ more than a citation shows.
   DRDID, EValue, Familias, fixest, forensim, forrel, geosphere, glmnet,
   grf, igraph, MatchIt, mlr3, netmem, paramlink, pedtools, ranger, relSim,
   sna, spatstat, spdep, SuperLearner, survey, tmle, tnet and WeightIt.
-  None of them is needed to use crimlab.
 
 Thanks, too, to the people who gave their time: Uwe Ligges and his
 colleagues at CRAN; Jeroen Ooms, for R-universe; Mark Padgham and Mauro
