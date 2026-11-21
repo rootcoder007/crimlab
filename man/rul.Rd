@@ -86,6 +86,14 @@ length(valrules(d[1, ], r))
 valrules(d, list(rule = "btw", col = "age", lo = 0, hi = 120))
 try(rul("", function(v) TRUE))
 }
+\references{
+van der Loo, M. P. J. and de Jonge, E. (2021). Data validation
+infrastructure for R. \emph{Journal of Statistical Software}, 97(10), 1-31.
+\doi{10.18637/jss.v097.i10}
+
+de Jonge, E. and van der Loo, M. (2018). \emph{Statistical Data Cleaning
+with Applications in R}. Wiley. \doi{10.1002/9781118897126}
+}
 \seealso{
 \code{\link[=ruleinset]{ruleinset()}} for the ready-made rules; \code{\link[=catchk]{catchk()}} and
 \code{\link[=prechk]{prechk()}} for other checks before an analysis.

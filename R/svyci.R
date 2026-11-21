@@ -66,6 +66,15 @@
 #'   Survey Statistics and Methodology*, 3(4), 484-503.
 #'   \doi{10.1093/jssam/smv024}
 #'
+#'   Wilson, E. B. (1927). Probable inference, the law of succession, and
+#'   statistical inference. *Journal of the American Statistical
+#'   Association*, 22(158), 209-212.
+#'   \doi{10.1080/01621459.1927.10502953}
+#'
+#'   Clopper, C. J. and Pearson, E. S. (1934). The use of confidence or
+#'   fiducial limits illustrated in the case of the binomial.
+#'   *Biometrika*, 26(4), 404-413. \doi{10.1093/biomet/26.4.404}
+#'
 #'   Health Canada (2022). *Canadian Postsecondary Education Alcohol and
 #'   Drug Use Survey, 2021-22: Public Use Microdata File user guide*.
 #'   Section 7.3, release guidelines.

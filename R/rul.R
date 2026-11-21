@@ -56,6 +56,13 @@
 #'   row-wise rule, `nfail` (the number of failing rows) and `rows` (the
 #'   first ten of them). A table that passes every rule gives an empty
 #'   list.
+#' @references
+#'   van der Loo, M. P. J. and de Jonge, E. (2021). Data validation
+#'   infrastructure for R. *Journal of Statistical Software*, 97(10), 1-31.
+#'   \doi{10.18637/jss.v097.i10}
+#'
+#'   de Jonge, E. and van der Loo, M. (2018). *Statistical Data Cleaning
+#'   with Applications in R*. Wiley. \doi{10.1002/9781118897126}
 #' @seealso [ruleinset()] for the ready-made rules; [catchk()] and
 #'   [prechk()] for other checks before an analysis.
 #' @examples
@@ -255,6 +262,10 @@ print.valrules <- function(x, ...) {
 #'   Detecting outliers: do not use standard deviation around the mean,
 #'   use absolute deviation around the median. *Journal of Experimental
 #'   Social Psychology*, 49(4), 764-766. \doi{10.1016/j.jesp.2013.03.013}
+#'
+#'   Hampel, F. R. (1974). The influence curve and its role in robust
+#'   estimation. *Journal of the American Statistical Association*,
+#'   69(346), 383-393. \doi{10.1080/01621459.1974.10482962}
 #' @seealso [rul()] and [valrules()].
 #' @examples
 #' d <- data.frame(year = c(2019, 2020, 2021, 2021),

@@ -116,6 +116,14 @@ try(drfttab(ref, data.frame(other = 1)))
 Dunn, O. J. (1961). Multiple comparisons among means. \emph{Journal of the
 American Statistical Association}, 56(293), 52-64.
 \doi{10.1080/01621459.1961.10482090}
+
+Massey, F. J. (1951). The Kolmogorov-Smirnov test for goodness of fit.
+\emph{Journal of the American Statistical Association}, 46(253), 68-78.
+\doi{10.1080/01621459.1951.10500769}
+
+Wu, D. and Olson, D. L. (2010). Enterprise risk management: coping
+with model risk in a large bank. \emph{Journal of the Operational Research
+Society}, 61(2), 179-190. \doi{10.1057/jors.2008.144}
 }
 \seealso{
 \code{\link[=drftks]{drftks()}}, \code{\link[=drftpsi]{drftpsi()}}, \code{\link[=drfthomog]{drfthomog()}} for one column.

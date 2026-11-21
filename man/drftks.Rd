@@ -45,6 +45,11 @@ drftks(ref, ref)[["statistic"]]
 # simulated monthly counts of an offence in two releases
 drftks(c(41, 38, 52, 47, 44, 50), c(41, 38, 52, 47, 61, 66))
 }
+\references{
+Massey, F. J. (1951). The Kolmogorov-Smirnov test for goodness of fit.
+\emph{Journal of the American Statistical Association}, 46(253), 68-78.
+\doi{10.1080/01621459.1951.10500769}
+}
 \seealso{
 \code{\link[=drftpsi]{drftpsi()}}, \code{\link[=drftchisq]{drftchisq()}}, \code{\link[=drfthomog]{drfthomog()}}.
 }

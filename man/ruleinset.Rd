@@ -121,6 +121,10 @@ Leys, C., Ley, C., Klein, O., Bernard, P. and Licata, L. (2013).
 Detecting outliers: do not use standard deviation around the mean,
 use absolute deviation around the median. \emph{Journal of Experimental
 Social Psychology}, 49(4), 764-766. \doi{10.1016/j.jesp.2013.03.013}
+
+Hampel, F. R. (1974). The influence curve and its role in robust
+estimation. \emph{Journal of the American Statistical Association},
+69(346), 383-393. \doi{10.1080/01621459.1974.10482962}
 }
 \seealso{
 \code{\link[=rul]{rul()}} and \code{\link[=valrules]{valrules()}}.

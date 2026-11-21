@@ -54,6 +54,10 @@ print.drftm <- function(x, ...) {
 #' @return A named numeric vector of class `drftks`: `statistic` (the KS
 #'   \eqn{D}), `p_value` and `neff` (\eqn{n_xn_y/(n_x+n_y)}), with the
 #'   sample sizes in the attribute `lakner`.
+#' @references
+#'   Massey, F. J. (1951). The Kolmogorov-Smirnov test for goodness of fit.
+#'   *Journal of the American Statistical Association*, 46(253), 68-78.
+#'   \doi{10.1080/01621459.1951.10500769}
 #' @seealso [drftpsi()], [drftchisq()], [drfthomog()].
 #' @examples
 #' set.seed(1)
