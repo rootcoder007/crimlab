@@ -14,7 +14,8 @@
 #' folder), one per preset and argument: `preset`, `generic`, `arg`, `column`
 #' (the dataset's column), `recode`, `filter`, `units`, `note`, `source`. Python
 #' reads the same file. A `recode` is one of: empty (the column as it is); `fac`
-#' (a factor, one effect per value); `num` (numbers); `pct` (numbers over 100);
+#' (a factor, one effect per value); `num` (numbers; `num:a,b` with the codes
+#' a and b missing, as a survey's 998 and 999); `pct` (numbers over 100);
 #' `one` (a 1 for every row); `flag` (1 for yes, y, true, t, 1 or a positive
 #' number, 0 otherwise); `dum` (one 0 or 1 column per value but the first, named
 #' by the column and the value); `sub:a,b` (characters a to b, as a year from an
@@ -294,6 +295,12 @@ print.clpre <- function(x, ...) {
   }
   if (s == "num") {
     return(as.numeric(x))
+  }
+  if (startsWith(s, "num:")) {
+    v <- as.numeric(x)
+    codes <- strsplit(substring(s, 5L), ",", fixed = TRUE)[[1L]]
+    v[v %in% as.numeric(codes)] <- NA
+    return(v)
   }
   if (s == "flag") {
     return(.flag(x))

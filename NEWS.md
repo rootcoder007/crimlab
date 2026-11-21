@@ -36,6 +36,12 @@
   estimate as acceptable, marginal or unacceptable by its unweighted
   counts and coefficient of variation, with Health Canada's thresholds by
   default.
+* Presets for two public files of Health Canada, which the user supplies:
+  the Canadian Postsecondary Education Alcohol and Drug Use Survey
+  2021-22 (`cpads-canast`, `cpads-lrdg`, `cpads-hvydrk`, `cpads-can12`)
+  and the Canadian Substance Use Survey 2023 (`csus-canast`,
+  `csus-alc7d`). A preset's recode `num:a,b` reads numbers with the codes
+  a and b missing.
 * `cramerv()`: Cramer's V of a two-way table of counts, bias-corrected
   (Bergsma 2013) or not, with its interval, the chi-square test and the
   smallest expected count.

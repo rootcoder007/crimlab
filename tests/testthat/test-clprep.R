@@ -11,7 +11,8 @@ test_that("the preset list and its table", {
   expect_false(anyDuplicated(p$preset) > 0)
   expect_true(all(p$generic %in% c(
     "cntreg", "grprr", "ctabx", "fairdf", "tmpaud", "calaud", "scrdsp",
-    "cbatt", "lodimp", "tpbhm", "stkflw", "bndxw"
+    "cbatt", "lodimp", "tpbhm", "stkflw", "bndxw", "canast", "lrdg",
+    "hvydrk", "svymx"
   )))
   # every argument a preset fills is an argument of its generic
   tab <- ns$.presets()
@@ -717,4 +718,59 @@ test_that("the OTIS pair presets reproduce rmorie's pair builders", {
   r <- ref$pc
   same(clprep(opre, "otis-pc-cbatt"), r,
        cbind(dum(r$Gender, r$Age_Category), flag(r$MentalHealth_Alert)))
+})
+
+test_that("the presets of the two Health Canada surveys", {
+  rc <- ns$.recode
+  expect_identical(
+    rc(c(3, 997, 0, 999, NA), "num:997,998,999", 5),
+    c(3, NA, 0, NA, NA)
+  )
+  expect_identical(rc(c("4", "998"), "num:998", 2), c(4, NA))
+  # the survey codes answers from 1; 97 to 99 are not answers
+  d <- data.frame(
+    caa00 = c(4, 3, 1, 5, 2, 98),
+    caa01 = c(3, 1, 97, 5, 2, 1),
+    caa02 = c(1, 1, 97, 5, 1, 1),
+    caa03 = c(1, 1, 97, 5, 1, 1),
+    caa04 = c(1, 2, 97, 3, 1, 1),
+    caa05 = c(1, 1, 97, 3, 99, 1),
+    alc13a = c(3, 4, 997, 2, 5, 998),
+    dvdemq01 = c(1, 2, 1, 1, 2, 3),
+    can05 = c(1, 2, 2, 1, 98, 1),
+    wtpumf = c(1.5, 0.5, 1, 2, 1, 1)
+  )
+  p <- clprep(d, "cpads-canast")
+  expect_identical(attr(p, "drop"), 3L)
+  s <- canast(p)
+  # 4 + 4 + 0 + 0 + 0 + 0; 3 + 0 + 0 + 0 + 3 + 0; every item at its top
+  expect_identical(s$total, c(8, 6, 39))
+  expect_identical(s$level, c("moderate", "moderate", "high"))
+  l <- clprep(d, "cpads-lrdg")
+  expect_identical(l$drinks, c(3, 4, 2, 5))
+  expect_identical(l$sex, c("female", "male", "female", "male"))
+  expect_identical(lrdg(l), c(TRUE, TRUE, FALSE, TRUE))
+  expect_identical(
+    hvydrk(clprep(d, "cpads-hvydrk")),
+    c(FALSE, FALSE, FALSE, TRUE)
+  )
+  e <- svymx(clprep(d, "cpads-can12"))$est
+  expect_equal(e$est, (1.5 + 2 + 1) / 6, tolerance = 1e-12)
+  # the other survey codes the two last items the other way round
+  u <- data.frame(
+    ASSIST01 = c(4, 2, -7),
+    ASSIST02 = c(3, 1, -7),
+    ASSIST03 = c(1, 1, -7),
+    ASSIST04 = c(1, 1, -7),
+    ASSIST05 = c(1, 2, -7),
+    ASSIST06 = c(1, 3, -7),
+    ALC_Q12 = c(1, 2, -8),
+    WGT_PUMF = c(2, 1, 1)
+  )
+  expect_identical(canast(clprep(u, "csus-canast"))$total, c(8, 2 + 6 + 3))
+  expect_equal(
+    svymx(clprep(u, "csus-alc7d"))$est$est,
+    2 / 3,
+    tolerance = 1e-12
+  )
 })

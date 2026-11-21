@@ -941,13 +941,14 @@ fixed <- list(
   Age_Category = c("18 to 49", "50 and over", "18 to 49", "18 to 49", "50 and over", "18 to 49",
                    "50 and over", "18 to 49"),
   Number_Of_Placements = c(1, 2, 3, 1, 2, 1, 4, 1),
-  Measure = c("Median", "Median", "Max", "Median", "Max", "Median", "Median", "Max")
+  Measure = c("Median", "Median", "Max", "Median", "Max", "Median", "Median", "Max"),
+  alc13a = c(2, 5, 997, 3, 4, 998, 1, 6)
 )
 num8 <- c(12, 30, 8, 25, 14, 41, 9, 22)
 synv <- function(col, rec) {
   if (!is.null(fixed[[col]])) return(fixed[[col]])
   map <- rec[!rec %in% c("", "fac", "num", "pct", "one", "flag", "dum") & !startsWith(rec, "sub:") &
-               !startsWith(rec, "const:")]
+               !startsWith(rec, "const:") & !startsWith(rec, "num:")]
   if (length(map)) {
     rules <- unlist(strsplit(map, ";", fixed = TRUE))
     keys <- vapply(strsplit(rules, "=", fixed = TRUE), `[`, "", 1L)

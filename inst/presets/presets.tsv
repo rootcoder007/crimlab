@@ -464,3 +464,23 @@ tps-hood158-140	bndxw	w	pct_158_in_140	pct		share	share of the 158 area inside t
 tps-hood140-158	bndxw	from	hood_140				the historical neighbourhood	City of Toronto Open Data, Neighbourhoods (158) and historical Neighbourhoods (140) boundary layers intersected into a correspondence table: hood_140, hood_158, pct_140_in_158, pct_158_in_140 (layout only)
 tps-hood140-158	bndxw	to	hood_158				the current neighbourhood	City of Toronto Open Data, Neighbourhoods (158) and historical Neighbourhoods (140) boundary layers intersected into a correspondence table: hood_140, hood_158, pct_140_in_158, pct_158_in_140 (layout only)
 tps-hood140-158	bndxw	w	pct_140_in_158	pct		share	share of the 140 area inside the 158 one (uniform density within an area)	City of Toronto Open Data, Neighbourhoods (158) and historical Neighbourhoods (140) boundary layers intersected into a correspondence table: hood_140, hood_158, pct_140_in_158, pct_158_in_140 (layout only)
+cpads-canast	canast	x	caa00	1=0;2=1;3=2;4=3;5=4;*=NA		score	an answer of 0 to 4 (never to daily or almost daily); those not asked are dropped	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-canast	canast	x	caa01	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-canast	canast	x	caa02	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-canast	canast	x	caa03	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-canast	canast	x	caa04	1=0;2=1;3=2;*=NA			0 no, 1 yes but not in the past 3 months, 2 yes in the past 3 months	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-canast	canast	x	caa05	1=0;2=1;3=2;*=NA				Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-lrdg	lrdg	drinks	alc13a	num:997,998,999		drinks	the most drinks on one day of the past 30, among those who drank	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-lrdg	lrdg	sex	dvdemq01	1=female;2=male;*=NA			women and men; other answers are dropped	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-hvydrk	hvydrk	drinks	alc13a	num:997,998,999		drinks	the most drinks on one day of the past 30, among those who drank	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-hvydrk	hvydrk	sex	dvdemq01	1=female;2=male;*=NA			women and men; other answers are dropped	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-can12	svymx	y	can05	1=1;2=0;*=NA		proportion	used cannabis in the past 12 months	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+cpads-can12	svymx	w	wtpumf	num			the survey weight	Health Canada, Canadian Postsecondary Education Alcohol and Drug Use Survey 2021-22, public use microdata file
+csus-canast	canast	x	ASSIST01	1=0;2=1;3=2;4=3;5=4;*=NA		score	an answer of 0 to 4 (never to daily or almost daily); those not asked are dropped	Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-canast	canast	x	ASSIST02	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-canast	canast	x	ASSIST03	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-canast	canast	x	ASSIST04	1=0;2=1;3=2;4=3;5=4;*=NA				Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-canast	canast	x	ASSIST05	1=0;2=2;3=1;*=NA			0 no, 1 yes but not in the past 3 months, 2 yes in the past 3 months (this file codes the two the other way round)	Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-canast	canast	x	ASSIST06	1=0;2=2;3=1;*=NA				Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-alc7d	svymx	y	ALC_Q12	1=1;2=0;*=NA		proportion	drank in the past 7 days, among those who drank in the past 30	Health Canada, Canadian Substance Use Survey 2023, public use microdata file
+csus-alc7d	svymx	w	WGT_PUMF	num			the survey weight	Health Canada, Canadian Substance Use Survey 2023, public use microdata file
