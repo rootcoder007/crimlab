@@ -51,6 +51,14 @@ Errors: `drid` not one positive whole number; `lang` not `"en"` or
 `"fr"`; those of
 [`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md).
 
+## References
+
+Special Investigations Unit Act, 2019, S.O. 2019, c. 1, Sched. 5
+(Ontario).
+
+Special Investigations Unit. *Director's reports*.
+<https://www.siu.on.ca/en/directors_reports.php>
+
 ## See also
 
 [`ovrtxt()`](https://rootcoder007.github.io/crimlab/reference/ovrtxt.md),

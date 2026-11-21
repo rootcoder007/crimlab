@@ -151,6 +151,27 @@ sends; a dataset the portal does not have; a `dest` that is not one file
 path, or that exists without `over = TRUE`; a `key` `srcls()` does not
 list.
 
+## References
+
+Wilkinson, M. D., Dumontier, M., Aalbersberg, I. J., Appleton, G., et
+al. (2016). The FAIR Guiding Principles for scientific data management
+and stewardship. *Scientific Data*, 3, 160018.
+[doi:10.1038/sdata.2016.18](https://doi.org/10.1038/sdata.2016.18)
+
+CKAN Association. *CKAN API guide*.
+<https://docs.ckan.org/en/latest/api/>
+
+Tyler Technologies. *Socrata Open Data API: API endpoints*.
+<https://dev.socrata.com/docs/endpoints>
+
+Esri. *ArcGIS REST APIs*. <https://developers.arcgis.com/rest/>
+
+Statistics Canada. *Web Data Service (WDS) user guide*.
+<https://www.statcan.gc.ca/en/developers/wds/user-guide>
+
+Eurostat. *Web services: access to the data by API (SDMX 2.1)*.
+<https://ec.europa.eu/eurostat/web/main/data/web-services>
+
 ## See also
 
 [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)

@@ -47,6 +47,14 @@ Errors: `pat` not one non-empty string or not a valid regular
 expression; those of
 [`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md).
 
+## References
+
+Statistics Canada. *Indigenous Population Profile, 2021 Census of
+Population*. Ottawa.
+
+Statistics Canada. *Statistics Canada Open Licence*.
+<https://www.statcan.gc.ca/en/reference/licence>
+
 ## See also
 
 [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)

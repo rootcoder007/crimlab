@@ -61,6 +61,14 @@ with `load`, a subject with no table; those of
 and
 [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md).
 
+## References
+
+Statistics Canada. *Indigenous Population Profile, 2021 Census of
+Population*. Ottawa.
+
+Statistics Canada. *Statistics Canada Open Licence*.
+<https://www.statcan.gc.ca/en/reference/licence>
+
 ## See also
 
 [`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md),
