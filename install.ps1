@@ -7,16 +7,17 @@
 #   powershell -ExecutionPolicy Bypass -File install.ps1
 #
 # In order, stopping at the first failure: downloads the release's
-# SHA256SUMS (with CRIMLAB_SIGNER set, checks its SSH signature
-# SHA256SUMS.sig), downloads crimlab-<version>-windows-x86_64.zip (or
+# SHA256SUMS, checks its SSH signature SHA256SUMS.sig against the
+# release key (SECURITY.md), downloads crimlab-<version>-windows-x86_64.zip (or
 # -windows-arm64.zip on an arm64 machine) and
 # checks its SHA-256 against SHA256SUMS, checks every path in it stays
 # inside its top folder, and copies bin\ into the prefix. Windows on ARM
 # runs the x86-64 build under emulation.
 #
 # Environment: CRIMLAB_PREFIX (default $HOME\.local), CRIMLAB_VERSION
-# (default: the latest release), CRIMLAB_SIGNER (the release key as an
-# allowed-signers line; the release signing hook, as in install.sh),
+# (default: the latest release), CRIMLAB_SIGNER (another release key, as
+# an allowed-signers line), CRIMLAB_VERIFY (0: go on without checking
+# who signed the release),
 # CRIMLAB_BASE (default https://github.com/rootcoder007/crimlab/releases;
 # https, or http to localhost for tests).
 #
@@ -27,13 +28,45 @@ function Install-Crimlab {
   $ErrorActionPreference = 'Stop'
   Set-StrictMode -Version 3
   $repo = 'rootcoder007/crimlab'
-  $defsigner = ''
+  # the release signing key (SECURITY.md)
+  $defsigner = 'crimlab ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCgdm/W6LtsPET14oTqb1lOFga52VG4HSJTtQHfLTFc'
 
-  function Say([string]$m) { [Console]::Error.WriteLine("crimlab install: $m") }
+  # In a console the steps are numbered, results are marked and coloured,
+  # the archive shows PowerShell's progress bar and a table sums the files
+  # up; redirected or with NO_COLOR set every line is plain
+  # "crimlab install: ..." text, as it always was.
+  $script:clabTty = (-not [Console]::IsErrorRedirected) -and (-not $env:NO_COLOR)
+  $script:clabStep = 0
+  function Mark([string]$tag, [string]$colour, [string]$m) {
+    [Console]::ForegroundColor = $colour
+    [Console]::Error.Write($tag)
+    [Console]::ResetColor()
+    [Console]::Error.WriteLine(" $m")
+  }
+  function Say([string]$m) {
+    if (-not $script:clabTty) { [Console]::Error.WriteLine("crimlab install: $m"); return }
+    if ($m -match 'not checked') { Mark '   note' 'Yellow' $m }
+    elseif ($m -match ': good| matches ') { Mark '     ok' 'Green' $m }
+    else { [Console]::Error.WriteLine("        $m") }
+  }
+  # Step <title> [plain line]: one of the five steps; the plain line is
+  # what is said where there is no console
+  function Step([string]$title, [string]$plain = '') {
+    $script:clabStep++
+    if ($script:clabTty) { Mark "[$($script:clabStep)/5]" 'White' $title }
+    elseif ($plain) { Say $plain }
+  }
+  function Get-Size([string]$path) {
+    $b = (Get-Item -LiteralPath $path).Length
+    if ($b -ge 1MB) { return ('{0:N1} MiB' -f ($b / 1MB)) }
+    if ($b -ge 1KB) { return ('{0:N1} KiB' -f ($b / 1KB)) }
+    return "$b B"
+  }
   function Fail([string]$m) { throw "crimlab install: error: $m; nothing was installed" }
-  function Get-File([string]$url, [string]$dest) {
+  function Get-File([string]$url, [string]$dest, [switch]$Bar) {
     $old = $ProgressPreference
-    $ProgressPreference = 'SilentlyContinue'
+    # PowerShell's own progress bar, for the archive in a console only
+    if (-not ($Bar -and $script:clabTty)) { $ProgressPreference = 'SilentlyContinue' }
     try { Invoke-WebRequest -UseBasicParsing -Uri $url -OutFile $dest } catch { return $false }
     finally { $ProgressPreference = $old }
     return $true
@@ -50,6 +83,8 @@ function Install-Crimlab {
   if ($ver -and $ver -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { Fail "not a release version: $ver" }
   $signer = $env:CRIMLAB_SIGNER
   if (-not $signer) { $signer = $defsigner }
+  # CRIMLAB_VERIFY=0: go on without checking who signed the release
+  if ($env:CRIMLAB_VERIFY -eq '0') { $signer = '' }
   $base = $env:CRIMLAB_BASE
   if (-not $base) { $base = "https://github.com/$repo/releases" }
   $base = $base.TrimEnd('/')
@@ -70,7 +105,7 @@ function Install-Crimlab {
   New-Item -ItemType Directory -Path $tmp | Out-Null
   try {
     $sums = Join-Path $tmp 'SHA256SUMS'
-    Say "fetching $url/SHA256SUMS"
+    Step 'Fetch SHA256SUMS' "fetching $url/SHA256SUMS"
     if (-not (Get-File "$url/SHA256SUMS" $sums)) { Fail 'cannot download SHA256SUMS' }
     $table = @{}
     foreach ($line in Get-Content -LiteralPath $sums) {
@@ -94,9 +129,10 @@ function Install-Crimlab {
       $ver = $name.Substring(8, $name.Length - 8 - $target.Length - 5)
     }
     $want = $table[$name]
+    Step 'Check who signed it'
     if ($signer) {
       $kg = Get-Command ssh-keygen -ErrorAction SilentlyContinue
-      if (-not $kg) { Fail 'CRIMLAB_SIGNER is set but ssh-keygen (OpenSSH) is not installed' }
+      if (-not $kg) { Fail 'ssh-keygen (OpenSSH) is not installed, so who signed this release cannot be checked; install it, or set CRIMLAB_VERIFY=0 to go on without' }
       $sig = Join-Path $tmp 'SHA256SUMS.sig'
       if (-not (Get-File "$url/SHA256SUMS.sig" $sig)) { Fail 'cannot download SHA256SUMS.sig' }
       $allowed = Join-Path $tmp 'signers'
@@ -108,16 +144,17 @@ function Install-Crimlab {
       if ($pr.ExitCode -ne 0) { Fail 'the SSH signature of SHA256SUMS does not verify' }
       Say 'SSH signature of SHA256SUMS: good'
     } else {
-      Say 'no release key set (CRIMLAB_SIGNER): who made SHA256SUMS is not checked'
+      Say 'CRIMLAB_VERIFY=0: who signed this release is not checked'
     }
 
     $zip = Join-Path $tmp $name
-    Say "fetching $url/$name"
-    if (-not (Get-File "$url/$name" $zip)) { Fail "cannot download $name" }
+    Step "Fetch $name" "fetching $url/$name"
+    if (-not (Get-File "$url/$name" $zip -Bar)) { Fail "cannot download $name" }
     $got = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash.ToLowerInvariant()
     if ($got -ne $want) { Fail "SHA-256 mismatch for ${name}: SHA256SUMS says $want, the download is $got" }
     Say "SHA-256 of $name matches SHA256SUMS"
 
+    Step 'Check and unpack'
     $top = "crimlab-$ver-$target"
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $z = [IO.Compression.ZipFile]::OpenRead($zip)
@@ -133,10 +170,22 @@ function Install-Crimlab {
     $exe = Join-Path (Join-Path $x $top) 'bin\crimlab.exe'
     if (-not (Test-Path -LiteralPath $exe)) { Fail "$name has no bin\crimlab.exe" }
 
+    Step "Install into $prefix"
     $bin = Join-Path $prefix 'bin'
     try { New-Item -ItemType Directory -Force -Path $bin | Out-Null } catch { Fail "cannot write to $prefix; choose another with CRIMLAB_PREFIX" }
     Copy-Item -LiteralPath $exe -Destination (Join-Path $bin 'crimlab.exe') -Force
-    Say "installed crimlab $ver ($target) into $prefix"
+    if ($script:clabTty) {
+      [Console]::Error.WriteLine('')
+      [Console]::Error.WriteLine((' {0,-40} {1,-10} {2}' -f 'File', 'Size', 'Check'))
+      [Console]::Error.WriteLine((' {0,-40} {1,-10} {2}' -f 'SHA256SUMS',
+          (Get-Size (Join-Path $tmp 'SHA256SUMS')), 'signature: see step 2'))
+      [Console]::Error.WriteLine((' {0,-40} {1,-10} {2}' -f $name, (Get-Size $zip),
+          'SHA-256 matches'))
+      [Console]::Error.WriteLine('')
+      Mark " crimlab $ver" 'Green' "($target) installed into $prefix"
+    } else {
+      Say "installed crimlab $ver ($target) into $prefix"
+    }
     & (Join-Path $bin 'crimlab.exe') -V
     if ($LASTEXITCODE -ne 0) { Fail 'the installed crimlab does not run' }
     $path = @($env:PATH -split ';' | ForEach-Object { $_.TrimEnd('\') })
