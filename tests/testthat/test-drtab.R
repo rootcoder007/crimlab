@@ -221,3 +221,15 @@ test_that("drftcal() refuses bad input", {
   expect_error(drftcal(ref, n = 1e7), "drftcal: `n`", fixed = TRUE)
   expect_error(drftcal(ref, n = 2, alpha = 2), "^drftcal: ")
 })
+
+test_that("drfttab() with a column missing throughout on one side or both", {
+  r <- data.frame(a = c(1, 2, 3, 4), b = NA, c = c(1.5, 2, 3, 9))
+  k <- data.frame(a = NA_real_, b = rep(NA, 4), c = c(1, 2, 3, 4))
+  x <- drfttab(r, k)
+  # the empty side takes the kind of the other; two empty sides are labels
+  expect_identical(x$type, c("numeric", "label", "numeric"))
+  expect_identical(x$nref, c(4L, 0L, 4L))
+  expect_identical(x$ncur, c(0L, 0L, 4L))
+  expect_identical(x$note[1:2], rep("no values on one side", 2L))
+  expect_identical(x$flag[1:2], c(NA, NA))
+})
