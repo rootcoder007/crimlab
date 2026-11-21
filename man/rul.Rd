@@ -25,7 +25,7 @@ failure is. \code{valrules()} records it; the caller decides what follows.}
 \item{msg}{The message of a failure, or \code{NULL} for "Rule '\if{html}{\out{<name>}}'
 failed".}
 
-\item{data}{A data frame.}
+\item{data}{The table the rules are run on: a data frame.}
 
 \item{rules}{One rule or a list of rules.}
 }

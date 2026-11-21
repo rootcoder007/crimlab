@@ -1692,6 +1692,8 @@ const Ent ents[] = {
     {"dast10", "x", vr::dast10},
     {"cudit", "x", vr::cudit},
     {"canast", "x", vr::canast},
+    {"svypci", "est se n df? method? level? trunc?", vr::svypci},
+    {"svyqual", "cv n d? cvlo? cvhi? nmin? dmin?", vr::svyqual},
     {"vodtst", "day night ref? shift?", vodtst},
     {"orrisk", "or rate share", orrisk},
     {"outtst", "q t w?", outtst},

@@ -47,7 +47,7 @@
 #'   failure is. `valrules()` records it; the caller decides what follows.
 #' @param msg The message of a failure, or `NULL` for "Rule '<name>'
 #'   failed".
-#' @param data A data frame.
+#' @param data The table the rules are run on: a data frame.
 #' @param rules One rule or a list of rules.
 #' @return `rul()` an object of class `clrule`, a list: `rule` (`"fn"`),
 #'   `name`, `col` (when given), `sev`, `msg` and `expr`. `valrules()` an
@@ -184,7 +184,7 @@ print.valrules <- function(x, ...) {
       if (!is.null(i[["rows"]])) {
         paste0(
           "; rows ",
-          paste(i[["rows"]], collapse = ", "),
+          toString(i[["rows"]]),
           if (i[["nfail"]] > length(i[["rows"]])) ", ..."
         )
       },

@@ -129,29 +129,7 @@ drftcal <- function(
   bins = 10L
 ) {
   fn <- "drftcal"
-  if (!is.data.frame(data) || nrow(data) < 4L) {
-    .ckstop(fn, "`data` must be a data frame with at least four rows")
-  }
-  if (
-    !is.numeric(n) ||
-      length(n) != 1L ||
-      !is.finite(n) ||
-      n < 1 ||
-      n > 1e6 ||
-      n != floor(n)
-  ) {
-    .ckstop(fn, "`n` must be a whole number from 1 to 1000000")
-  }
-  if (
-    !is.numeric(seed) ||
-      length(seed) != 1L ||
-      !is.finite(seed) ||
-      seed < 0 ||
-      seed != floor(seed) ||
-      seed >= 2^53
-  ) {
-    .ckstop(fn, "`seed` must be one whole number from 0, below 2^53")
-  }
+  .drtcalck(data, n, seed, fn)
   m <- nrow(data)
   # each split has a seed of its own, drawn from `seed` by the kernel's
   # generator; its half is the rows of the m %/% 2 smallest of m uniforms
@@ -214,10 +192,10 @@ print.drfttab <- function(x, ...) {
   print(d[, names(d) != "note"], row.names = FALSE)
   o <- attr(x, "only")
   if (length(o[["ref"]])) {
-    cat("only in `ref`:", paste(o[["ref"]], collapse = ", "), "\n")
+    cat("only in `ref`:", toString(o[["ref"]]), "\n")
   }
   if (length(o[["cur"]])) {
-    cat("only in `cur`:", paste(o[["cur"]], collapse = ", "), "\n")
+    cat("only in `cur`:", toString(o[["cur"]]), "\n")
   }
   invisible(x)
 }
@@ -268,29 +246,6 @@ print.drftcal <- function(x, ...) {
 #' x and the current values y.
 #' @noRd
 .drtcol <- function(x, y, a, bins, seed) {
-  row <- function(type, test, st, p, psi, nx, ny, note = "") {
-    flag <- if (is.na(p) && is.na(psi)) {
-      NA
-    } else {
-      isTRUE(p < a[["alpha"]]) ||
-        (isTRUE(psi > a[["psithr"]]) && min(nx, ny) >= a[["psiminn"]])
-    }
-    list(
-      type = type,
-      test = test,
-      statistic = st,
-      p = p,
-      psi = psi,
-      nref = nx,
-      ncur = ny,
-      flag = flag,
-      note = note
-    )
-  }
-  num <- function(v) {
-    is.numeric(v) || inherits(v, c("Date", "POSIXt"))
-  }
-  lab <- function(v) is.character(v) || is.factor(v) || is.logical(v)
   # a column with nothing but missing values has no kind of its own: it
   # takes the other side's
   void <- function(v) is.atomic(v) && all(is.na(v))
@@ -302,64 +257,16 @@ print.drftcal <- function(x, ...) {
     x <- as.character(x)
     y <- as.character(y)
   }
+  num <- function(v) is.numeric(v) || inherits(v, c("Date", "POSIXt"))
+  lab <- function(v) is.character(v) || is.factor(v) || is.logical(v)
   if (num(x) && num(y)) {
-    x <- as.numeric(x)
-    y <- as.numeric(y)
-    x <- x[is.finite(x)]
-    y <- y[is.finite(y)]
-    if (!length(x) || !length(y)) {
-      return(row(
-        "numeric",
-        "ks",
-        NA_real_,
-        NA_real_,
-        NA_real_,
-        length(x),
-        length(y),
-        "no values on one side"
-      ))
-    }
-    k <- drftks(x, y)
-    return(row(
-      "numeric",
-      "ks",
-      k[["statistic"]],
-      k[["p_value"]],
-      drftpsi(x, y, bins = bins)[["psi"]],
-      length(x),
-      length(y)
-    ))
+    return(.drtnum(as.numeric(x), as.numeric(y), a, bins))
   }
   if (lab(x) && lab(y)) {
-    x <- as.character(x)
-    y <- as.character(y)
-    x <- x[!is.na(x)]
-    y <- y[!is.na(y)]
-    if (!length(x) || !length(y)) {
-      return(row(
-        "label",
-        "homogeneity",
-        NA_real_,
-        NA_real_,
-        NA_real_,
-        length(x),
-        length(y),
-        "no values on one side"
-      ))
-    }
-    h <- drfthomog(x, y, seed = seed)
-    return(row(
-      "label",
-      "homogeneity",
-      h[["statistic"]],
-      h[["p_value"]],
-      NA_real_,
-      length(x),
-      length(y),
-      if (is.na(h[["p_value"]])) attr(h, "method") else ""
-    ))
+    return(.drtlab(as.character(x), as.character(y), a, seed))
   }
-  row(
+  .drtrow(
+    a,
     "other",
     "none",
     NA_real_,
@@ -369,4 +276,107 @@ print.drftcal <- function(x, ...) {
     length(y),
     "not numbers on both sides nor labels on both sides"
   )
+}
+
+#' One row of drfttab(): the test, its statistic and p-value, the
+#' population stability index, the counts, and the flag by the levels `a`.
+#' @noRd
+.drtrow <- function(a, type, test, st, p, psi, nx, ny, note = "") {
+  flag <- if (is.na(p) && is.na(psi)) {
+    NA
+  } else {
+    isTRUE(p < a[["alpha"]]) ||
+      (isTRUE(psi > a[["psithr"]]) && min(nx, ny) >= a[["psiminn"]])
+  }
+  list(
+    type = type,
+    test = test,
+    statistic = st,
+    p = p,
+    psi = psi,
+    nref = nx,
+    ncur = ny,
+    flag = flag,
+    note = note
+  )
+}
+
+#' A column of numbers: the Kolmogorov-Smirnov test and the population
+#' stability index of the finite values.
+#' @noRd
+.drtnum <- function(x, y, a, bins) {
+  x <- x[is.finite(x)]
+  y <- y[is.finite(y)]
+  if (!length(x) || !length(y)) {
+    return(.drtrow(
+      a,
+      "numeric",
+      "ks",
+      NA_real_,
+      NA_real_,
+      NA_real_,
+      length(x),
+      length(y),
+      "no values on one side"
+    ))
+  }
+  k <- drftks(x, y)
+  .drtrow(
+    a,
+    "numeric",
+    "ks",
+    k[["statistic"]],
+    k[["p_value"]],
+    drftpsi(x, y, bins = bins)[["psi"]],
+    length(x),
+    length(y)
+  )
+}
+
+#' A column of labels: the test of homogeneity of the values present.
+#' @noRd
+.drtlab <- function(x, y, a, seed) {
+  x <- x[!is.na(x)]
+  y <- y[!is.na(y)]
+  if (!length(x) || !length(y)) {
+    return(.drtrow(
+      a,
+      "label",
+      "homogeneity",
+      NA_real_,
+      NA_real_,
+      NA_real_,
+      length(x),
+      length(y),
+      "no values on one side"
+    ))
+  }
+  h <- drfthomog(x, y, seed = seed)
+  .drtrow(
+    a,
+    "label",
+    "homogeneity",
+    h[["statistic"]],
+    h[["p_value"]],
+    NA_real_,
+    length(x),
+    length(y),
+    if (is.na(h[["p_value"]])) attr(h, "method") else ""
+  )
+}
+
+#' data, n and seed of drftcal() checked.
+#' @noRd
+.drtcalck <- function(data, n, seed, fn) {
+  if (!is.data.frame(data) || nrow(data) < 4L) {
+    .ckstop(fn, "`data` must be a data frame with at least four rows")
+  }
+  one <- function(v) is.numeric(v) && length(v) == 1L && is.finite(v)
+  if (!one(n) || n < 1 || n > 1e6 || n != floor(n)) {
+    .ckstop(fn, "`n` must be a whole number from 1 to 1000000")
+  }
+  if (!one(seed) || seed < 0 || seed != floor(seed) || seed >= 2^53) {
+    .ckstop(fn, "`seed` must be one whole number from 0, below 2^53")
+  }
+  invisible(NULL)
 }

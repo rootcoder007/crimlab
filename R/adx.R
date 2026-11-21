@@ -112,62 +112,11 @@ ebac <- function(
 ) {
   fn <- "ebac"
   unit <- .ckmarg("unit", fn)
-  num <- function(v, what) {
-    if (!is.numeric(v) || !length(v)) {
-      .ckstop(fn, "`%s` must be numeric", what)
-    }
-    as.numeric(v)
-  }
-  drinks <- num(drinks, "drinks")
-  weight <- num(weight, "weight")
-  hours <- num(hours, "hours")
-  if (any(drinks < 0, na.rm = TRUE)) {
-    .ckstop(fn, "`drinks` must be numbers from 0")
-  }
-  if (any(weight <= 0, na.rm = TRUE)) {
-    .ckstop(fn, "`weight` must be positive numbers")
-  }
-  if (any(hours < 0, na.rm = TRUE)) {
-    .ckstop(fn, "`hours` must be numbers from 0")
-  }
-  if (!is.null(height)) {
-    height <- num(height, "height")
-    if (any(height <= 0, na.rm = TRUE)) {
-      .ckstop(fn, "`height` must be positive numbers")
-    }
-  }
-  if (is.null(r)) {
-    if (
-      !is.character(sex) ||
-        !length(sex) ||
-        anyNA(sex) ||
-        !all(sex %in% c("male", "female"))
-    ) {
-      .ckstop(fn, "`sex` must be \"male\" or \"female\"")
-    }
-    if (is.null(height)) {
-      r <- ifelse(sex == "male", 0.73, 0.66)
-    } else {
-      len <- c(length(sex), length(weight), length(height))
-      if (!all(len %in% c(1L, max(len)))) {
-        .ckstop(fn, "the arguments must have one length, or length 1")
-      }
-      kg <- if (unit == "lb") weight * 0.45359237 else weight
-      r <- ifelse(
-        sex == "male",
-        0.31608 - 0.004821 * kg + 0.004632 * height,
-        0.31223 - 0.006446 * kg + 0.004466 * height
-      )
-      if (any(r <= 0, na.rm = TRUE)) {
-        .ckstop(fn, "the weight and height give a factor that is not positive")
-      }
-    }
-  } else {
-    r <- num(r, "r")
-    if (any(r <= 0, na.rm = TRUE)) {
-      .ckstop(fn, "`r` must be positive numbers")
-    }
-  }
+  drinks <- .adxnum(drinks, "drinks", fn, "numbers from 0")
+  weight <- .adxnum(weight, "weight", fn, "positive numbers")
+  hours <- .adxnum(hours, "hours", fn, "numbers from 0")
+  kg <- if (unit == "lb") weight * 0.45359237 else weight
+  r <- .adxr(sex, kg, height, r, fn)
   one <- function(v) is.numeric(v) && length(v) == 1L && is.finite(v)
   if (!one(beta) || beta < 0) {
     .ckstop(fn, "`beta` must be one number from 0")
@@ -175,17 +124,61 @@ ebac <- function(
   if (!one(grams) || grams <= 0) {
     .ckstop(fn, "`grams` must be one positive number")
   }
-  n <- max(length(drinks), length(weight), length(hours), length(r))
-  if (
-    !all(
-      c(length(drinks), length(weight), length(hours), length(r)) %in%
-        c(1L, n)
-    )
-  ) {
+  len <- c(length(drinks), length(weight), length(hours), length(r))
+  if (!all(len %in% c(1L, max(len)))) {
     .ckstop(fn, "the arguments must have one length, or length 1")
   }
-  kg <- if (unit == "lb") weight * 0.45359237 else weight
   pmax(0, grams * drinks / (10 * r * kg) - beta * hours)
+}
+
+#' Numbers that are `what` ("numbers from 0": none negative; "positive
+#' numbers": none 0 or negative), or the refusal of fn.
+#' @noRd
+.adxnum <- function(v, name, fn, what) {
+  if (!is.numeric(v) || !length(v)) {
+    .ckstop(fn, "`%s` must be numeric", name)
+  }
+  bad <- if (what == "positive numbers") v <= 0 else v < 0
+  if (any(bad, na.rm = TRUE)) {
+    .ckstop(fn, "`%s` must be %s", name, what)
+  }
+  as.numeric(v)
+}
+
+#' The Widmark factor of ebac(): `r` as given, or that of `sex`, fixed or,
+#' with `height`, by Seidl, Jensen and Alt from the weight `kg`.
+#' @noRd
+.adxr <- function(sex, kg, height, r, fn) {
+  if (!is.null(height)) {
+    height <- .adxnum(height, "height", fn, "positive numbers")
+  }
+  if (!is.null(r)) {
+    return(.adxnum(r, "r", fn, "positive numbers"))
+  }
+  if (
+    !is.character(sex) ||
+      !length(sex) ||
+      anyNA(sex) ||
+      !all(sex %in% c("male", "female"))
+  ) {
+    .ckstop(fn, "`sex` must be \"male\" or \"female\"")
+  }
+  if (is.null(height)) {
+    return(ifelse(sex == "male", 0.73, 0.66))
+  }
+  len <- c(length(sex), length(kg), length(height))
+  if (!all(len %in% c(1L, max(len)))) {
+    .ckstop(fn, "the arguments must have one length, or length 1")
+  }
+  r <- ifelse(
+    sex == "male",
+    0.31608 - 0.004821 * kg + 0.004632 * height,
+    0.31223 - 0.006446 * kg + 0.004466 * height
+  )
+  if (any(r <= 0, na.rm = TRUE)) {
+    .ckstop(fn, "the weight and height give a factor that is not positive")
+  }
+  r
 }
 
 #' Standard drinks in a volume of a beverage
@@ -218,7 +211,7 @@ ebac <- function(
 #' # spirits: one Canadian standard drink each
 #' stddrk(c(341, 142, 43), c(5, 12, 40))
 #' # a 750 mL bottle of 13% wine, by four standards
-#' sapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s))
+#' vapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s), 0)
 #' try(stddrk(341, 500))
 #' @export
 stddrk <- function(

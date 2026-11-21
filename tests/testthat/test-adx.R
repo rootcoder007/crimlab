@@ -176,7 +176,7 @@ test_that("hvydrk() and lrdg() are the survey's two flags", {
     c(FALSE, FALSE, TRUE, TRUE, NA)
   )
   expect_identical(hvydrk(6, c("female", "male"), f = 7, m = 6), c(FALSE, TRUE))
-  expect_identical(lrdg(3, "male", m = 2), TRUE)
+  expect_true(lrdg(3, "male", m = 2))
   for (f in c("hvydrk", "lrdg")) {
     errs(
       f,

@@ -1078,7 +1078,9 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(auditc(matrix(1, 1, 3))), c("total", "auditc", "zone", "cpos")),
     list(quote(dast10(matrix(0, 1, 10))), c("total", "level")),
     list(quote(cudit(matrix(0, 1, 8))), c("total", "level")),
-    list(quote(canast(matrix(0, 1, 6))), c("total", "level"))
+    list(quote(canast(matrix(0, 1, 6))), c("total", "level")),
+    list(quote(svypci(0.1, 0.02, 100)), c("est", "lo", "hi", "neff")),
+    list(quote(svyqual(10, 50)), NULL)
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

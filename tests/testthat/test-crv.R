@@ -27,14 +27,16 @@ test_that("cramerv() is ctabx()'s V, corrected or not", {
     tolerance = 1e-12
   )
   expect_equal(r[["minexp"]], min(ch$expected), tolerance = 1e-12)
-  expect_true(r[["lo"]] <= r[["vraw"]] && r[["vraw"]] <= r[["hi"]])
+  expect_lte(r[["lo"]], r[["vraw"]])
+  expect_lte(r[["vraw"]], r[["hi"]])
   # a table() is taken as a matrix is
   expect_identical(unclass(cramerv(as.table(tab)))[1:8], unclass(r)[1:8])
   # independence: the corrected V is 0
   expect_identical(cramerv(matrix(c(10, 20, 10, 20), 2))[["v"]], 0)
   # a wider interval at a higher level
   w <- cramerv(tab, level = 0.99)
-  expect_true(w[["lo"]] <= r[["lo"]] && w[["hi"]] >= r[["hi"]])
+  expect_lte(w[["lo"]], r[["lo"]])
+  expect_gte(w[["hi"]], r[["hi"]])
 })
 
 test_that("cramerv() drops empty margins and says when nothing is left", {
@@ -60,7 +62,11 @@ test_that("cramerv() prints its reading", {
     fixed = TRUE
   )
   big <- matrix(c(300, 60, 90, 140), 2)
-  expect_false(any(grepl("exact test", capture.output(print(cramerv(big))))))
+  expect_false(any(grepl(
+    "exact test",
+    capture.output(print(cramerv(big))),
+    fixed = TRUE
+  )))
   expect_output(
     print(cramerv(rbind(tab, 0))),
     "1 empty rows or columns left out",

@@ -38,7 +38,7 @@ Errors: \code{vol} or \code{abv} not numeric, \code{vol} negative, \code{abv} ou
 # spirits: one Canadian standard drink each
 stddrk(c(341, 142, 43), c(5, 12, 40))
 # a 750 mL bottle of 13\% wine, by four standards
-sapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s))
+vapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s), 0)
 try(stddrk(341, 500))
 }
 \references{

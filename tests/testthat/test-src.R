@@ -26,7 +26,7 @@ scwds <- paste0(
   "getFullTableDownloadCSV/"
 )
 ck <- "https://portal.test"
-ckpkg <- paste0(ck, "/api/3/action/package_show?id=crimes")
+ckpkg <- sprintf("%s/api/3/action/package_show?id=crimes", ck)
 ckjson <- r"({"success": true, "result": {"name": "crimes", "resources": [
   {"name": "Readme", "format": "PDF", "url": "https://portal.test/r.pdf",
    "created": "2024-01-01", "last_modified": null, "size": null},
@@ -47,7 +47,7 @@ test_that("ckanres() lists the files of a CKAN dataset", {
   # an answer that is not the dataset, or not JSON, or no answer
   no <- stats::setNames(
     list('{"success": false}', "<html>"),
-    c(ckpkg, paste0(ck, "/api/3/action/package_show?id=x%20y"))
+    c(ckpkg, sprintf("%s/api/3/action/package_show?id=x%%20y", ck))
   )
   expect_error(
     serve(no, ckanres(ck, "crimes")),
@@ -78,7 +78,7 @@ test_that("ckanres() lists the files of a CKAN dataset", {
 })
 
 test_that("ckanls() searches a CKAN portal", {
-  u <- paste0(ck, "/api/3/action/package_search?q=use%20of%20force&rows=2")
+  u <- sprintf("%s/api/3/action/package_search?q=use%%20of%%20force&rows=2", ck)
   j <- r"({"success": true, "result": {"count": 2, "results": [
     {"name": "uof", "title": "Use of force", "license_title": "OGL",
      "resources": [{}, {}]},
@@ -160,14 +160,14 @@ test_that("arcres() describes an ArcGIS layer", {
     list(aj, '{"count": 420000}'),
     c(
       paste0(lay, "?f=json"),
-      paste0(lay, "/query?where=1%3D1&returnCountOnly=true&f=json")
+      sprintf("%s/query?where=1%%3D1&returnCountOnly=true&f=json", lay)
     )
   )
   r <- serve(p, arcres(lay))
   expect_identical(r[["name"]], "Major crime")
   expect_identical(
     r[["url"]],
-    paste0(lay, "/query?where=1%3D1&outFields=*&f=geojson")
+    sprintf("%s/query?where=1%%3D1&outFields=*&f=geojson", lay)
   )
   expect_identical(r[["columns"]], c("OBJECTID", "MCI"))
   expect_identical(as.numeric(r[["updated"]]), 1700000000)
@@ -256,7 +256,7 @@ test_that("srcls() is the list of sources, each key once", {
   )
   # a page and a file are an address; every other kind names a dataset or
   # is a portal to search
-  expect_true(all(!nzchar(s[["id"]][s[["kind"]] %in% c("page", "url")])))
+  expect_false(any(nzchar(s[["id"]][s[["kind"]] %in% c("page", "url")])))
   expect_true(all(grepl(
     "^[a-z0-9]{4}-[a-z0-9]{4}$",
     s[["id"]][s[["kind"]] == "socrata"]
@@ -339,17 +339,17 @@ test_that("srcurl() resolves a key at the publisher's portal", {
   expect_identical(cp[["id"]], "ijzp-q8t2")
   # ArcGIS
   t <- at("tps-mci")
-  l <- paste0(t[["portal"]], "/", t[["id"]], "/FeatureServer/0")
+  l <- sprintf("%s/%s/FeatureServer/0", t[["portal"]], t[["id"]])
   p <- stats::setNames(
     list(aj, '{"count": 1}'),
     c(
       paste0(l, "?f=json"),
-      paste0(l, "/query?where=1%3D1&returnCountOnly=true&f=json")
+      sprintf("%s/query?where=1%%3D1&returnCountOnly=true&f=json", l)
     )
   )
   expect_identical(
     serve(p, srcurl("tps-mci")),
-    paste0(l, "/query?where=1%3D1&outFields=*&f=geojson")
+    sprintf("%s/query?where=1%%3D1&outFields=*&f=geojson", l)
   )
   errs(
     "srcurl",

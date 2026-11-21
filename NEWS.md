@@ -28,6 +28,14 @@
   of Canada's low-risk guideline. `auditc()`, `dast10()`, `cudit()` and
   `canast()` score the AUDIT and AUDIT-C, the DAST-10, the CUDIT-R and
   the cannabis items of the ASSIST.
+* Intervals for a survey proportion. `svypci()` gives, from an estimate
+  and its design-based standard error, the modified Clopper-Pearson
+  interval of Korn and Graubard (1998), the modified Wilson interval, the
+  logit interval or the Wald interval; the first three are the ones
+  statistical agencies ask for near 0 and 1. `svyqual()` grades an
+  estimate as acceptable, marginal or unacceptable by its unweighted
+  counts and coefficient of variation, with Health Canada's thresholds by
+  default.
 * `cramerv()`: Cramer's V of a two-way table of counts, bias-corrected
   (Bergsma 2013) or not, with its interval, the chi-square test and the
   smallest expected count.

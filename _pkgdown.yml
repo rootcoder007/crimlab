@@ -430,9 +430,13 @@ reference:
       - colarr
   - title: Surveys
     desc: Design-based means, totals, proportions, ratios and variances by
-      domain from stratified, clustered and weighted samples.
+      domain from stratified, clustered and weighted samples; intervals
+      for a proportion that hold near 0 and 1; and the release quality of
+      an estimate.
     contents:
       - svymx
+      - svypci
+      - svyqual
       - rscchi
   - title: Proofs
     contents:

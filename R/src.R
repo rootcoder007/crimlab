@@ -118,19 +118,19 @@ ckanres <- function(portal, id) {
     fn
   )
   res <- Filter(is.list, r[["resources"]])
-  chr <- function(k) {
+  fld <- function(k) {
     vapply(res, function(x) .srchr(x[[k]]), "", USE.NAMES = FALSE)
   }
   data.frame(
-    name = chr("name"),
-    format = chr("format"),
-    url = chr("url"),
+    name = fld("name"),
+    format = fld("format"),
+    url = fld("url"),
     modified = ifelse(
-      is.na(chr("last_modified")),
-      chr("created"),
-      chr("last_modified")
+      is.na(fld("last_modified")),
+      fld("created"),
+      fld("last_modified")
     ),
-    bytes = suppressWarnings(as.numeric(chr("size"))),
+    bytes = suppressWarnings(as.numeric(fld("size"))),
     stringsAsFactors = FALSE
   )
 }
@@ -205,7 +205,7 @@ socres <- function(domain, id) {
   up <- suppressWarnings(as.numeric(m[["rowsUpdatedAt"]]))
   list(
     name = .srchr(m[["name"]]),
-    url = paste0(base, "/api/views/", id, "/rows.csv?accessType=DOWNLOAD"),
+    url = sprintf("%s/api/views/%s/rows.csv?accessType=DOWNLOAD", base, id),
     columns = vapply(cols, function(x) .srchr(x[["name"]]), ""),
     updated = .srtime(if (length(up) == 1L) up else NA_real_)
   )
@@ -227,7 +227,7 @@ arcres <- function(layer) {
     .ckstop(fn, "%s did not describe a layer", layer)
   }
   n <- .srjson(
-    paste0(layer, "/query?where=1%3D1&returnCountOnly=true&f=json"),
+    sprintf("%s/query?where=1%%3D1&returnCountOnly=true&f=json", layer),
     "the layer's row count",
     fn
   )
@@ -238,7 +238,7 @@ arcres <- function(layer) {
   ed <- m[["editingInfo"]]
   list(
     name = .srchr(m[["name"]]),
-    url = paste0(layer, "/query?where=1%3D1&outFields=*&f=geojson"),
+    url = sprintf("%s/query?where=1%%3D1&outFields=*&f=geojson", layer),
     columns = vapply(
       Filter(is.list, m[["fields"]]),
       function(x) .srchr(x[["name"]]),
@@ -326,7 +326,7 @@ srcurl <- function(key) {
     socrata = .clas(fn, socres(s[["portal"]], s[["id"]]))[["url"]],
     arcgis = .clas(
       fn,
-      arcres(paste0(s[["portal"]], "/", s[["id"]], "/FeatureServer/0"))
+      arcres(sprintf("%s/%s/FeatureServer/0", s[["portal"]], s[["id"]]))
     )[["url"]]
   )
 }
@@ -377,17 +377,23 @@ scres <- function(pid, lang = c("en", "fr")) {
 #' registry does so again when run with the network. A source with no id
 #' is a portal to search (ckanls()) or a page to read.
 #' @noRd
-.srreg <- function() {
-  tps <- "https://services.arcgis.com/S9th0jAJ7bqgIRjw/arcgis/rest/services"
-  tor <- "https://ckan0.cf.opendata.inter.prod-toronto.ca"
-  ont <- "https://data.ontario.ca"
-  sc <- "https://www150.statcan.gc.ca"
-  es <- "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/"
-  tp <- "Toronto Police Service"
-  sg <- "Ontario Ministry of the Solicitor General"
-  st <- "Statistics Canada"
-  ny <- "New York City Police Department"
-  ch <- "Chicago Police Department"
+.srnm <- list(
+  tps = "https://services.arcgis.com/S9th0jAJ7bqgIRjw/arcgis/rest/services",
+  tor = "https://ckan0.cf.opendata.inter.prod-toronto.ca",
+  ont = "https://data.ontario.ca",
+  sc = "https://www150.statcan.gc.ca",
+  es = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/",
+  tp = "Toronto Police Service",
+  sg = "Ontario Ministry of the Solicitor General",
+  st = "Statistics Canada",
+  ny = "New York City Police Department",
+  ch = "Chicago Police Department"
+)
+
+#' The sources of srcls(): six fields a source (.srnm holds the names
+#' that repeat).
+#' @noRd
+.srtab <- with(.srnm, {
   x <- c(
     # Canada: police
     "tps-mci",
@@ -651,7 +657,11 @@ scres <- function(pid, lang = c("en", "fr")) {
       c("key", "publisher", "what", "kind", "portal", "id")
     )
   )
-}
+})
+
+#' The table of sources.
+#' @noRd
+.srreg <- function() .srtab
 
 #' One http(s):// address (or, with file, a file:// one) without trailing
 #' slashes, or the refusal of fn.

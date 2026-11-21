@@ -8899,3 +8899,32 @@ def canast(x: Any) -> Any:
     ([8.0], ['moderate'])
     """
     return jcall("canast", x=x)
+
+def svypci(est: Any, se: Any, n: Any, df: Any = None, method: Any = "beta", level: Any = 0.95,
+           trunc: Any = True) -> Any:
+    """Confidence interval of a survey proportion.
+
+    The arguments and the result are those of R's ``svypci()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = svypci(est=0.12, se=0.021, n=400, df=38, method="wilson")
+    >>> round(r['lo'][0], 4), round(r['hi'][0], 4)
+    (0.0836, 0.1691)
+    """
+    return jcall("svypci", est=est, se=se, n=n, df=df, method=method, level=level, trunc=trunc)
+
+def svyqual(cv: Any, n: Any, d: Any = None, cvlo: Any = 16.6, cvhi: Any = 33.3, nmin: Any = 10,
+            dmin: Any = 50) -> Any:
+    """Release quality of a survey estimate.
+
+    The arguments and the result are those of R's ``svyqual()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> svyqual(cv=[8, 20, 40], n=[120, 60, 30], d=[900, 500, 300])
+    ['acceptable', 'marginal', 'unacceptable']
+    """
+    return jcall("svyqual", cv=cv, n=n, d=d, cvlo=cvlo, cvhi=cvhi, nmin=nmin, dmin=dmin)

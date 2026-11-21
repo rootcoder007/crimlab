@@ -90,7 +90,8 @@ test_that("drfttab() says why a column was not tested", {
   f <- stats::setNames(r[["flag"]], r[["column"]])
   expect_identical(n[["n"]], "no values on one side")
   expect_identical(n[["l"]], "no values on one side")
-  expect_true(is.na(f[["n"]]) && is.na(f[["l"]]))
+  expect_true(is.na(f[["n"]]))
+  expect_true(is.na(f[["l"]]))
   # a date column is tested as numbers
   expect_identical(r[["type"]][r[["column"]] == "d"], "numeric")
   expect_false(is.na(r[["p"]][r[["column"]] == "d"]))
@@ -171,7 +172,7 @@ test_that("drftcal() measures the false alarms of unchanged data", {
   expect_true(all(r[["columns"]][["far"]] >= 0 & r[["columns"]][["far"]] <= 1))
   expect_identical(r[["n"]], 12L)
   expect_identical(r[["alphafam"]], 0.1)
-  expect_true(r[["anyflag"]] >= max(r[["columns"]][["far"]]))
+  expect_gte(r[["anyflag"]], max(r[["columns"]][["far"]]))
   # the splits are those of the kernel's generator: split 1 by hand
   u <- cunif(nrow(ref), floor(cunif(12, 1)[1L] * 2^52))
   k <- sort(order(u)[seq_len(nrow(ref) %/% 2L)])

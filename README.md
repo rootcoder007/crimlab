@@ -196,6 +196,10 @@ The functions work on summary data, not on raw records:
   `misspat()`, `misssmry()`, `mcartst()`, `duprows()`), which
   distribution describes a variable (`dstfit()`), and whether
   distinct groups differ before their figures are pooled (`dstntst()`).
+* Survey proportions: an interval that holds near 0 and 1 (modified
+  Clopper-Pearson, modified Wilson or logit, `svypci()`), and the release
+  quality of an estimate by its counts and coefficient of variation
+  (`svyqual()`), beside the design-based estimates of `svymx()`.
 * Alcohol and drug use: a blood alcohol concentration from what was
   drunk, by Widmark's formula with fixed factors or the body-water
   factors the Canadian surveys use (`ebac()`), standard drinks by country
