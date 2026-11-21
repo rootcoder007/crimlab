@@ -174,6 +174,22 @@ attr(drfthomog(c(a = 3, b = 1, c = 2), c(a = 1, b = 4, c = 1)), "method")
 try(drfthomog(c(1, 2), c(a = 3)))
 ```
 
+## Drift of a whole table between two releases
+
+`drfttab()`, `drftcal()`: Compares a reference table and a current one column by column, with the tests of this family: a numeric (or date) column by the two-sample Kolmogorov-Smirnov test (`drftks()`) and the population stability index (`drftpsi()`), a text, factor or logical column by the chi-square test of homogeneity (`drfthomog()`). `drftcal()` then says how often these screens fire on a table that has not changed at all, which is what a flag has to be read against.
+
+```{r drfttab}
+set.seed(1)
+ref <- data.frame(age = rnorm(300, 35, 9),
+                  charge = sample(c("assault", "theft", "drugs"), 300, TRUE))
+cur <- data.frame(age = rnorm(300, 39, 9),
+                  charge = sample(c("assault", "theft", "drugs"), 300, TRUE))
+drfttab(ref, cur)
+# how often the screens fire when nothing changed
+drftcal(ref, n = 20)
+try(drfttab(ref, data.frame(other = 1)))
+```
+
 # Region maps
 
 ## Internal soundness of a region map

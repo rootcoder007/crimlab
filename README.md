@@ -29,7 +29,7 @@ evidence, evaluate a policy, audit a risk score, and describe sentences,
 custody and crime places. `vignette("crimlab")` walks through one example
 from each family.
 
-## What it takes
+## Input data
 
 The functions work on summary data, not on raw records:
 
@@ -48,7 +48,7 @@ The functions work on summary data, not on raw records:
   event time windows, reported figures, matched-pair differences and
   counts over time.
 
-## What it asks
+## Scope
 
 * Disparities: does visibility change who is stopped, what an odds ratio
   says about risk, whether hit rates can show bias, how a disparity per
@@ -87,7 +87,8 @@ The functions work on summary data, not on raw records:
   empirical Bayes shrinkage (`sirex()`).
 * Tables: cross-tabulation of records or of an aggregate table's counts,
   with chi-square and likelihood-ratio tests, Fisher's exact test,
-  Cramer's V with its interval, and the share on the diagonal (`ctabx()`).
+  Cramer's V with its interval, and the share on the diagonal (`ctabx()`);
+  Cramer's V alone, bias-corrected, from a table of counts (`cramerv()`).
 * Time and contagion: Hawkes processes fitted to event times with a
   choice of kernels and baselines, their residuals and simulation
   (`hwkfit()`, `hwkres()`, `hwksim()`).
@@ -126,7 +127,12 @@ The functions work on summary data, not on raw records:
   what a tool or an agency did, not why.
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
-  would make of categorical inputs before an analysis (`catchk()`).
+  would make of categorical inputs before an analysis (`catchk()`); rules
+  a table must satisfy, declared once and run before an analysis, with the
+  rows that break them: a value in a set, a number in a range, no missing
+  value, no repeated identifier, a pattern, an order, an outlier, complete
+  and distinct rows (`valrules()`, `rul()`, `ruleinset()` and the other
+  rule functions).
 * Police-reported crime: a severity-weighted index of counts by offence, per
   population and against a base period (`crsev()`), and a composite of
   standardised counts that ranks areas on several kinds of crime at once
@@ -190,6 +196,19 @@ The functions work on summary data, not on raw records:
   `misspat()`, `misssmry()`, `mcartst()`, `duprows()`), which
   distribution describes a variable (`dstfit()`), and whether
   distinct groups differ before their figures are pooled (`dstntst()`).
+* Drift between releases: whether a new release of a published table
+  still looks like the last, column by column (`drfttab()`; `drftks()`,
+  `drftpsi()`, `drfthomog()`, `drftchisq()` for one column), and how often
+  such a screen fires on a table that has not changed (`drftcal()`).
+* Data from its publisher: where a dataset is now on the portal of a
+  police service, a statistical agency or a government (`ckanres()`,
+  `ckanls()`, `socres()`, `arcres()`, `scres()`), a list of sources in
+  Canada, the United States, the United Kingdom, Europe and Australia
+  (`srcls()`, `srcurl()`), a download that reports the SHA-256 of what it
+  wrote (`srcget()`), a director's report of Ontario's Special
+  Investigations Unit by its number (`ovrget()`), and the Indigenous
+  health and census tables of the open data service (`indtabs()`,
+  `indiex()`). In R.
 * The footprint of the analysis itself: the energy a computation used and
   its emissions on the local grid, offline, with what was assumed rather
   than measured (`co2fp()`, `raplok()`, `co2int()`, `co2inttab()`,
@@ -573,6 +592,12 @@ relchk(tab, 0.44, ref = "B", event = "yes")
 d <- data.frame(sex = c("Male", "male", "Female", "Female", NA),
                 custody = c(TRUE, FALSE, TRUE, TRUE, FALSE))
 catchk(d, nmin = 2)
+
+# rules a table must satisfy, and the rows that break them
+d <- data.frame(year = c(2019, 2020, 2021, 2021),
+                div = c("11", "14", "14", "5X"))
+valrules(d, list(rulebtw("year", 2000, 2020),
+                 rulerx("div", "^[0-9]{2}$")))
 ```
 
 ### Proofs
@@ -689,7 +714,10 @@ and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that are in R only: the tables of the open
-data service (`odtab()`, `odls()`) and the functions of placement
+data service and data from its publisher (`odtab()`, `odls()`,
+`indtabs()`, `indiex()`, `ckanres()`, `ckanls()`, `socres()`, `arcres()`,
+`scres()`, `srcls()`, `srcurl()`, `srcget()`, `ovrget()`), a rule that
+holds an R function (`rul()`), and the functions of placement
 volatility and alert complexity (`plcvol()`, `alrtcx()`, `otpyr()`,
 `cntmix()`, `cxvol()`, `cxdml()`, `cxyoy()`, `cxsim()`). `plot()` of a
 result is R's as well; the plot functions return the data they draw

@@ -8590,3 +8590,202 @@ def mipmm(data: Any, y: Any, x: Any = None, m: Any = 5, k: Any = 5, maxit: Any =
     """
     return jcall("mipmm", data=data, y=y, x=x, m=m, k=k, maxit=maxit, ridge=ridge, fy=fy, fx=fx,
                  level=level, seed=seed)
+
+def cramerv(tbl: Any, biascor: Any = True, level: Any = 0.95) -> Any:
+    """Cramer's V of a two-way table of counts, with its interval.
+
+    The arguments and the result are those of R's ``cramerv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cramerv(tbl=[[30, 9, 1], [6, 14, 4], [2, 3, 11]])
+    >>> list(r)
+    ['v', 'vraw', 'lo', 'hi', 'chisq', 'df', 'p', 'n', 'minexp', 'drop']
+    >>> round(r['vraw'], 6), r['df']
+    (0.532759, 4.0)
+    """
+    return jcall("cramerv", tbl=tbl, biascor=biascor, level=level)
+
+def drfttab(ref: Any, cur: Any, alpha: Any = 0.01, psithr: Any = 0.25, psiminn: Any = 100, bins: Any = 10,
+            seed: Any = 1) -> Any:
+    """Drift of a whole table between two releases, column by column.
+
+    The arguments and the result are those of R's ``drfttab()``: see its help
+    page. A column of labels with an expected count below 5 is left
+    untested here (its p-value is a Monte Carlo draw of R's generator), and
+    ``note`` says so.
+
+    Examples
+    --------
+    >>> r = drfttab(ref={'a': [1, 2, 3, 4, 5, 6]}, cur={'a': [11, 12, 13, 14, 15, 16]})
+    >>> r['test'], r['statistic'], r['flag']
+    (['ks'], [1.0], [True])
+    """
+    return jcall("drfttab", ref=ref, cur=cur, alpha=alpha, psithr=psithr, psiminn=psiminn, bins=bins, seed=seed)
+
+def drftcal(data: Any, n: Any = 50, alpha: Any = 0.01, seed: Any = 1, psithr: Any = 0.25, psiminn: Any = 100,
+            bins: Any = 10) -> Any:
+    """How often the drift screens fire on a table that has not changed.
+
+    The arguments and the result are those of R's ``drftcal()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = drftcal(data={'x': list(range(1, 21))}, n=10, alpha=0.3)
+    >>> list(r)
+    ['columns', 'anyflag', 'alpha', 'n', 'alphafam']
+    >>> r['columns']['far']
+    [0.4]
+    """
+    return jcall("drftcal", data=data, n=n, alpha=alpha, seed=seed, psithr=psithr, psiminn=psiminn, bins=bins)
+
+def valrules(data: Any, rules: Any) -> Any:
+    """The rules a table breaks, with the rows that break them.
+
+    The arguments and the result are those of R's ``valrules()``: see its
+    help page. A rule is what a rule function returns (``rulebtw()`` and
+    the others), or the same mapping written by hand.
+
+    Examples
+    --------
+    >>> d = {'year': [2019, 2020, 2021, 2021], 'div': ['11', '14', '14', '5X']}
+    >>> r = valrules(data=d, rules=[rulebtw('year', 2000, 2020), rulerx('div', '^[0-9]{2}$'),
+    ... {'rule': 'uniq', 'col': 'div'}])
+    >>> list(r)
+    ['year_between', 'div_regex', 'div_unique']
+    >>> r['year_between']['rows'], r['div_regex']['rows']
+    ([3.0, 4.0], 4.0)
+    """
+    return jcall("valrules", data=data, rules=rules)
+
+def ruleinset(col: Any, set: Any, napass: Any = True, sev: Any = "warning") -> Any:
+    """A rule: every value of a column is one of a set.
+
+    The arguments and the result are those of R's ``ruleinset()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> ruleinset('div', ['11', '14'])['name']
+    'div_in_set'
+    """
+    return jcall("ruleinset", col=col, set=set, napass=napass, sev=sev)
+
+def rulebtw(col: Any, lo: Any, hi: Any, napass: Any = True, sev: Any = "warning") -> Any:
+    """A rule: every value of a column lies between two bounds.
+
+    The arguments and the result are those of R's ``rulebtw()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> rulebtw('year', 2000, 2026)['msg']
+    "Column 'year' has values outside [2000, 2026]"
+    """
+    return jcall("rulebtw", col=col, lo=lo, hi=hi, napass=napass, sev=sev)
+
+def rulenull(col: Any, sev: Any = "warning") -> Any:
+    """A rule: no value of a column is missing.
+
+    The arguments and the result are those of R's ``rulenull()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> rulenull('age')['name']
+    'age_not_null'
+    """
+    return jcall("rulenull", col=col, sev=sev)
+
+def ruleuniq(col: Any, sev: Any = "warning") -> Any:
+    """A rule: no value of a column repeats.
+
+    The arguments and the result are those of R's ``ruleuniq()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> ruleuniq('id', sev='fatal')['sev']
+    'fatal'
+    """
+    return jcall("ruleuniq", col=col, sev=sev)
+
+def rulerx(col: Any, pat: Any, napass: Any = True, sev: Any = "warning") -> Any:
+    """A rule: every value of a column matches a regular expression.
+
+    The arguments and the result are those of R's ``rulerx()``: see its help
+    page. The pattern is read as ECMAScript.
+
+    Examples
+    --------
+    >>> rulerx('div', '^[0-9]{2}$')['name']
+    'div_regex'
+    """
+    return jcall("rulerx", col=col, pat=pat, napass=napass, sev=sev)
+
+def ruleincr(col: Any, strict: Any = False, sev: Any = "warning") -> Any:
+    """A rule: a column never falls down the rows.
+
+    The arguments and the result are those of R's ``ruleincr()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> ruleincr('year', strict=True)['msg']
+    "Column 'year' is not strictly increasing"
+    """
+    return jcall("ruleincr", col=col, strict=strict, sev=sev)
+
+def rulemad(col: Any, n: Any = 3, napass: Any = True, sev: Any = "warning") -> Any:
+    """A rule: every value lies within n median absolute deviations of the median.
+
+    The arguments and the result are those of R's ``rulemad()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> rulemad('n', 5)['name']
+    'n_within_mads'
+    """
+    return jcall("rulemad", col=col, n=n, napass=napass, sev=sev)
+
+def rulecmpl(sev: Any = "warning") -> Any:
+    """A rule: no row has a missing value.
+
+    The arguments and the result are those of R's ``rulecmpl()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> rulecmpl()['name']
+    'complete_rows'
+    """
+    return jcall("rulecmpl", sev=sev)
+
+def ruledstn(cols: Any = None, sev: Any = "warning") -> Any:
+    """A rule: no row repeats, over all columns or over some.
+
+    The arguments and the result are those of R's ``ruledstn()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> ruledstn(['year', 'div'])['msg']
+    'Some rows are duplicated on (year, div)'
+    """
+    return jcall("ruledstn", cols=cols, sev=sev)
+
+def rulecolcnt(n: Any, sev: Any = "warning") -> Any:
+    """A rule: the table has n columns.
+
+    The arguments and the result are those of R's ``rulecolcnt()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> rulecolcnt(3)['msg']
+    'Expected 3 columns'
+    """
+    return jcall("rulecolcnt", n=n, sev=sev)

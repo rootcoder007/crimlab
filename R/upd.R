@@ -23,10 +23,16 @@ updget <- function(url = updurl) {
   )
 }
 
-# Is the notice turned off: a session that is not interactive, the
-# variable CRIMLAB_NO_UPDATE_CHECK, or options(crimlab.update = FALSE).
+# Is the notice turned off. It is, unless it has been asked for:
+# options(crimlab.update = TRUE), or the variable CRIMLAB_UPDATE_CHECK set to
+# 1, true, yes or on. A session that is not interactive never asks, and
+# options(crimlab.update = FALSE) or the variable CRIMLAB_NO_UPDATE_CHECK
+# turn it off whatever else is set.
 updoff <- function(live = interactive()) {
-  !live || nzchar(Sys.getenv("CRIMLAB_NO_UPDATE_CHECK")) ||
+  on <- isTRUE(getOption("crimlab.update")) ||
+    tolower(Sys.getenv("CRIMLAB_UPDATE_CHECK")) %in%
+      c("1", "true", "yes", "on")
+  !live || !on || nzchar(Sys.getenv("CRIMLAB_NO_UPDATE_CHECK")) ||
     isFALSE(getOption("crimlab.update"))
 }
 
@@ -76,4 +82,46 @@ updrun <- function() {
   if (!is.null(m)) {
     packageStartupMessage(m)
   }
+}
+
+#' Ask whether a newer release exists
+#'
+#' Asks the project's release page once, now, for the number of the
+#' latest release, and says whether it is newer than the installed
+#' package. Nothing is sent but that request (a limit of two seconds), and
+#' nothing is kept.
+#'
+#' The package never asks on its own: no request is made when it is
+#' attached unless a notice has been turned on (see the section "Notice
+#' of a newer release" of [crimlab-package]).
+#'
+#' @return Invisibly, a list: `current` (the installed version), `latest`
+#'   (the latest release, `NA` when the page could not be reached) and
+#'   `newer` (`TRUE` when `latest` is above `current`). One line is
+#'   printed.
+#' @examples
+#' \dontrun{
+#' # needs the internet
+#' updchk()
+#' }
+#' @export
+updchk <- function() {
+  cur <- as.character(utils::packageVersion("crimlab"))
+  v <- updget()
+  ok <- !is.na(v) && grepl("^[0-9]+(\\.[0-9]+)*$", v)
+  new <- ok && utils::compareVersion(v, cur) > 0L
+  cat(
+    if (!ok) {
+      "crimlab: the release page could not be reached\n"
+    } else if (new) {
+      sprintf("crimlab %s is available (this is %s): %s\n", v, cur, updurl)
+    } else {
+      sprintf("crimlab %s is the latest release\n", cur)
+    }
+  )
+  invisible(list(
+    current = cur,
+    latest = if (ok) v else NA_character_,
+    newer = new
+  ))
 }

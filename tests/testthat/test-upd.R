@@ -16,13 +16,27 @@ test_that("the version in the answer of the release page", {
 
 test_that("when the notice is off", {
   old <- Sys.getenv("CRIMLAB_NO_UPDATE_CHECK", NA)
+  ask <- Sys.getenv("CRIMLAB_UPDATE_CHECK", NA)
   op <- options(crimlab.update = NULL)
   Sys.unsetenv("CRIMLAB_NO_UPDATE_CHECK")
+  Sys.unsetenv("CRIMLAB_UPDATE_CHECK")
+  # off unless asked for, interactive or not
+  expect_true(updoff(FALSE))
+  expect_true(updoff(TRUE))
+  # asked for by the option, or by the variable
+  options(crimlab.update = TRUE)
   expect_true(updoff(FALSE))
   expect_false(updoff(TRUE))
+  options(crimlab.update = NULL)
+  Sys.setenv(CRIMLAB_UPDATE_CHECK = "1")
+  expect_false(updoff(TRUE))
+  Sys.setenv(CRIMLAB_UPDATE_CHECK = "0")
+  expect_true(updoff(TRUE))
+  # FALSE and the older variable turn it off whatever else is set
+  Sys.setenv(CRIMLAB_UPDATE_CHECK = "yes")
   options(crimlab.update = FALSE)
   expect_true(updoff(TRUE))
-  options(crimlab.update = NULL)
+  options(crimlab.update = TRUE)
   Sys.setenv(CRIMLAB_NO_UPDATE_CHECK = "1")
   expect_true(updoff(TRUE))
   # tests are not interactive: nothing is asked, nothing is said
@@ -34,6 +48,31 @@ test_that("when the notice is off", {
   } else {
     Sys.setenv(CRIMLAB_NO_UPDATE_CHECK = old)
   }
+  if (is.na(ask)) {
+    Sys.unsetenv("CRIMLAB_UPDATE_CHECK")
+  } else {
+    Sys.setenv(CRIMLAB_UPDATE_CHECK = ask)
+  }
+})
+
+test_that("updchk() asks once and says what it found", {
+  cur <- as.character(utils::packageVersion("crimlab"))
+  local_mocked_bindings(updget = function(...) "999.0.0",
+                        .package = "crimlab")
+  expect_output(r <- updchk(), "crimlab 999.0.0 is available (this is",
+                fixed = TRUE)
+  expect_identical(r, list(current = cur, latest = "999.0.0", newer = TRUE))
+  local_mocked_bindings(updget = function(...) cur, .package = "crimlab")
+  expect_output(r <- updchk(), "is the latest release", fixed = TRUE)
+  expect_false(r[["newer"]])
+  local_mocked_bindings(updget = function(...) NA_character_,
+                        .package = "crimlab")
+  expect_output(r <- updchk(), "could not be reached", fixed = TRUE)
+  expect_identical(r[["latest"]], NA_character_)
+  expect_false(r[["newer"]])
+  # an answer that is not a version is not shown
+  local_mocked_bindings(updget = function(...) "1;x", .package = "crimlab")
+  expect_output(r <- updchk(), "could not be reached", fixed = TRUE)
 })
 
 test_that("the notice, asked once a day and kept between", {

@@ -64,7 +64,7 @@
 //'   mixture (src/t_frns.cpp).
 //' @srrstats {G5.9} Noise susceptibility is tested under G5.9a
 //'   (src/t_disp.cpp) and G5.9b (ntlvn()'s seed, test-net.R).
-//' @srrstats {EA1.1} README "What it takes" lists the kinds of data: counts
+//' @srrstats {EA1.1} README "Input data" lists the kinds of data: counts
 //'   by group, individual binary outcomes, allele frequencies and
 //'   genotypes, and likelihood ratios from validation studies.
 //' @srrstats {EA1.3} Each @param gives the kind of data the argument takes.

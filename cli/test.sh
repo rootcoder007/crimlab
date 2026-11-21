@@ -134,11 +134,12 @@ s=$?
   { bad=$((bad + 1)); echo "FAIL --update: status $s: $u"; }
 # a function writes nothing but its result
 [ -z "$("$c" orrisk --or 2 --rate 0.1 --share 0.3 2>&1 >/dev/null)" ] || { bad=$((bad + 1)); echo "FAIL a function wrote to standard error"; }
-# every function of the Python package has its entry in clab_jrun()
+# every function of the Python package has its entry in clab_jrun(), but
+# updchk(), which asks the network (here: crimlab --update)
 pyi="$here/../py/crimlab/__init__.py"
 if [ -f "$pyi" ]; then
   n=$((n + 1))
-  miss=$(sed -n '/^__all__ = \[/,/^]/p' "$pyi" | grep -o '"[a-z][a-z0-9]*"' | tr -d '"' |
+  miss=$(sed -n '/^__all__ = \[/,/^]/p' "$pyi" | grep -o '"[a-z][a-z0-9]*"' | tr -d '"' | grep -v '^updchk$' |
     while read -r f; do "$c" -l | grep -E -q "^$f( |\$)" || printf '%s ' "$f"; done)
   [ -z "$miss" ] || { bad=$((bad + 1)); echo "FAIL not in clab_jrun(): $miss"; }
 fi

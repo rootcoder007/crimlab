@@ -1661,6 +1661,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jxpr.inc"
 #include "jrvw.inc"
 #include "jsvg.inc"
+#include "jval.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1669,6 +1670,20 @@ struct Ent {
   Fn f;
 };
 const Ent ents[] = {
+    {"cramerv", "tbl biascor? level?", vr::cramerv},
+    {"drfttab", "ref cur alpha? psithr? psiminn? bins? seed?", vr::drfttab},
+    {"drftcal", "data n? alpha? seed? psithr? psiminn? bins?", vr::drftcal},
+    {"valrules", "data rules", vr::valrules},
+    {"ruleinset", "col set napass? sev?", vr::ruleinset},
+    {"rulebtw", "col lo hi napass? sev?", vr::rulebtw},
+    {"rulenull", "col sev?", vr::rulenull},
+    {"ruleuniq", "col sev?", vr::ruleuniq},
+    {"rulerx", "col pat napass? sev?", vr::rulerx},
+    {"ruleincr", "col strict? sev?", vr::ruleincr},
+    {"rulemad", "col n? napass? sev?", vr::rulemad},
+    {"rulecmpl", "sev?", vr::rulecmpl},
+    {"ruledstn", "cols? sev?", vr::ruledstn},
+    {"rulecolcnt", "n sev?", vr::rulecolcnt},
     {"vodtst", "day night ref? shift?", vodtst},
     {"orrisk", "or rate share", orrisk},
     {"outtst", "q t w?", outtst},

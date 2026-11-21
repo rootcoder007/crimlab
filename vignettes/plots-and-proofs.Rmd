@@ -152,6 +152,17 @@ proof("vodtst")
 
 # Package
 
+## Ask whether a newer release exists
+
+`updchk()`: Asks the project's release page once, now, for the number of the latest release, and says whether it is newer than the installed package. Nothing is sent but that request (a limit of two seconds), and nothing is kept.
+
+```{r updchk}
+## Not run:
+##D # needs the internet
+##D updchk()
+## End(Not run)
+```
+
 ## Power and energy of the machine's devices
 
 `hwpwr()`: Reads what the CPU packages, the memory and the GPUs of this machine draw, from the operating system's own energy counters and power readings, over an interval: `dt` seconds from now, or since an earlier reading (`since`). Every figure says how it was obtained, and a device that cannot be measured is listed with the reason, never counted as zero. It is the measured layer under an energy or carbon footprint of a computation.

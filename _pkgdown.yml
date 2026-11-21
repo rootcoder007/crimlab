@@ -214,11 +214,14 @@ reference:
       - plotevgrid
       - plotcoh
   - title: Checks
-    desc: Which labelling of a table reproduces a reported contrast, and an
-      audit of categorical inputs.
+    desc: Which labelling of a table reproduces a reported contrast, an
+      audit of categorical inputs, and rules a table must satisfy, declared
+      once and run before an analysis.
     contents:
       - relchk
       - catchk
+      - rul
+      - ruleinset
   - title: Counts, rates and tables
     desc: Rate ratios from count regression with exposure and clusters;
       rates and proportions by group with exact and approximate intervals;
@@ -230,6 +233,7 @@ reference:
       - dastd
       - sirex
       - ctabx
+      - cramerv
   - title: Police-reported crime
     desc: Severity-weighted crime indices and composite indices of standardised
       counts; Benford screens of reported figures and agencies that report
@@ -436,6 +440,7 @@ reference:
   - title: Package
     contents:
       - crimlab-package
+      - updchk
       - hwpwr
   - title: Spatial crime analysis
     desc: Near repeats, kernel surfaces, DBSCAN and hot-spot persistence,
@@ -687,6 +692,7 @@ reference:
       - drftpsi
       - drftchisq
       - drfthomog
+      - drfttab
   - title: Change tables out
     desc: Period-over-period change tables labelled, summarised and written to CSV, TSV, JSON, Markdown, HTML and PDF for police services, corrections and courts alike; the delimited and JSON writers keep every digit and every code.
     contents:
@@ -790,9 +796,17 @@ reference:
       - catcor
   - title: Open data
     desc: Tables of the project's open data service, loaded by their key and
-      used only when they match the SHA-256 the service's manifest lists.
+      used only when they match the SHA-256 the service's manifest lists;
+      and data straight from its publisher, police services, statistical
+      agencies and open data portals in Canada, the United States, the
+      United Kingdom, Europe and Australia, found where the portal says it
+      is now.
     contents:
       - odtab
+      - indtabs
+      - indiex
+      - ckanres
+      - ovrget
   - title: Placement volatility and alert complexity
     desc: Counts of regional changes and of alert configurations per
       person-year of a restrictive confinement release, the person-year table

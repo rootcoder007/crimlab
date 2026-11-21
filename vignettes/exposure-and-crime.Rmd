@@ -186,6 +186,25 @@ summary(expgmm(d, "crimes", endo = "pm", inst = c("z1", "z2"),
 plot(f)
 ```
 
+## The parts of a fitted regression
+
+`racc()`: The fits of `ppmlfe()`, `ivfe()`, `ppmlcf()`, `expgmm()`, `fepnl()`, `gmmpnl()`, `didfe()`, `rdloc()` and `sarml()` are lists, and the usual accessors read them: `coef()` gives the estimates by term, `confint()` their intervals, `vcov()` the covariance matrix of the estimates and `nobs()` the rows the fit used.
+
+```{r racc}
+set.seed(1)
+d <- data.frame(u = rep(1:20, each = 6), x = rnorm(120))
+d$y <- 1 + 0.5 * d$x + rnorm(120)
+f <- ivfe(d, "y", x = "x", fe = "u")
+coef(f)
+confint(f)
+vcov(f)
+nobs(f)
+```
+
+```{r racc-plot}
+plot(f)
+```
+
 ## Wind-direction instruments
 
 `windiv()`: Turns wind directions into indicators of the sector the wind blows from, one sector left out, optionally one set per area so that the same wind may act differently in different parts of a city; from hourly directions it first makes one per day.
@@ -256,7 +275,7 @@ as.integer(tw$tw > 2.6)
 
 ## Irrelevant-day placebo
 
-`plcday()`: Refits an estimator with the exposure taken from other days of the same place, leads and lags in one call, and returns one table of coefficients, the same day first. This is the placebo of Bondy, Roth and Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table 9: 100 days); `shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)` runs both.
+`plcday()`: Refits an estimator with the exposure taken from other days of the same place, leads and lags in one call, and returns one table of coefficients, the same day first. This is the placebo of Bondy, Roth and Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table 9: 100 days); shifts = c(-365, -100, -31, -7, 7, 31, 100, 365) runs both.
 
 ```{r plcday}
 # simulated: crime responds to same-day pollution only

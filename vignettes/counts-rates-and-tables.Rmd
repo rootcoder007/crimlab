@@ -129,6 +129,22 @@ res <- ctabx(d$race, d$sex, w = d$n, exact = TRUE)
 plot(res)
 ```
 
+## Cramer's V of a two-way table
+
+`cramerv()`: The strength of association in a contingency table as one number: 0 when the rows and columns are independent in the sample, 1 when each row holds a single column. It is the measure `ctabx()` reports beside its tests, given here on its own for a table that is already counted.
+
+```{r cramerv}
+# use of force by weapon, counted
+tab <- matrix(c(30, 6, 2, 9, 14, 3, 1, 4, 11), 3,
+              dimnames = list(c("none", "knife", "gun"),
+                              c("hands", "CEW", "firearm")))
+cramerv(tab)
+cramerv(tab, biascor = FALSE)[["v"]]
+# independence: the corrected V is 0
+cramerv(matrix(c(10, 20, 10, 20), 2))[["v"]]
+try(cramerv(1:4))
+```
+
 # Concentration
 
 ## Concentration of crime across places, people or units

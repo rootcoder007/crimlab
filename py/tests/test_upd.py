@@ -15,8 +15,16 @@ def test_the_version_in_the_answer():
 
 def test_off_in_a_script_and_by_the_variable(monkeypatch):
     monkeypatch.delenv("CRIMLAB_NO_UPDATE_CHECK", raising=False)
+    monkeypatch.delenv("CRIMLAB_UPDATE_CHECK", raising=False)
+    # off unless asked for, in a script and at the prompt alike
+    assert _upd.off(False)
+    assert _upd.off(True)
+    monkeypatch.setenv("CRIMLAB_UPDATE_CHECK", "1")
     assert _upd.off(False)
     assert not _upd.off(True)
+    monkeypatch.setenv("CRIMLAB_UPDATE_CHECK", "0")
+    assert _upd.off(True)
+    monkeypatch.setenv("CRIMLAB_UPDATE_CHECK", "on")
     monkeypatch.setenv("CRIMLAB_NO_UPDATE_CHECK", "1")
     assert _upd.off(True)
 
@@ -33,7 +41,7 @@ def test_the_kept_answer_and_the_day(tmp_path):
         assert h.read() == "1000000 0.2.0\n"
     m = _upd.message("0.1.9", f, 1000000.0 + 86399, ask)
     assert m.startswith("crimlab 0.2.0 is available (this is 0.1.9): https://github.com/")
-    assert m.endswith("CRIMLAB_NO_UPDATE_CHECK=1 stops this notice.")
+    assert m.endswith("Unset CRIMLAB_UPDATE_CHECK to stop this notice.")
     assert len(asked) == 1
     # the same or a later installed version: nothing
     assert _upd.message("0.2.0", f, 1000500.0, ask) is None
@@ -62,3 +70,18 @@ def test_import_in_a_script_says_nothing(capsys, monkeypatch):
     monkeypatch.setattr(_upd, "latest", never)
     _upd.notify("0.0.1")
     assert capsys.readouterr().err == ""
+
+
+def test_updchk_asks_once_and_says_what_it_found(capsys):
+    import crimlab
+
+    cur = crimlab.__version__
+    r = crimlab.updchk(ask=lambda: "999.0.0")
+    assert r == {"current": cur, "latest": "999.0.0", "newer": True}
+    assert capsys.readouterr().out.startswith(f"crimlab 999.0.0 is available (this is {cur}): https://")
+    r = crimlab.updchk(ask=lambda: cur)
+    assert r == {"current": cur, "latest": cur, "newer": False}
+    assert capsys.readouterr().out == f"crimlab {cur} is the latest release\n"
+    r = crimlab.updchk(ask=lambda: None)
+    assert r == {"current": cur, "latest": None, "newer": False}
+    assert capsys.readouterr().out == "crimlab: the release page could not be reached\n"

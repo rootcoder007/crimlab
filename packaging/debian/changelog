@@ -1,3 +1,12 @@
+crimlab (0.1.0-1) unstable; urgency=medium
+
+  * Rules a table must satisfy (valrules and the rule functions), drift of
+    a whole table (drfttab, drftcal) and Cramer's V (cramerv), from the
+    command line and in every language.
+  * The notice of a newer release is off unless asked for.
+
+ -- rootcoder007 <278967282+rootcoder007@users.noreply.github.com>  Sat, 21 Nov 2026 04:00:00 -0500
+
 crimlab (0.0.4-1) unstable; urgency=medium
 
   * The loader and thread libraries are named at the link, for C

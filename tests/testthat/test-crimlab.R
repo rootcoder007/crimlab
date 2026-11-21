@@ -15,6 +15,8 @@ test_that("the compiled self-test passes every check", {
 test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
+  # the fields every rule on one column has
+  rl <- c("rule", "name", "col", "sev", "msg")
   # the inputs of the scaling and count-dynamics calls
   set.seed(21)
   sv_v <- matrix(rbinom(48, 1, plogis(outer(rnorm(8), rnorm(6), "*") * 3)), 8)
@@ -1043,7 +1045,32 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(plotcoh(c(1, 2, 3, 2, 2, 3, 4, 3), rep(1:2, each = 4),
                        rep(1:4, 2), rep(c(3, NA), each = 4),
                        win = c(-2, 1), ma = 1)),
-         c("cohort", "evtm", "value"))
+         c("cohort", "evtm", "value")),
+    list(quote(cramerv(matrix(c(3, 1, 2, 4), 2))),
+         c("v", "vraw", "lo", "hi", "chisq", "df", "p", "n", "minexp",
+           "drop")),
+    list(quote(drfttab(data.frame(a = 1:4), data.frame(a = 2:5))),
+         c("column", "type", "test", "statistic", "p", "psi", "nref",
+           "ncur", "flag", "note")),
+    list(quote(drftcal(data.frame(a = 1:8), n = 2)),
+         c("columns", "anyflag", "alpha", "n", "alphafam")),
+    list(quote(rul("r", function(v) TRUE)),
+         c("rule", "name", "sev", "msg", "expr")),
+    list(quote(valrules(data.frame(a = c(1, NA)), rulenull("a"))),
+         "a_not_null"),
+    list(quote(ruleinset("a", "x")), c(rl, "set", "napass")),
+    list(quote(rulebtw("a", 0, 1)), c(rl, "lo", "hi", "napass")),
+    list(quote(rulenull("a")), rl),
+    list(quote(ruleuniq("a")), rl),
+    list(quote(rulerx("a", "x")), c(rl, "pat", "napass")),
+    list(quote(ruleincr("a")), c(rl, "strict")),
+    list(quote(rulemad("a")), c(rl, "n", "napass")),
+    list(quote(rulecmpl()), c("rule", "name", "sev", "msg")),
+    list(quote(ruledstn()), c("rule", "name", "sev", "msg")),
+    list(quote(rulecolcnt(1)), c("rule", "name", "sev", "msg", "n")),
+    list(quote(srcls()),
+         c("key", "publisher", "what", "kind", "portal", "id")),
+    list(quote(srcurl("uk-police")), NULL)
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

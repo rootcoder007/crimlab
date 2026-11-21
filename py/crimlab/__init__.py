@@ -369,6 +369,20 @@ from ._j import (
     mcartst,
     misspat,
     duprows,
+    cramerv,
+    drfttab,
+    drftcal,
+    valrules,
+    ruleinset,
+    rulebtw,
+    rulenull,
+    ruleuniq,
+    rulerx,
+    ruleincr,
+    rulemad,
+    rulecmpl,
+    ruledstn,
+    rulecolcnt,
     misssmry,
     profcols,
     dstntst,
@@ -508,11 +522,13 @@ from ._pol import clrsmp, expbnd, misrd, rtmhs, sqrtlw
 from ._proof import proof
 from ._version import __version__
 from . import _upd as _upd
+from ._upd import updchk
 
 # a newer release, said once in an interactive session (see _upd)
 _upd.notify(__version__)
 
 __all__ = [
+    "updchk",
     "spsir",
     "spbias",
     "sfrail",
@@ -897,6 +913,20 @@ __all__ = [
     "mcartst",
     "misspat",
     "duprows",
+    "cramerv",
+    "drfttab",
+    "drftcal",
+    "valrules",
+    "ruleinset",
+    "rulebtw",
+    "rulenull",
+    "ruleuniq",
+    "rulerx",
+    "ruleincr",
+    "rulemad",
+    "rulecmpl",
+    "ruledstn",
+    "rulecolcnt",
     "misssmry",
     "profcols",
     "dstntst",

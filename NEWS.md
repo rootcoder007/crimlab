@@ -1,3 +1,46 @@
+# crimlab 0.1.0
+
+* Rules a table must satisfy. `valrules()` runs a list of rules on a data
+  frame and returns the ones that failed, with the rows that broke them.
+  The ready-made rules cover the usual checks: a value in a set
+  (`ruleinset()`), a number in a range (`rulebtw()`), no missing value
+  (`rulenull()`), no repeated value (`ruleuniq()`), a pattern (`rulerx()`),
+  an order (`ruleincr()`), an outlier by the median absolute deviation
+  (`rulemad()`), complete rows (`rulecmpl()`), distinct rows (`ruledstn()`)
+  and a number of columns (`rulecolcnt()`). A ready-made rule is data, so
+  the same rules run from the command line and in Python, Go, Rust, Java
+  and JavaScript. `rul()` declares a rule from any R function, in R.
+* Drift of a whole table. `drfttab()` compares two releases of a table
+  column by column (Kolmogorov-Smirnov and the population stability index
+  for numbers, the chi-square test of homogeneity for labels) and flags
+  the columns that moved. `drftcal()` says how often those screens fire on
+  a table that has not changed, from random half-splits that are the same
+  in every language for a seed.
+* `cramerv()`: Cramer's V of a two-way table of counts, bias-corrected
+  (Bergsma 2013) or not, with its interval, the chi-square test and the
+  smallest expected count.
+* Data from its publisher, in R. `ckanres()` and `ckanls()` list the files
+  of a dataset and search a CKAN portal, `socres()` describes a Socrata
+  dataset, `arcres()` an ArcGIS layer, and `scres()` gives the address of
+  a Statistics Canada table. `srcls()` lists sources of police, court and
+  correctional data in Canada, the United States, the United Kingdom,
+  Europe and Australia, `srcurl()` asks the publisher where one of them is
+  now, and `srcget()` downloads a file and reports its SHA-256.
+  `ovrget()` saves a director's report of Ontario's Special
+  Investigations Unit by its number. `indtabs()` and `indiex()` find the
+  Indigenous health and census tables of the open data service. No
+  address of a file is written in the package: each is read from the
+  portal at the call.
+* The notice of a newer release is off unless asked for. The package makes
+  no request when it is attached or imported. `updchk()` asks once, when
+  called. `options(crimlab.update = TRUE)` in R, or the environment
+  variable `CRIMLAB_UPDATE_CHECK=1` in R and Python, turns the notice on;
+  `options(crimlab.update = FALSE)`, or unsetting the variable, turns it
+  off again. The command-line program asks only with `crimlab --update`,
+  as before.
+* The installers `install.sh` and `install.ps1` check the release key by
+  default and show each step.
+
 # crimlab 0.0.4
 
 * Fixed: `spill` from the command-line program, and from the Python, Go,

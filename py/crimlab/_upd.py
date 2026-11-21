@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 """The notice of a newer release.
 
-In an interactive session (the Python prompt, IPython, a notebook),
-``import crimlab`` says in one line on standard error when a newer release
-exists. The page of the latest release is asked for at most once a day, in
-a thread, with a limit of two seconds, and the answer is kept in the cache
-directory of the user; the notice itself reads only that file. Nothing is
-sent but the request. A script never asks, and neither does a session with
-the environment variable ``CRIMLAB_NO_UPDATE_CHECK`` set to anything.
+Off unless asked for. With the environment variable
+``CRIMLAB_UPDATE_CHECK`` set to ``1``, ``import crimlab`` in an interactive
+session (the Python prompt, IPython, a notebook) says in one line on
+standard error when a newer release exists. The page of the latest release
+is then asked for at most once a day, in a thread, with a limit of two
+seconds, and the answer is kept in the cache directory of the user; the
+notice itself reads only that file. Nothing is sent but the request. A
+script never asks. Unsetting the variable, or setting
+``CRIMLAB_NO_UPDATE_CHECK`` to anything, turns the notice off.
 """
 
 from __future__ import annotations
@@ -82,8 +84,34 @@ def write(path: str, now: float, v: Optional[str]) -> None:
 
 
 def off(live: bool) -> bool:
-    """Is the notice turned off."""
-    return not live or bool(os.environ.get("CRIMLAB_NO_UPDATE_CHECK"))
+    """Is the notice turned off: it is, unless CRIMLAB_UPDATE_CHECK asks
+    for it in an interactive session."""
+    on = os.environ.get("CRIMLAB_UPDATE_CHECK", "").lower() in ("1", "true", "yes", "on")
+    return not live or not on or bool(os.environ.get("CRIMLAB_NO_UPDATE_CHECK"))
+
+
+def updchk(ask: Callable[[], Optional[str]] = latest) -> dict[str, object]:
+    """Ask whether a newer release exists.
+
+    Asks the project's release page once, now, and says in one line whether
+    the latest release is newer than the installed package. Nothing is sent
+    but that request (a limit of two seconds), and nothing is kept. The
+    package never asks on its own unless ``CRIMLAB_UPDATE_CHECK`` is set.
+
+    Returns a mapping: ``current`` (the installed version), ``latest`` (the
+    latest release, None when the page could not be reached) and ``newer``.
+    """
+    from ._version import __version__ as cur
+
+    v = ask()
+    new = v is not None and key(v) > key(cur)
+    if v is None:
+        print("crimlab: the release page could not be reached")
+    elif new:
+        print(f"crimlab {v} is available (this is {cur}): https://{HOST}{PATH}")
+    else:
+        print(f"crimlab {cur} is the latest release")
+    return {"current": cur, "latest": v, "newer": new}
 
 
 def message(cur: str, path: str, now: float, ask: Callable[[], None]) -> Optional[str]:
@@ -96,7 +124,7 @@ def message(cur: str, path: str, now: float, ask: Callable[[], None]) -> Optiona
         return None
     return (
         f"crimlab {v} is available (this is {cur}): https://{HOST}{PATH}\n"
-        "CRIMLAB_NO_UPDATE_CHECK=1 stops this notice."
+        "Unset CRIMLAB_UPDATE_CHECK to stop this notice."
     )
 
 

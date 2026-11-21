@@ -1,6 +1,6 @@
 {
   "name": "crimlab",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Statistical Toolkit for Criminology and Sociolegal Research: every function of the R and Python packages crimlab, from the C++ kernels as WebAssembly, and the crimlab command",
   "keywords": ["statistics", "criminology", "sociolegal", "forensics", "policing", "courts", "corrections", "sentencing", "disparity", "likelihood-ratio", "causal-inference", "spatial-statistics", "webassembly"],
   "license": "Apache-2.0 WITH LLVM-exception",

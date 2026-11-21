@@ -137,3 +137,61 @@ ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
 ##D str(x)
 ## End(Not run)
 ```
+
+## The tables of the data service about Indigenous peoples
+
+`indtabs()`: Lists the tables of the project's open data service drawn from Statistics Canada's tables on Indigenous peoples and from the 2021 Census Indigenous Population Profile, with their descriptions, sizes and licences, optionally those whose description matches a pattern. `odtab()` loads one by its key.
+
+```{r indtabs}
+## Not run:
+##D # needs the internet
+##D t <- indtabs("mental health")
+##D t[, c("key", "rows")]
+## End(Not run)
+try(indtabs(pat = ""))
+```
+
+## Statistics Canada tables on Indigenous peoples, by subject
+
+`indiex()`: The tables of the project's open data service that hold what is most often asked for about First Nations people, Metis and Inuit: health indicators, perceived mental health, wellbeing, suicidal thoughts, the census counts of population and of households, life expectancy and infant mortality. `indiex()` finds the tables of one subject among those `indtabs()` lists, and with `load = TRUE` loads the first.
+
+```{r indiex}
+## Not run:
+##D # needs the internet
+##D indiex("mentalhealth")[, c("key", "rows")]
+##D x <- indiex("lifeexp", load = TRUE)
+## End(Not run)
+try(indiex("weather"))
+```
+
+## Open data from the publisher's portal
+
+`ckanres()`, `ckanls()`, `socres()`, `arcres()` and others: Police services, courts and corrections ministries publish through a few kinds of portal. These functions ask a portal where a dataset's files are now, and download one. `ckanres()` lists the files of a CKAN dataset and `ckanls()` searches a CKAN portal; `socres()` describes a Socrata dataset and gives the address of its CSV export; `arcres()` describes an ArcGIS feature layer and gives the address of a query for its rows; `srcget()` downloads an address to a file and returns its size and SHA-256, to be recorded with the analysis; `scres()` gives the address of a Statistics Canada table. `srcls()` lists sources the package knows by a short key (see Details), and `srcurl()` resolves one of them.
+
+```{r ckanres}
+srcls()[, c("key", "publisher", "kind")]
+## Not run:
+##D # needs the internet
+##D f <- ckanres("https://data.ontario.ca", "jahn-settlement-data-inmates-ontario")
+##D head(f[, c("name", "format", "modified")])
+##D s <- socres("data.cityofchicago.org", "dpt3-jri9")
+##D s$columns
+##D g <- srcget(srcurl("tps-homicides"), tempfile(fileext = ".geojson"))
+##D g$sha256
+##D scres("35-10-0177-01")
+## End(Not run)
+try(srcurl("nowhere"))
+```
+
+## Fetch one police oversight report
+
+`ovrget()`: Downloads a director's report of Ontario's Special Investigations Unit by its report number, as the page the Unit serves, to a file. `ovrtxt()` then gives its text and `ovrpar()` codes it into fields.
+
+```{r ovrget}
+## Not run:
+##D # needs the internet
+##D f <- ovrget(1234, tempfile(fileext = ".html"))
+##D substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)
+## End(Not run)
+try(ovrget(0, tempfile()))
+```

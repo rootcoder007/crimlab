@@ -4,6 +4,48 @@
 
 package crimlab
 
+// Cramerv runs cramerv() of the R package (arguments: tbl biascor? level?; ? marks an optional one).
+func Cramerv(args string) (string, error) { return Jrun("cramerv", args) }
+
+// Drfttab runs drfttab() of the R package (arguments: ref cur alpha? psithr? psiminn? bins? seed?; ? marks an optional one).
+func Drfttab(args string) (string, error) { return Jrun("drfttab", args) }
+
+// Drftcal runs drftcal() of the R package (arguments: data n? alpha? seed? psithr? psiminn? bins?; ? marks an optional one).
+func Drftcal(args string) (string, error) { return Jrun("drftcal", args) }
+
+// Valrules runs valrules() of the R package (arguments: data rules; ? marks an optional one).
+func Valrules(args string) (string, error) { return Jrun("valrules", args) }
+
+// Ruleinset runs ruleinset() of the R package (arguments: col set napass? sev?; ? marks an optional one).
+func Ruleinset(args string) (string, error) { return Jrun("ruleinset", args) }
+
+// Rulebtw runs rulebtw() of the R package (arguments: col lo hi napass? sev?; ? marks an optional one).
+func Rulebtw(args string) (string, error) { return Jrun("rulebtw", args) }
+
+// Rulenull runs rulenull() of the R package (arguments: col sev?; ? marks an optional one).
+func Rulenull(args string) (string, error) { return Jrun("rulenull", args) }
+
+// Ruleuniq runs ruleuniq() of the R package (arguments: col sev?; ? marks an optional one).
+func Ruleuniq(args string) (string, error) { return Jrun("ruleuniq", args) }
+
+// Rulerx runs rulerx() of the R package (arguments: col pat napass? sev?; ? marks an optional one).
+func Rulerx(args string) (string, error) { return Jrun("rulerx", args) }
+
+// Ruleincr runs ruleincr() of the R package (arguments: col strict? sev?; ? marks an optional one).
+func Ruleincr(args string) (string, error) { return Jrun("ruleincr", args) }
+
+// Rulemad runs rulemad() of the R package (arguments: col n? napass? sev?; ? marks an optional one).
+func Rulemad(args string) (string, error) { return Jrun("rulemad", args) }
+
+// Rulecmpl runs rulecmpl() of the R package (arguments: sev?; ? marks an optional one).
+func Rulecmpl(args string) (string, error) { return Jrun("rulecmpl", args) }
+
+// Ruledstn runs ruledstn() of the R package (arguments: cols? sev?; ? marks an optional one).
+func Ruledstn(args string) (string, error) { return Jrun("ruledstn", args) }
+
+// Rulecolcnt runs rulecolcnt() of the R package (arguments: n sev?; ? marks an optional one).
+func Rulecolcnt(args string) (string, error) { return Jrun("rulecolcnt", args) }
+
 // Vodtst runs vodtst() of the R package (arguments: day night ref? shift?; ? marks an optional one).
 func Vodtst(args string) (string, error) { return Jrun("vodtst", args) }
 

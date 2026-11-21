@@ -123,7 +123,7 @@ gocoef(gologt(d, "risk", c("race", "age")), "race")
 
 ## The age-crime curve of a mixture of offender types
 
-`agemix()`: The aggregate age-crime curve is the share-weighted mean of the curves of latent types (adolescence-limited, life-course persistent, and so on), and one aggregate curve fits many mixtures: the aggregate alone cannot tell one type from several (Moffitt 1993; Gottfredson and Hirschi 1990). What does tell them apart is the covariance of an individual's offending at two ages: with one type it is 0 (given the type, ages are independent), with several it is the covariance across types of their curves at the two ages, which `cov` gives for every pair of ages. With a panel of individuals observed at two ages, the observed covariance and its permutation test say whether one type is enough. See `proof("agemix")`.
+`agemix()`: The aggregate age-crime curve is the share-weighted mean of the curves of latent types (adolescence-limited, life-course persistent, and so on), and one aggregate curve fits many mixtures: the aggregate alone cannot tell one type from several (Moffitt 1993; Gottfredson and Hirschi 1990). What does tell them apart is the covariance of an individual's offending at two ages: with one type it is 0 (given the type, ages are independent), with several it is the covariance across types of their curves at the two ages, which `cov` gives for every pair of ages. With a panel of individuals observed at two ages, the observed covariance and its permutation test say whether one type is enough.
 
 ```{r agemix}
 ages <- 12:30
