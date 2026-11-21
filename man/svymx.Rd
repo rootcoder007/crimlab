@@ -79,6 +79,9 @@ sample from a large population); with \code{fpc} the population size, \verb{(1 -
 the weights (the estimated population), the degrees of freedom, and
 Kish's effective sample size \verb{(sum w)^2 / sum w^2} and the design effect
 of the weights \verb{n sum w^2 / (sum w)^2}.
+
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} may be given as \code{y}: its elements fill
+the arguments.
 }
 \examples{
 set.seed(1)

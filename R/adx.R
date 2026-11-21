@@ -297,6 +297,10 @@ stddrk <- function(
 #' scoring; `sex` not
 #' `"male"` or `"female"`, one or one per row.
 #'
+#'
+#' `canast()` takes a `clpre` list from [clprep()] as `x` too: its
+#' elements fill the arguments.
+#'
 #' @param x The answers: a numeric matrix or data frame, a row per
 #'   respondent and a column per item.
 #' @param sex `auditc()`: `"male"` or `"female"`, one or one per row, for
@@ -446,6 +450,9 @@ cudit <- function(x) {
 #' @rdname auditc
 #' @export
 canast <- function(x) {
+  if (inherits(x, "clpre")) {
+    return(.prep(canast, x, match.call(), parent.frame()))
+  }
   fn <- "canast"
   m <- .adxmat(x, 6L, "6 columns (the ASSIST items on cannabis)", fn)
   w <- list(
@@ -494,6 +501,10 @@ canast <- function(x) {
 #' `"female"`; `f` or `m` not one number from 0; `drinks` and `sex` of
 #' different lengths (a length of 1 is repeated).
 #'
+#'
+#' A `clpre` list from [clprep()] may be given as `drinks`: its elements
+#' fill the arguments.
+#'
 #' @param drinks The number of standard drinks: on one occasion
 #'   (`hvydrk()`), in a day (`lrdg()`).
 #' @param sex `"male"` or `"female"`, one or one per value of `drinks`.
@@ -529,12 +540,18 @@ canast <- function(x) {
 #' try(hvydrk(-1, "male"))
 #' @export
 hvydrk <- function(drinks, sex, f = 4, m = 5) {
+  if (inherits(drinks, "clpre")) {
+    return(.prep(hvydrk, drinks, match.call(), parent.frame()))
+  }
   .adxflag(drinks, sex, f, m, "hvydrk", `>=`)
 }
 
 #' @rdname hvydrk
 #' @export
 lrdg <- function(drinks, sex, f = 2, m = 3) {
+  if (inherits(drinks, "clpre")) {
+    return(.prep(lrdg, drinks, match.call(), parent.frame()))
+  }
   .adxflag(drinks, sex, f, m, "lrdg", `>`)
 }
 

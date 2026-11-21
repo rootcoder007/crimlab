@@ -31,6 +31,10 @@
 #' Kish's effective sample size `(sum w)^2 / sum w^2` and the design effect
 #' of the weights `n sum w^2 / (sum w)^2`.
 #'
+#'
+#' A `clpre` list from [clprep()] may be given as `y`: its elements fill
+#' the arguments.
+#'
 #' @param y The analysis variable: finite numbers, one per respondent (0 or
 #'   1 for `"prop"`).
 #' @param w `NULL` or the sampling weights: positive numbers.
@@ -72,6 +76,9 @@
 svymx <- function(y, w = NULL, strata = NULL, psu = NULL, fpc = NULL,
                   stat = "mean", den = NULL, by = NULL, ref = NULL,
                   level = 0.95) {
+  if (inherits(y, "clpre")) {
+    return(.prep(svymx, y, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_svymx, y, w, strata, psu, fpc, stat, den, by, ref, level)
 }
 

@@ -43,6 +43,9 @@ defaults here, are those of 2011.
 Errors: \code{drinks} not numeric or negative; \code{sex} not \code{"male"} or
 \code{"female"}; \code{f} or \code{m} not one number from 0; \code{drinks} and \code{sex} of
 different lengths (a length of 1 is repeated).
+
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} may be given as \code{drinks}: its elements
+fill the arguments.
 }
 \examples{
 d <- c(2, 3, 4, 5, NA)

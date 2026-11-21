@@ -80,6 +80,9 @@ Errors: \code{x} not a matrix or data frame of numbers with the columns of
 the questionnaire (\code{canast()}: six); an answer outside its item's
 scoring; \code{sex} not
 \code{"male"} or \code{"female"}, one or one per row.
+
+\code{canast()} takes a \code{clpre} list from \code{\link[=clprep]{clprep()}} as \code{x} too: its
+elements fill the arguments.
 }
 \examples{
 # made-up answers of three respondents
