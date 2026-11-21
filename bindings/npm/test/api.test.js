@@ -10,6 +10,11 @@ const bin = new URL('../bin/crimlab.js', import.meta.url).pathname;
 // the tolerance of cli/test.sh: 1e-12 of the larger value, 1e-12 absolute
 // against an exact 0; cli/tol.tsv names the functions with other bounds
 // (relative, absolute: a number within either passes)
+// The WebAssembly build is compiled without exceptions and so without the
+// regular expressions of the C++ library: the rule that matches a pattern
+// refuses there, and says so.
+const norx = (e) => /this build has no regular expressions/.test(e.message);
+
 test('every case of cli/test.tsv, as the R package gives it', () => {
   const rows = readFileSync(new URL('../../../cli/test.tsv', import.meta.url), 'utf8').trim().split(/\r?\n/);
   const tol = {};
@@ -25,10 +30,24 @@ test('every case of cli/test.tsv, as the R package gives it', () => {
     if (want.startsWith('!')) {
       // a refusal of several lines has its line breaks as \\n in the case
       const msg = want.slice(1).replaceAll('\\n', '\n');
-      assert.throws(() => jrun(f, a), { message: msg }, `${f} ${a}`);
+      let err;
+      try {
+        jrun(f, a);
+      } catch (e) {
+        err = e;
+      }
+      assert.ok(err, `${f} ${a}`);
+      if (norx(err)) continue;
+      assert.equal(err.message, msg, `${f} ${a}`);
       continue;
     }
-    const got = jrun(f, a);
+    let got;
+    try {
+      got = jrun(f, a);
+    } catch (e) {
+      if (norx(e)) continue;
+      throw e;
+    }
     const w = JSON.parse(want);
     const near = (x, y) =>
       typeof x === 'number' && typeof y === 'number'
