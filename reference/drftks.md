@@ -40,6 +40,12 @@ data gives no warning.
 Missing values are dropped. Text, a factor or a list, an infinite value,
 or no value left in either sample is refused.
 
+## References
+
+Massey, F. J. (1951). The Kolmogorov-Smirnov test for goodness of fit.
+*Journal of the American Statistical Association*, 46(253), 68-78.
+[doi:10.1080/01621459.1951.10500769](https://doi.org/10.1080/01621459.1951.10500769)
+
 ## See also
 
 [`drftpsi()`](https://rootcoder007.github.io/crimlab/reference/drftpsi.md),

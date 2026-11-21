@@ -123,6 +123,11 @@ absolute deviation around the median. *Journal of Experimental Social
 Psychology*, 49(4), 764-766.
 [doi:10.1016/j.jesp.2013.03.013](https://doi.org/10.1016/j.jesp.2013.03.013)
 
+Hampel, F. R. (1974). The influence curve and its role in robust
+estimation. *Journal of the American Statistical Association*, 69(346),
+383-393.
+[doi:10.1080/01621459.1974.10482962](https://doi.org/10.1080/01621459.1974.10482962)
+
 ## See also
 
 [`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md) and

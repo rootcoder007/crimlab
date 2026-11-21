@@ -82,6 +82,16 @@ Errors: a `name` or `col` that is not one non-empty string; `expr` not a
 function; `sev` not `"warning"` or `"fatal"`; `data` not a data frame;
 `rules` not a rule or a list of rules.
 
+## References
+
+van der Loo, M. P. J. and de Jonge, E. (2021). Data validation
+infrastructure for R. *Journal of Statistical Software*, 97(10), 1-31.
+[doi:10.18637/jss.v097.i10](https://doi.org/10.18637/jss.v097.i10)
+
+de Jonge, E. and van der Loo, M. (2018). *Statistical Data Cleaning with
+Applications in R*. Wiley.
+[doi:10.1002/9781118897126](https://doi.org/10.1002/9781118897126)
+
 ## See also
 
 [`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)

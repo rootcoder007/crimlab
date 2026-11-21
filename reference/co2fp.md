@@ -275,18 +275,18 @@ fp2 <- co2fp(
 )
 fp2$enekwh
 #> $cpu
-#> [1] 6.030556e-08
+#> [1] 3.015278e-08
 #> 
 #> $memory
-#> [1] 1.105911e-08
+#> [1] 5.529556e-09
 #> 
 #> $total
-#> [1] 7.136467e-08
+#> [1] 3.568233e-08
 #> 
 fpeqv(fp2$co2eg)
 #> Footprint in everyday terms
-#>   Car travel: 1.223e-08 km
-#>   Tree uptake: 2.335e-09 tree-months
+#>   Car travel: 6.117e-09 km
+#>   Tree uptake: 1.167e-09 tree-months
 # a graphics card measured at 120 W on average (a simulated reading) and
 # a CPU row, which is not counted twice
 dev <- data.frame(
@@ -297,9 +297,9 @@ dev <- data.frame(
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
              memgb = 16, mthd = "model", devices = dev)
 fp3$devices
-#>   kind  vendor      name               how   kwh counted
-#> 1  gpu example    card 0 simulated reading 1e-07    TRUE
-#> 2  cpu example package 0 simulated reading   NaN   FALSE
+#>   kind  vendor      name               how          kwh counted
+#> 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE
+#> 2  cpu example package 0 simulated reading          NaN   FALSE
 #>                                      note
 #> 1              average power over the run
 #> 2 already counted as CPU or memory energy

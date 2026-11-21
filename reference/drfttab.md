@@ -129,6 +129,15 @@ Dunn, O. J. (1961). Multiple comparisons among means. *Journal of the
 American Statistical Association*, 56(293), 52-64.
 [doi:10.1080/01621459.1961.10482090](https://doi.org/10.1080/01621459.1961.10482090)
 
+Massey, F. J. (1951). The Kolmogorov-Smirnov test for goodness of fit.
+*Journal of the American Statistical Association*, 46(253), 68-78.
+[doi:10.1080/01621459.1951.10500769](https://doi.org/10.1080/01621459.1951.10500769)
+
+Wu, D. and Olson, D. L. (2010). Enterprise risk management: coping with
+model risk in a large bank. *Journal of the Operational Research
+Society*, 61(2), 179-190.
+[doi:10.1057/jors.2008.144](https://doi.org/10.1057/jors.2008.144)
+
 ## See also
 
 [`drftks()`](https://rootcoder007.github.io/crimlab/reference/drftks.md),
