@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -324,6 +324,19 @@ compiles against ‘Mathlib’.</p>
 <h2 id="package">Package<a class="anchor" aria-label="anchor" href="#package"></a>
 </h2>
 <div class="section level3">
+<h3 id="ask-whether-a-newer-release-exists">Ask whether a newer release exists<a class="anchor" aria-label="anchor" href="#ask-whether-a-newer-release-exists"></a>
+</h3>
+<p><code><a href="../reference/updchk.html">updchk()</a></code>: Asks the project’s release page once, now, for
+the number of the latest release, and says whether it is newer than the
+installed package. Nothing is sent but that request (a limit of two
+seconds), and nothing is kept.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Not run:</span></span>
+<span><span class="co">##D # needs the internet</span></span>
+<span><span class="co">##D updchk()</span></span>
+<span><span class="co">## End(Not run)</span></span></code></pre></div>
+</div>
+<div class="section level3">
 <h3 id="power-and-energy-of-the-machines-devices">Power and energy of the machine’s devices<a class="anchor" aria-label="anchor" href="#power-and-energy-of-the-machines-devices"></a>
 </h3>
 <p><code><a href="../reference/hwpwr.html">hwpwr()</a></code>: Reads what the CPU packages, the memory and the
@@ -333,18 +346,19 @@ from now, or since an earlier reading (<code>since</code>). Every figure
 says how it was obtained, and a device that cannot be measured is listed
 with the reason, never counted as zero. It is the measured layer under
 an energy or carbon footprint of a computation.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwpwr.html">hwpwr</a></span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">r</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kind"</span>, <span class="st">"name"</span>, <span class="st">"scope"</span>, <span class="st">"watts"</span>, <span class="st">"joules"</span>, <span class="st">"how"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;    kind        name  scope watts joules     how</span></span>
-<span><span class="co">#&gt; 1   cpu         CPU device    NA     NA unknown</span></span>
-<span><span class="co">#&gt; 2 total all devices device    NA     NA     sum</span></span>
+<span><span class="co">#&gt;    kind           name  scope watts joules     how</span></span>
+<span><span class="co">#&gt; 1   cpu            CPU device    NA     NA unknown</span></span>
+<span><span class="co">#&gt; 2   gpu card1 (1414:6) device    NA     NA unknown</span></span>
+<span><span class="co">#&gt; 3 total    all devices device    NA     NA     sum</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwpwr.html">hwpwr</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">1e6</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwpwr.html">hwpwr</a></span><span class="op">(</span>since <span class="op">=</span> <span class="va">a</span><span class="op">)</span></span>
 <span><span class="va">b</span><span class="op">[</span><span class="va">b</span><span class="op">$</span><span class="va">kind</span> <span class="op">==</span> <span class="st">"total"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"joules"</span>, <span class="st">"why"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;   joules              why</span></span>
-<span><span class="co">#&gt; 2     NA not counted: CPU</span></span></code></pre></div>
+<span><span class="co">#&gt;   joules                              why</span></span>
+<span><span class="co">#&gt; 3     NA not counted: CPU; card1 (1414:6)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

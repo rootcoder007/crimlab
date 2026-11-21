@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -288,15 +288,15 @@ of their true rates follows from the records whatever the noise.</p>
 </h2>
 <p><code><a href="../reference/impfpr.html">impfpr()</a></code>: Chouldechova’s (2017) identity: in any
 confusion table, the false positive rate is
-<code>p / (1 - p) (1 - ppv) / ppv (1 - fnr)</code>, from the base rate
-<code>p</code>, the positive predictive value <code>ppv</code> and the
-false negative rate <code>fnr</code>. So two groups whose scores are
-equally calibrated (the same <code>ppv</code>) and miss equally (the
-same <code>fnr</code>) but whose base rates differ must have different
-false positive rates: no score, however it is built, can equalise all
-three. The identity is arithmetic, true of any tool on any data; it says
-which equalities cannot hold together, not which one should give way.
-See <code>proof("impfpr")</code>.</p>
+<code>p / (1 - p) (1 - ppv) / ppv</code> <code>(1 - fnr)</code>, from
+the base rate <code>p</code>, the positive predictive value
+<code>ppv</code> and the false negative rate <code>fnr</code>. So two
+groups whose scores are equally calibrated (the same <code>ppv</code>)
+and miss equally (the same <code>fnr</code>) but whose base rates differ
+must have different false positive rates: no score, however it is built,
+can equalise all three. The identity is arithmetic, true of any tool on
+any data; it says which equalities cannot hold together, not which one
+should give way. See <code>proof("impfpr")</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># the same ppv and fnr, different base rates: different fpr</span></span>
 <span><span class="fu"><a href="../reference/impfpr.html">impfpr</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0.3</span>, b <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, ppv <span class="op">=</span> <span class="fl">0.6</span>, fnr <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span></span>

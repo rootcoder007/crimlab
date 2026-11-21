@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -299,6 +299,133 @@ crimlab.</p>
 <span><span class="co">##D x &lt;- odtab(tabs$key[!is.na(tabs$sha256)][1L])</span></span>
 <span><span class="co">##D str(x)</span></span>
 <span><span class="co">## End(Not run)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="the-tables-of-the-data-service-about-indigenous-peoples">The tables of the data service about Indigenous peoples<a class="anchor" aria-label="anchor" href="#the-tables-of-the-data-service-about-indigenous-peoples"></a>
+</h3>
+<p><code><a href="../reference/indtabs.html">indtabs()</a></code>: Lists the tables of the project’s open data
+service drawn from Statistics Canada’s tables on Indigenous peoples and
+from the 2021 Census Indigenous Population Profile, with their
+descriptions, sizes and licences, optionally those whose description
+matches a pattern. <code><a href="../reference/odtab.html">odtab()</a></code> loads one by its key.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Not run:</span></span>
+<span><span class="co">##D # needs the internet</span></span>
+<span><span class="co">##D t &lt;- indtabs("mental health")</span></span>
+<span><span class="co">##D t[, c("key", "rows")]</span></span>
+<span><span class="co">## End(Not run)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/indtabs.html">indtabs</a></span><span class="op">(</span>pat <span class="op">=</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : indtabs: `pat` must be one non-empty string.</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="statistics-canada-tables-on-indigenous-peoples-by-subject">Statistics Canada tables on Indigenous peoples, by subject<a class="anchor" aria-label="anchor" href="#statistics-canada-tables-on-indigenous-peoples-by-subject"></a>
+</h3>
+<p><code><a href="../reference/indiex.html">indiex()</a></code>: The tables of the project’s open data service
+that hold what is most often asked for about First Nations people, Metis
+and Inuit: health indicators, perceived mental health, wellbeing,
+suicidal thoughts, the census counts of population and of households,
+life expectancy and infant mortality. <code><a href="../reference/indiex.html">indiex()</a></code> finds the
+tables of one subject among those <code><a href="../reference/indtabs.html">indtabs()</a></code> lists, and with
+<code>load = TRUE</code> loads the first.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Not run:</span></span>
+<span><span class="co">##D # needs the internet</span></span>
+<span><span class="co">##D indiex("mentalhealth")[, c("key", "rows")]</span></span>
+<span><span class="co">##D x &lt;- indiex("lifeexp", load = TRUE)</span></span>
+<span><span class="co">## End(Not run)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/indiex.html">indiex</a></span><span class="op">(</span><span class="st">"weather"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : indiex: `name` must be one of "health", "mentalhealth", "wellbeing", "suicide", "censuspop", "censushh", "lifeexp", "infantmort", not "weather".</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="open-data-from-the-publishers-portal">Open data from the publisher’s portal<a class="anchor" aria-label="anchor" href="#open-data-from-the-publishers-portal"></a>
+</h3>
+<p><code><a href="../reference/ckanres.html">ckanres()</a></code>, <code><a href="../reference/ckanres.html">ckanls()</a></code>, <code><a href="../reference/ckanres.html">socres()</a></code>,
+<code><a href="../reference/ckanres.html">arcres()</a></code> and others: Police services, courts and
+corrections ministries publish through a few kinds of portal. These
+functions ask a portal where a dataset’s files are now, and download
+one. <code><a href="../reference/ckanres.html">ckanres()</a></code> lists the files of a CKAN dataset and
+<code><a href="../reference/ckanres.html">ckanls()</a></code> searches a CKAN portal; <code><a href="../reference/ckanres.html">socres()</a></code>
+describes a Socrata dataset and gives the address of its CSV export;
+<code><a href="../reference/ckanres.html">arcres()</a></code> describes an ArcGIS feature layer and gives the
+address of a query for its rows; <code><a href="../reference/ckanres.html">srcget()</a></code> downloads an
+address to a file and returns its size and SHA-256, to be recorded with
+the analysis; <code><a href="../reference/ckanres.html">scres()</a></code> gives the address of a Statistics
+Canada table. <code><a href="../reference/ckanres.html">srcls()</a></code> lists sources the package knows by a
+short key (see Details), and <code><a href="../reference/ckanres.html">srcurl()</a></code> resolves one of
+them.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ckanres.html">srcls</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"publisher"</span>, <span class="st">"kind"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;                    key                                   publisher    kind</span></span>
+<span><span class="co">#&gt; 1              tps-mci                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 2        tps-homicides                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 3        tps-shootings                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 4            tps-rates                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 5              tps-uof                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 6          tps-arrests                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 7              tps-mha                      Toronto Police Service  arcgis</span></span>
+<span><span class="co">#&gt; 8   toronto-asr-crimes                             City of Toronto    ckan</span></span>
+<span><span class="co">#&gt; 9  toronto-asr-arrests                             City of Toronto    ckan</span></span>
+<span><span class="co">#&gt; 10     montreal-crimes                           Ville de Montreal    ckan</span></span>
+<span><span class="co">#&gt; 11         siu-reports      Special Investigations Unit of Ontario    page</span></span>
+<span><span class="co">#&gt; 12           vpd-crime                 Vancouver Police Department    page</span></span>
+<span><span class="co">#&gt; 13        ontario-jahn   Ontario Ministry of the Solicitor General    ckan</span></span>
+<span><span class="co">#&gt; 14         ontario-uof   Ontario Ministry of the Solicitor General    ckan</span></span>
+<span><span class="co">#&gt; 15 ontario-supervision   Ontario Ministry of the Solicitor General    ckan</span></span>
+<span><span class="co">#&gt; 16       statcan-crime                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 17         statcan-csi                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 18    statcan-homicide                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 19        statcan-hate                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 20      statcan-courts                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 21  statcan-admissions                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 22     statcan-custody                           Statistics Canada statcan</span></span>
+<span><span class="co">#&gt; 23     nypd-complaints             New York City Police Department socrata</span></span>
+<span><span class="co">#&gt; 24 nypd-complaints-ytd             New York City Police Department socrata</span></span>
+<span><span class="co">#&gt; 25        nypd-arrests             New York City Police Department socrata</span></span>
+<span><span class="co">#&gt; 26    nypd-arrests-ytd             New York City Police Department socrata</span></span>
+<span><span class="co">#&gt; 27           nypd-hate             New York City Police Department socrata</span></span>
+<span><span class="co">#&gt; 28          cpd-crimes                   Chicago Police Department socrata</span></span>
+<span><span class="co">#&gt; 29         cpd-arrests                   Chicago Police Department socrata</span></span>
+<span><span class="co">#&gt; 30         lapd-crimes               Los Angeles Police Department socrata</span></span>
+<span><span class="co">#&gt; 31             fbi-cde             Federal Bureau of Investigation    page</span></span>
+<span><span class="co">#&gt; 32            bjs-ncvs                Bureau of Justice Statistics    page</span></span>
+<span><span class="co">#&gt; 33           uk-police                Home Office (data.police.uk)     url</span></span>
+<span><span class="co">#&gt; 34      eurostat-crime                                    Eurostat     url</span></span>
+<span><span class="co">#&gt; 35          nsw-bocsar NSW Bureau of Crime Statistics and Research    page</span></span>
+<span><span class="co">#&gt; 36       portal-canada                        Government of Canada    ckan</span></span>
+<span><span class="co">#&gt; 37      portal-ontario                       Government of Ontario    ckan</span></span>
+<span><span class="co">#&gt; 38      portal-toronto                             City of Toronto    ckan</span></span>
+<span><span class="co">#&gt; 39     portal-montreal                           Ville de Montreal    ckan</span></span>
+<span><span class="co">#&gt; 40           portal-uk            Government of the United Kingdom    ckan</span></span>
+<span><span class="co">#&gt; 41    portal-australia                       Australian Government    ckan</span></span>
+<span><span class="co">## Not run:</span></span>
+<span><span class="co">##D # needs the internet</span></span>
+<span><span class="co">##D f &lt;- ckanres("https://data.ontario.ca",</span></span>
+<span><span class="co">##D              "jahn-settlement-data-inmates-ontario")</span></span>
+<span><span class="co">##D head(f[, c("name", "format", "modified")])</span></span>
+<span><span class="co">##D s &lt;- socres("data.cityofchicago.org", "dpt3-jri9")</span></span>
+<span><span class="co">##D s$columns</span></span>
+<span><span class="co">##D g &lt;- srcget(srcurl("tps-homicides"), tempfile(fileext = ".geojson"))</span></span>
+<span><span class="co">##D g$sha256</span></span>
+<span><span class="co">##D scres("35-10-0177-01")</span></span>
+<span><span class="co">## End(Not run)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/ckanres.html">srcurl</a></span><span class="op">(</span><span class="st">"nowhere"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : srcurl: `nowhere` is not a key of srcls().</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="fetch-one-police-oversight-report">Fetch one police oversight report<a class="anchor" aria-label="anchor" href="#fetch-one-police-oversight-report"></a>
+</h3>
+<p><code><a href="../reference/ovrget.html">ovrget()</a></code>: Downloads a director’s report of Ontario’s
+Special Investigations Unit by its report number, as the page the Unit
+serves, to a file. <code><a href="../reference/ovrtxt.html">ovrtxt()</a></code> then gives its text and
+<code><a href="../reference/ovrpar.html">ovrpar()</a></code> codes it into fields.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Not run:</span></span>
+<span><span class="co">##D # needs the internet</span></span>
+<span><span class="co">##D f &lt;- ovrget(1234, tempfile(fileext = ".html"))</span></span>
+<span><span class="co">##D substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)</span></span>
+<span><span class="co">## End(Not run)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/ovrget.html">ovrget</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : ovrget: `drid` must be one positive report number (the drid of the report's address).</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

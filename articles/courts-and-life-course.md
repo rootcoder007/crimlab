@@ -220,8 +220,7 @@ offending at two ages: with one type it is 0 (given the type, ages are
 independent), with several it is the covariance across types of their
 curves at the two ages, which `cov` gives for every pair of ages. With a
 panel of individuals observed at two ages, the observed covariance and
-its permutation test say whether one type is enough. See
-`proof("agemix")`.
+its permutation test say whether one type is enough.
 
 ``` r
 

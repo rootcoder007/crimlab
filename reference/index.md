@@ -407,13 +407,28 @@ concentration and series over time.
 
 ## Checks
 
-Which labelling of a table reproduces a reported contrast, and an audit
-of categorical inputs.
+Which labelling of a table reproduces a reported contrast, an audit of
+categorical inputs, and rules a table must satisfy, declared once and
+run before an analysis.
 
 - [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
   : Which labelling reproduces a reported contrast?
 - [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
   : Audit categorical inputs before an analysis
+- [`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+  [`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+  : Declare rules a table must satisfy, and check them
+- [`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulebtw()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulenull()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`ruleuniq()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulerx()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`ruleincr()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulemad()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulecmpl()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`ruledstn()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  [`rulecolcnt()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  : Ready-made rules
 
 ## Counts, rates and tables
 
@@ -432,6 +447,8 @@ association.
   : Indirect standardisation: standardised ratios with shrinkage
 - [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
   : Cross-tabulation with tests and measures of association
+- [`cramerv()`](https://rootcoder007.github.io/crimlab/reference/cramerv.md)
+  : Cramer's V of a two-way table
 
 ## Police-reported crime
 
@@ -804,10 +821,16 @@ arrest data.
 ## Surveys
 
 Design-based means, totals, proportions, ratios and variances by domain
-from stratified, clustered and weighted samples.
+from stratified, clustered and weighted samples; intervals for a
+proportion that hold near 0 and 1; and the release quality of an
+estimate.
 
 - [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
   : Design-based estimates from a complex survey
+- [`svypci()`](https://rootcoder007.github.io/crimlab/reference/svypci.md)
+  : Confidence interval of a survey proportion
+- [`svyqual()`](https://rootcoder007.github.io/crimlab/reference/svyqual.md)
+  : Release quality of a survey estimate
 - [`rscchi()`](https://rootcoder007.github.io/crimlab/reference/rscchi.md)
   [`print(`*`<rscchi>`*`)`](https://rootcoder007.github.io/crimlab/reference/rscchi.md)
   : Rao-Scott chi-square test for a survey table
@@ -822,6 +845,8 @@ from stratified, clustered and weighted samples.
 - [`crimlab`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
   [`crimlab-package`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
   : crimlab: Statistical Toolkit for Criminology and Sociolegal Research
+- [`updchk()`](https://rootcoder007.github.io/crimlab/reference/updchk.md)
+  : Ask whether a newer release exists
 - [`hwpwr()`](https://rootcoder007.github.io/crimlab/reference/hwpwr.md)
   : Power and energy of the machine's devices
 
@@ -1314,6 +1339,26 @@ agency’s layout can be written in, offline and the same on every run.
 - [`ovrchk()`](https://rootcoder007.github.io/crimlab/reference/ovrchk.md)
   : Check a coded table of oversight reports
 
+## Alcohol and drug use
+
+A blood alcohol concentration from what was drunk (Widmark, with the
+body-water factors the Canadian surveys use), standard drinks by
+country, heavy drinking and the low-risk guideline, and the scores of
+the AUDIT, the DAST-10, the CUDIT-R and the ASSIST.
+
+- [`ebac()`](https://rootcoder007.github.io/crimlab/reference/ebac.md) :
+  Estimated blood alcohol concentration (Widmark)
+- [`stddrk()`](https://rootcoder007.github.io/crimlab/reference/stddrk.md)
+  : Standard drinks in a volume of a beverage
+- [`hvydrk()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md)
+  [`lrdg()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md)
+  : Heavy drinking, and drinking above the low-risk guideline
+- [`auditc()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  [`dast10()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  [`cudit()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  [`canast()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  : Scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST
+
 ## Shares
 
 Each count as a share of its total, with Wilson intervals that stay
@@ -1373,6 +1418,9 @@ before computing change from it.
   : Chi-square test of a categorical column against a known distribution
 - [`drfthomog()`](https://rootcoder007.github.io/crimlab/reference/drfthomog.md)
   : Chi-square test of homogeneity of two categorical samples
+- [`drfttab()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)
+  [`drftcal()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)
+  : Drift of a whole table between two releases
 
 ## Change tables out
 
@@ -1575,11 +1623,29 @@ counts per unit between categories.
 ## Open data
 
 Tables of the project’s open data service, loaded by their key and used
-only when they match the SHA-256 the service’s manifest lists.
+only when they match the SHA-256 the service’s manifest lists; and data
+straight from its publisher, police services, statistical agencies and
+open data portals in Canada, the United States, the United Kingdom,
+Europe and Australia, found where the portal says it is now.
 
 - [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
   [`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
   : Tables of the open data service
+- [`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md)
+  : The tables of the data service about Indigenous peoples
+- [`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md)
+  : Statistics Canada tables on Indigenous peoples, by subject
+- [`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`srcls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`srcurl()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  [`scres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  : Open data from the publisher's portal
+- [`ovrget()`](https://rootcoder007.github.io/crimlab/reference/ovrget.md)
+  : Fetch one police oversight report
 
 ## Placement volatility and alert complexity
 

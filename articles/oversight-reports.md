@@ -228,3 +228,157 @@ crimlab.
 ##D str(x)
 ## End(Not run)
 ```
+
+### The tables of the data service about Indigenous peoples
+
+[`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md):
+Lists the tables of the project’s open data service drawn from
+Statistics Canada’s tables on Indigenous peoples and from the 2021
+Census Indigenous Population Profile, with their descriptions, sizes and
+licences, optionally those whose description matches a pattern.
+[`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
+loads one by its key.
+
+``` r
+
+## Not run:
+##D # needs the internet
+##D t <- indtabs("mental health")
+##D t[, c("key", "rows")]
+## End(Not run)
+try(indtabs(pat = ""))
+#> Error : indtabs: `pat` must be one non-empty string.
+```
+
+### Statistics Canada tables on Indigenous peoples, by subject
+
+[`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md):
+The tables of the project’s open data service that hold what is most
+often asked for about First Nations people, Metis and Inuit: health
+indicators, perceived mental health, wellbeing, suicidal thoughts, the
+census counts of population and of households, life expectancy and
+infant mortality.
+[`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md)
+finds the tables of one subject among those
+[`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md)
+lists, and with `load = TRUE` loads the first.
+
+``` r
+
+## Not run:
+##D # needs the internet
+##D indiex("mentalhealth")[, c("key", "rows")]
+##D x <- indiex("lifeexp", load = TRUE)
+## End(Not run)
+try(indiex("weather"))
+#> Error : indiex: `name` must be one of "health", "mentalhealth", "wellbeing", "suicide", "censuspop", "censushh", "lifeexp", "infantmort", not "weather".
+```
+
+### Open data from the publisher’s portal
+
+[`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+and others: Police services, courts and corrections ministries publish
+through a few kinds of portal. These functions ask a portal where a
+dataset’s files are now, and download one.
+[`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+lists the files of a CKAN dataset and
+[`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+searches a CKAN portal;
+[`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+describes a Socrata dataset and gives the address of its CSV export;
+[`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+describes an ArcGIS feature layer and gives the address of a query for
+its rows;
+[`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+downloads an address to a file and returns its size and SHA-256, to be
+recorded with the analysis;
+[`scres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+gives the address of a Statistics Canada table.
+[`srcls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+lists sources the package knows by a short key (see Details), and
+[`srcurl()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+resolves one of them.
+
+``` r
+
+srcls()[, c("key", "publisher", "kind")]
+#>                    key                                   publisher    kind
+#> 1              tps-mci                      Toronto Police Service  arcgis
+#> 2        tps-homicides                      Toronto Police Service  arcgis
+#> 3        tps-shootings                      Toronto Police Service  arcgis
+#> 4            tps-rates                      Toronto Police Service  arcgis
+#> 5              tps-uof                      Toronto Police Service  arcgis
+#> 6          tps-arrests                      Toronto Police Service  arcgis
+#> 7              tps-mha                      Toronto Police Service  arcgis
+#> 8   toronto-asr-crimes                             City of Toronto    ckan
+#> 9  toronto-asr-arrests                             City of Toronto    ckan
+#> 10     montreal-crimes                           Ville de Montreal    ckan
+#> 11         siu-reports      Special Investigations Unit of Ontario    page
+#> 12           vpd-crime                 Vancouver Police Department    page
+#> 13        ontario-jahn   Ontario Ministry of the Solicitor General    ckan
+#> 14         ontario-uof   Ontario Ministry of the Solicitor General    ckan
+#> 15 ontario-supervision   Ontario Ministry of the Solicitor General    ckan
+#> 16       statcan-crime                           Statistics Canada statcan
+#> 17         statcan-csi                           Statistics Canada statcan
+#> 18    statcan-homicide                           Statistics Canada statcan
+#> 19        statcan-hate                           Statistics Canada statcan
+#> 20      statcan-courts                           Statistics Canada statcan
+#> 21  statcan-admissions                           Statistics Canada statcan
+#> 22     statcan-custody                           Statistics Canada statcan
+#> 23     nypd-complaints             New York City Police Department socrata
+#> 24 nypd-complaints-ytd             New York City Police Department socrata
+#> 25        nypd-arrests             New York City Police Department socrata
+#> 26    nypd-arrests-ytd             New York City Police Department socrata
+#> 27           nypd-hate             New York City Police Department socrata
+#> 28          cpd-crimes                   Chicago Police Department socrata
+#> 29         cpd-arrests                   Chicago Police Department socrata
+#> 30         lapd-crimes               Los Angeles Police Department socrata
+#> 31             fbi-cde             Federal Bureau of Investigation    page
+#> 32            bjs-ncvs                Bureau of Justice Statistics    page
+#> 33           uk-police                Home Office (data.police.uk)     url
+#> 34      eurostat-crime                                    Eurostat     url
+#> 35          nsw-bocsar NSW Bureau of Crime Statistics and Research    page
+#> 36       portal-canada                        Government of Canada    ckan
+#> 37      portal-ontario                       Government of Ontario    ckan
+#> 38      portal-toronto                             City of Toronto    ckan
+#> 39     portal-montreal                           Ville de Montreal    ckan
+#> 40           portal-uk            Government of the United Kingdom    ckan
+#> 41    portal-australia                       Australian Government    ckan
+## Not run:
+##D # needs the internet
+##D f <- ckanres("https://data.ontario.ca",
+##D              "jahn-settlement-data-inmates-ontario")
+##D head(f[, c("name", "format", "modified")])
+##D s <- socres("data.cityofchicago.org", "dpt3-jri9")
+##D s$columns
+##D g <- srcget(srcurl("tps-homicides"), tempfile(fileext = ".geojson"))
+##D g$sha256
+##D scres("35-10-0177-01")
+## End(Not run)
+try(srcurl("nowhere"))
+#> Error : srcurl: `nowhere` is not a key of srcls().
+```
+
+### Fetch one police oversight report
+
+[`ovrget()`](https://rootcoder007.github.io/crimlab/reference/ovrget.md):
+Downloads a director’s report of Ontario’s Special Investigations Unit
+by its report number, as the page the Unit serves, to a file.
+[`ovrtxt()`](https://rootcoder007.github.io/crimlab/reference/ovrtxt.md)
+then gives its text and
+[`ovrpar()`](https://rootcoder007.github.io/crimlab/reference/ovrpar.md)
+codes it into fields.
+
+``` r
+
+## Not run:
+##D # needs the internet
+##D f <- ovrget(1234, tempfile(fileext = ".html"))
+##D substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)
+## End(Not run)
+try(ovrget(0, tempfile()))
+#> Error : ovrget: `drid` must be one positive report number (the drid of the report's address).
+```

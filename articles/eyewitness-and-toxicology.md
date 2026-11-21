@@ -1,7 +1,9 @@
 # Eyewitness identification, toxicology and taphonomy
 
 Lineup performance, calibration of a toxicology method, post-mortem
-redistribution and the time since death.
+redistribution and the time since death, and alcohol and drug use: a
+blood alcohol concentration from what was drunk and the scores of
+screening questionnaires.
 
 Each section is one help page: what the function is for, the example of
 its help page as it runs, and the plot of its result where the package
@@ -322,4 +324,145 @@ round(x)
 clrilr(x)[, "Ca"]
 #>  [1] 4.582492 4.644030 5.378437 6.646381 6.411516 2.577556 4.556793 3.286704 2.856785
 #> [10] 2.205577
+```
+
+## Alcohol and drug use
+
+### Estimated blood alcohol concentration (Widmark)
+
+[`ebac()`](https://rootcoder007.github.io/crimlab/reference/ebac.md):
+The blood alcohol concentration a person would have after a number of
+standard drinks, by Widmark’s formula: the alcohol drunk, spread over
+the share of the body that takes it up, less what has been eliminated
+since drinking began. It is the estimate surveys of drinking report (an
+“eBAC”) and toxicologists use for back-calculation; it is not a
+measurement, and a person’s own rate of elimination and body water move
+it by a third either way.
+
+``` r
+
+# four drinks in two hours, 180 lb
+ebac(4, 180, 2, unit = "lb")
+#> [1] 0.06395652
+# the same person at 0, 1, 2 and 3 hours, and a woman of the same weight
+ebac(4, 81.6, 0:3)
+#> [1] 0.09401021 0.07901021 0.06401021 0.04901021
+ebac(4, 81.6, 2, sex = "female")
+#> [1] 0.07398099
+# the survey's way: body water from weight and height, 13.6 g a drink
+ebac(5, 62, 3, sex = "female", height = 164, beta = 0.017, grams = 13.6)
+#> [1] 0.119042
+# over 0.08?
+ebac(c(2, 5), c(70, 70), 1) >= 0.08
+#> [1] FALSE  TRUE
+try(ebac(4, 0, 2))
+#> Error : ebac: `weight` must be positive numbers.
+```
+
+### Standard drinks in a volume of a beverage
+
+[`stddrk()`](https://rootcoder007.github.io/crimlab/reference/stddrk.md):
+The number of standard drinks in `vol` millilitres of a beverage of
+`abv` per cent alcohol by volume: the grams of ethanol (the volume of
+ethanol times its density, 0.789 g per mL at 20 degrees Celsius) over
+the grams a country calls one drink. Countries differ by a factor of two
+and more (Kalinowski and Humphreys 2016), so a count of drinks means
+nothing without the standard it was counted in.
+
+``` r
+
+# a 341 mL bottle of 5% beer, a 142 mL glass of 12% wine, 43 mL of 40%
+# spirits: one Canadian standard drink each
+stddrk(c(341, 142, 43), c(5, 12, 40))
+#> [1] 1.0001822 0.9995955 1.0089814
+# a 750 mL bottle of 13% wine, by four standards
+vapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s), 0)
+#>       ca       us       uk       au 
+#> 5.719517 5.494821 9.615938 7.692750
+try(stddrk(341, 500))
+#> Error : stddrk: `abv` must be per cent, from 0 to 100.
+```
+
+### Heavy drinking, and drinking above the low-risk guideline
+
+[`hvydrk()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md),
+[`lrdg()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md):
+Two flags from a number of standard drinks and a sex, as the Canadian
+surveys of alcohol and drug use derive them (Health Canada 2022).
+[`hvydrk()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md):
+heavy drinking, four or more drinks for women and five or more for men
+on one occasion, the measure of Wechsler et al. (1995).
+[`lrdg()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md):
+more drinks in a day than the daily limit of Canada’s Low-Risk Alcohol
+Drinking Guidelines for chronic harm, two for women and three for men
+(Stockwell et al. 2012).
+
+``` r
+
+d <- c(2, 3, 4, 5, NA)
+hvydrk(d, "female")
+#> [1] FALSE FALSE  TRUE  TRUE    NA
+hvydrk(d, "male")
+#> [1] FALSE FALSE FALSE  TRUE    NA
+lrdg(d, c("female", "male", "male", "female", "male"))
+#> [1] FALSE FALSE  TRUE  TRUE    NA
+# another definition: six drinks for everyone
+hvydrk(d, "female", f = 6, m = 6)
+#> [1] FALSE FALSE FALSE FALSE    NA
+try(hvydrk(-1, "male"))
+#> Error : hvydrk: `drinks` must be numbers from 0.
+# a survey's public file, by its preset: the codes 997 to 999 are not
+# answers, and the sex is coded 1 and 2
+d <- data.frame(alc13a = c(3, 5, 997, 2), dvdemq01 = c(1, 2, 1, 2))
+lrdg(clprep(d, "cpads-lrdg"))
+#> [1]  TRUE  TRUE FALSE
+```
+
+### Scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST
+
+[`auditc()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+[`dast10()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+[`cudit()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+[`canast()`](https://rootcoder007.github.io/crimlab/reference/auditc.md):
+Scores four screening questionnaires from their item answers, one row
+per respondent and one column per item, in the order of the
+questionnaire. An answer outside the scoring of its item is refused, not
+scored: a miscoded column must not pass for a low score.
+
+``` r
+
+# made-up answers of three respondents
+a <- rbind(c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+           c(3, 2, 2, 1, 1, 0, 1, 1, 0, 2),
+           c(4, 4, 4, 3, 3, 2, 3, 3, 4, 4))
+auditc(a, sex = c("female", "male", "male"))
+#>   total auditc       zone  cpos
+#> 1     1      1        low FALSE
+#> 2    13      7  hazardous  TRUE
+#> 3    34     12 dependence  TRUE
+# the first three items alone are the AUDIT-C
+auditc(a[, 1:3], sex = "female")
+#>   total auditc zone  cpos
+#> 1    NA      1 <NA> FALSE
+#> 2    NA      7 <NA>  TRUE
+#> 3    NA     12 <NA>  TRUE
+dast10(rbind(c(1, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+             c(1, 1, 0, 1, 1, 0, 1, 1, 0, 1)))
+#>   total       level
+#> 1     1         low
+#> 2     8 substantial
+cudit(rbind(c(1, 0, 0, 0, 0, 0, 0, 0),
+            c(4, 3, 2, 1, 2, 1, 2, 4)))
+#>   total    level
+#> 1     1      low
+#> 2    19 disorder
+# weekly use, a monthly desire, no problems: moderate risk
+canast(rbind(c(1, 0, 0, 0, 0, 0), c(3, 2, 0, 0, 0, 0),
+             c(4, 4, 3, 3, 2, 2)))
+#>   total    level
+#> 1     2      low
+#> 2     8 moderate
+#> 3    37     high
+try(auditc(cbind(a[, 1:9], 3)))
+#> Error : auditc: item 10 must be scored 0, 2 or 4.
 ```

@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,6 +132,66 @@ description of the design.</p>
 <p><img src="surveys-and-summaries_files/figure-html/svymx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
+<h3 id="confidence-interval-of-a-survey-proportion">Confidence interval of a survey proportion<a class="anchor" aria-label="anchor" href="#confidence-interval-of-a-survey-proportion"></a>
+</h3>
+<p><code><a href="../reference/svypci.html">svypci()</a></code>: An interval for a proportion estimated from a
+complex survey, from the estimate and its design-based standard error
+(those of <code><a href="../reference/svymx.html">svymx()</a></code>, say). The usual interval, the estimate
+plus and minus a multiple of its standard error (Wald), is too narrow
+for a small sample or a proportion near 0 or 1, and can leave the range
+0 to 1; statistical agencies ask for one of the three others here
+instead.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 12% of 400 respondents, standard error 2.1 points, 38 design df</span></span>
+<span><span class="fu"><a href="../reference/svypci.html">svypci</a></span><span class="op">(</span><span class="fl">0.12</span>, <span class="fl">0.021</span>, <span class="fl">400</span>, df <span class="op">=</span> <span class="fl">38</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    est         lo      hi    neff</span></span>
+<span><span class="co">#&gt; 1 0.12 0.08065552 0.16967 225.824</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">m</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"wilson"</span>, <span class="st">"logit"</span>, <span class="st">"wald"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/svypci.html">svypci</a></span><span class="op">(</span><span class="fl">0.12</span>, <span class="fl">0.021</span>, <span class="fl">400</span>, df <span class="op">=</span> <span class="fl">38</span>, method <span class="op">=</span> <span class="va">m</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt;    est         lo      hi    neff</span></span>
+<span><span class="co">#&gt; 1 0.12 0.08065552 0.16967 225.824</span></span>
+<span><span class="co">#&gt;    est         lo        hi    neff</span></span>
+<span><span class="co">#&gt; 1 0.12 0.08385073 0.1688613 225.824</span></span>
+<span><span class="co">#&gt;    est         lo        hi    neff</span></span>
+<span><span class="co">#&gt; 1 0.12 0.08355411 0.1694048 225.824</span></span>
+<span><span class="co">#&gt;    est         lo        hi    neff</span></span>
+<span><span class="co">#&gt; 1 0.12 0.07748772 0.1625123 225.824</span></span>
+<span><span class="co"># near 0 the Wald interval leaves the range; the others do not</span></span>
+<span><span class="fu"><a href="../reference/svypci.html">svypci</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.008</span>, <span class="fl">400</span>, df <span class="op">=</span> <span class="fl">38</span>, method <span class="op">=</span> <span class="st">"wald"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    est           lo         hi     neff</span></span>
+<span><span class="co">#&gt; 1 0.01 -0.006195153 0.02619515 145.8814</span></span>
+<span><span class="fu"><a href="../reference/svypci.html">svypci</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.008</span>, <span class="fl">400</span>, df <span class="op">=</span> <span class="fl">38</span>, method <span class="op">=</span> <span class="st">"wilson"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    est          lo         hi     neff</span></span>
+<span><span class="co">#&gt; 1 0.01 0.002272718 0.04287127 145.8814</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/svypci.html">svypci</a></span><span class="op">(</span><span class="fl">1.2</span>, <span class="fl">0.1</span>, <span class="fl">400</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : svypci: `est` must be proportions, from 0 to 1.</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="release-quality-of-a-survey-estimate">Release quality of a survey estimate<a class="anchor" aria-label="anchor" href="#release-quality-of-a-survey-estimate"></a>
+</h3>
+<p><code><a href="../reference/svyqual.html">svyqual()</a></code>: Grades an estimate by the rule of Health
+Canada’s guides to the Canadian surveys of alcohol and drug use (Health
+Canada 2022, Table 1): by the unweighted number of observations behind
+it and by its coefficient of variation. <code>"acceptable"</code>: at
+least <code>nmin</code> observations with the characteristic (and, for a
+proportion, at least <code>dmin</code> in the domain) and a coefficient
+of variation of at most <code>cvlo</code> per cent.
+<code>"marginal"</code>: the same counts and a coefficient above
+<code>cvlo</code> up to <code>cvhi</code>; to be released with a
+warning. <code>"unacceptable"</code>: fewer observations, or a
+coefficient above <code>cvhi</code>; not to be released.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/svyqual.html">svyqual</a></span><span class="op">(</span>cv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">8</span>, <span class="fl">8</span><span class="op">)</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">60</span>, <span class="fl">30</span>, <span class="fl">6</span>, <span class="fl">40</span><span class="op">)</span>,</span>
+<span>        d <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">900</span>, <span class="fl">500</span>, <span class="fl">300</span>, <span class="fl">200</span>, <span class="fl">45</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "acceptable"   "marginal"     "unacceptable" "unacceptable" "unacceptable"</span></span>
+<span><span class="co"># a mean or a total: no denominator</span></span>
+<span><span class="fu"><a href="../reference/svyqual.html">svyqual</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">35</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "acceptable"</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/svyqual.html">svyqual</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : svyqual: `cv` must be numbers from 0.</span></span></code></pre></div>
+</div>
+<div class="section level3">
 <h3 id="rao-scott-chi-square-test-for-a-survey-table">Rao-Scott chi-square test for a survey table<a class="anchor" aria-label="anchor" href="#rao-scott-chi-square-test-for-a-survey-table"></a>
 </h3>
 <p><code><a href="../reference/rscchi.html">rscchi()</a></code>: The test of independence of two categorical
@@ -142,7 +202,7 @@ corrections for the design, to go with the estimates of
 statistic on such data is too large: the design makes the cell
 proportions vary more than simple random sampling, and the corrections
 divide it by the design effects.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"north"</span>, <span class="st">"south"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>,</span>
 <span>                block <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span>, each <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
@@ -171,7 +231,7 @@ compiled code, the same kernels that crimlab’s other front ends (the
 command line, Python and the bindings) call, so a result computed here
 is the result they give. For everyday work <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>,
 <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var()</a></code> and <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor()</a></code> give the same numbers.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cstat.html">cmn</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 5.5</span></span>
 <span><span class="fu"><a href="../reference/cstat.html">cmn</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
@@ -198,7 +258,7 @@ is the result they give. For everyday work <code><a href="https://rdrr.io/r/base
 returns the standard deviation of a numeric vector and
 <code><a href="../reference/cspread.html">cdistm()</a></code> the straight-line (Euclidean) distance between two
 vectors of the same length.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cspread.html">csdev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2.13809</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="fu"><a href="../reference/cspread.html">csdev</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
@@ -223,7 +283,7 @@ directly from the formula rather than as <code>log(dnorm(x))</code>.
 Summing log-densities is how a normal model is scored, and computing
 them directly keeps the sum finite far into the tails, where the density
 itself underflows to zero.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cnorm.html">cnormpdf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.2419707 0.3989423 0.2419707</span></span>
 <span><span class="fu"><a href="../reference/cnorm.html">cnormpdf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span>, mean <span class="op">=</span> <span class="fl">5</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -248,7 +308,7 @@ itself underflows to zero.</p>
 <p><code><a href="../reference/cmom.html">cmom()</a></code>: The four standard descriptive moments of a
 numeric vector in one call: where it is centred, how spread out it is,
 whether it leans to one side and how heavy its tails are.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cmom.html">cmom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      mean  variance  skewness  kurtosis </span></span>
 <span><span class="co">#&gt;  5.000000  4.571429  0.656250 -0.218750</span></span>
@@ -276,7 +336,7 @@ beyond the quartiles. A single corrupted row can move a mean or a
 variance arbitrarily far, but moves a median or a MAD hardly at all,
 which is what is wanted when screening a column of a released table for
 values to inspect by hand.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">9</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/crob.html">cqnt</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 25% 50% 75% </span></span>
@@ -311,7 +371,7 @@ largest and smallest values, as <code>mean(x, trim = )</code> does.
 <code><a href="../reference/ctrm.html">cwinsmean()</a></code> instead PULLS THEM IN to the most extreme
 surviving values, so every observation still counts, usually the better
 choice when the extremes are real measurements rather than errors.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">6</span>, <span class="fl">7</span>, <span class="fl">8</span>, <span class="fl">9</span>, <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 14.5</span></span>
@@ -333,7 +393,7 @@ choice when the extremes are real measurements rather than errors.</p>
 vector, for data where some observations count for more than others: an
 average over areas weighted by population, or measurements weighted by
 their precision.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/cwtd.html">cwtd</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">w</span><span class="op">)</span></span>
@@ -356,7 +416,7 @@ transformation of either variable. <code><a href="../reference/crank.html">cmidr
 themselves; tied values share the average of the ranks they span, which
 is what makes the result agree with <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">stats::cor()</a></code> on tied
 data.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">9</span>, <span class="fl">16</span>, <span class="fl">25</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/crank.html">cspr</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span>
@@ -380,7 +440,7 @@ data.</p>
 <p><code><a href="../reference/ccovm.html">ccovm()</a></code>: The covariance of every pair of columns of a
 numeric matrix or data frame. Column names are carried to both
 dimensions of the result.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span>, b <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">7</span>, <span class="fl">8</span><span class="op">)</span>, c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">3</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ccovm.html">ccovm</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           a         b         c</span></span>
@@ -408,7 +468,7 @@ interval, without assuming the data are normal (Efron and Tibshirani,
 by <code>seed</code>, not from R’s generator, so a seed gives the same
 replicates in every front end and on every platform, and R’s random
 stream is left untouched.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span>, mean <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">reps</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cbootmean.html">cbootmean</a></span><span class="op">(</span><span class="va">x</span>, B <span class="op">=</span> <span class="fl">500</span>, seed <span class="op">=</span> <span class="fl">7</span><span class="op">)</span></span>
@@ -433,7 +493,7 @@ gives one observation a weight large enough to dominate the estimate.
 The weights reweight a treated and an untreated group so that each
 resembles the whole sample on the covariates behind the propensity score
 (Rosenbaum and Rubin, 1983).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cipw.html">cipw</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.25</span>, <span class="fl">0.02</span>, <span class="fl">0.9</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  2.000000  1.333333 50.000000 10.000000</span></span>
 <span><span class="fu"><a href="../reference/cipw.html">cipw</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.25</span>, <span class="fl">0.02</span>, <span class="fl">0.9</span><span class="op">)</span>, trimlo <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
@@ -450,7 +510,7 @@ resembles the whole sample on the covariates behind the propensity score
 function P(a, x), the distribution function of a gamma distribution with
 shape <code>a</code> and unit rate; the p-value of a chi-square
 statistic q on k degrees of freedom is 1 - P(k/2, q/2).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cgamcdf.html">cgamcdf</a></span><span class="op">(</span><span class="fl">3.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.005171463 0.040159631 0.667406097 0.998860649</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="fu"><a href="../reference/cgamcdf.html">cgamcdf</a></span><span class="op">(</span><span class="fl">3.5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -470,7 +530,7 @@ depends only on <code>seed</code>, and any program that implements
 splitmix64 (Python, Go, a spreadsheet macro) computes the same numbers,
 so a subsample or a jitter drawn in one language can be reproduced
 exactly in another.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cunif.html">cunif</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">42</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.7415649 0.1599104 0.2786011</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="fu"><a href="../reference/cunif.html">cunif</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">7</span><span class="op">)</span>, <span class="fu"><a href="../reference/cunif.html">cunif</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">7</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span>

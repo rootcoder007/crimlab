@@ -38,7 +38,8 @@ ssh-keygen -Y verify -f allowed_signers -I crimlab -n file \
 sha256sum -c --ignore-missing SHA256SUMS
 ```
 
-`install.sh` and `install.ps1` make the same check when the environment
-variable `CRIMLAB_SIGNER` holds that allowed-signers line
-(`crimlab ssh-ed25519 ...`); without it they check the archive against
-`SHA256SUMS` only.
+`install.sh` and `install.ps1` hold this key and make the same check on
+every install, before the archive is fetched. `CRIMLAB_SIGNER` names
+another allowed-signers line (`crimlab ssh-ed25519 ...`) to check
+against, and `CRIMLAB_VERIFY=0` goes on without the check, with the
+archive checked against `SHA256SUMS` only.

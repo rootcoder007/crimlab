@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -255,14 +255,15 @@ al. (2023, p. 1376) run on the residuals of their waste-crime models
 before deciding a spatial model is not needed. For each pair of units
 the correlation <code>rho_ab</code> of their values over the
 <code>T_ab</code> periods they share, about the means over those
-periods; CD = sum sqrt(T_ab) rho_ab / sqrt(m) over the <code>m</code>
-pairs, which for a balanced panel of <code>N</code> units and
-<code>T</code> periods is sqrt(2 T / (N (N - 1))) sum rho_ab, standard
-normal under no dependence. Pairs that share fewer than two periods, or
-along which a unit does not vary, are left out. This is the statistic of
-<code>plm::pcdtest(test = "cd")</code>. For dependence between
-neighbours rather than across all pairs, use <code><a href="../reference/gmoran.html">gmoran()</a></code> on
-each period’s residuals, as Andreatta et al. also do.</p>
+periods; CD = sum sqrt(T_ab) rho_ab / <code>sqrt(m)</code> over the
+<code>m</code> pairs, which for a balanced panel of <code>N</code> units
+and <code>T</code> periods is sqrt(2 T / (N (N - 1))) sum rho_ab,
+standard normal under no dependence. Pairs that share fewer than two
+periods, or along which a unit does not vary, are left out. This is the
+statistic of <code>plm::pcdtest(test = "cd")</code>. For dependence
+between neighbours rather than across all pairs, use
+<code><a href="../reference/gmoran.html">gmoran()</a></code> on each period’s residuals, as Andreatta et
+al. also do.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2009</span><span class="op">:</span><span class="fl">2017</span>, prov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span><span class="op">)</span></span>

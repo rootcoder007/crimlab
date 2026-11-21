@@ -42,6 +42,70 @@ plot(res)
 
 ![](surveys-and-summaries_files/figure-html/svymx-plot-1.png)
 
+### Confidence interval of a survey proportion
+
+[`svypci()`](https://rootcoder007.github.io/crimlab/reference/svypci.md):
+An interval for a proportion estimated from a complex survey, from the
+estimate and its design-based standard error (those of
+[`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md),
+say). The usual interval, the estimate plus and minus a multiple of its
+standard error (Wald), is too narrow for a small sample or a proportion
+near 0 or 1, and can leave the range 0 to 1; statistical agencies ask
+for one of the three others here instead.
+
+``` r
+
+# 12% of 400 respondents, standard error 2.1 points, 38 design df
+svypci(0.12, 0.021, 400, df = 38)
+#>    est         lo      hi    neff
+#> 1 0.12 0.08065552 0.16967 225.824
+for (m in c("beta", "wilson", "logit", "wald")) {
+  print(svypci(0.12, 0.021, 400, df = 38, method = m))
+}
+#>    est         lo      hi    neff
+#> 1 0.12 0.08065552 0.16967 225.824
+#>    est         lo        hi    neff
+#> 1 0.12 0.08385073 0.1688613 225.824
+#>    est         lo        hi    neff
+#> 1 0.12 0.08355411 0.1694048 225.824
+#>    est         lo        hi    neff
+#> 1 0.12 0.07748772 0.1625123 225.824
+# near 0 the Wald interval leaves the range; the others do not
+svypci(0.01, 0.008, 400, df = 38, method = "wald")
+#>    est           lo         hi     neff
+#> 1 0.01 -0.006195153 0.02619515 145.8814
+svypci(0.01, 0.008, 400, df = 38, method = "wilson")
+#>    est          lo         hi     neff
+#> 1 0.01 0.002272718 0.04287127 145.8814
+try(svypci(1.2, 0.1, 400))
+#> Error : svypci: `est` must be proportions, from 0 to 1.
+```
+
+### Release quality of a survey estimate
+
+[`svyqual()`](https://rootcoder007.github.io/crimlab/reference/svyqual.md):
+Grades an estimate by the rule of Health Canada’s guides to the Canadian
+surveys of alcohol and drug use (Health Canada 2022, Table 1): by the
+unweighted number of observations behind it and by its coefficient of
+variation. `"acceptable"`: at least `nmin` observations with the
+characteristic (and, for a proportion, at least `dmin` in the domain)
+and a coefficient of variation of at most `cvlo` per cent. `"marginal"`:
+the same counts and a coefficient above `cvlo` up to `cvhi`; to be
+released with a warning. `"unacceptable"`: fewer observations, or a
+coefficient above `cvhi`; not to be released.
+
+``` r
+
+svyqual(cv = c(8, 20, 40, 8, 8), n = c(120, 60, 30, 6, 40),
+        d = c(900, 500, 300, 200, 45))
+#> [1] "acceptable"   "marginal"     "unacceptable" "unacceptable" "unacceptable"
+# a mean or a total: no denominator
+svyqual(12, 35)
+#> [1] "acceptable"
+try(svyqual(-1, 10))
+#> Error : svyqual: `cv` must be numbers from 0.
+```
+
 ### Rao-Scott chi-square test for a survey table
 
 [`rscchi()`](https://rootcoder007.github.io/crimlab/reference/rscchi.md):

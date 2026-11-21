@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,7 +76,7 @@
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-Y</span> verify <span class="at">-f</span> allowed_signers <span class="at">-I</span> crimlab <span class="at">-n</span> file <span class="dt">\</span></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">-s</span> SHA256SUMS.sig <span class="op">&lt;</span> SHA256SUMS</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">sha256sum</span> <span class="at">-c</span> <span class="at">--ignore-missing</span> SHA256SUMS</span></code></pre></div>
-<p><code>install.sh</code> and <code>install.ps1</code> make the same check when the environment variable <code>CRIMLAB_SIGNER</code> holds that allowed-signers line (<code>crimlab ssh-ed25519 ...</code>); without it they check the archive against <code>SHA256SUMS</code> only.</p>
+<p><code>install.sh</code> and <code>install.ps1</code> hold this key and make the same check on every install, before the archive is fetched. <code>CRIMLAB_SIGNER</code> names another allowed-signers line (<code>crimlab ssh-ed25519 ...</code>) to check against, and <code>CRIMLAB_VERIFY=0</code> goes on without the check, with the archive checked against <code>SHA256SUMS</code> only.</p>
 </div>
 </div>
 

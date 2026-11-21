@@ -323,6 +323,44 @@ try(drfthomog(c(1, 2), c(a = 3)))
 #> Error : drfthomog: a numeric `x` must be named.
 ```
 
+### Drift of a whole table between two releases
+
+[`drfttab()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md),
+[`drftcal()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md):
+Compares a reference table and a current one column by column, with the
+tests of this family: a numeric (or date) column by the two-sample
+Kolmogorov-Smirnov test
+([`drftks()`](https://rootcoder007.github.io/crimlab/reference/drftks.md))
+and the population stability index
+([`drftpsi()`](https://rootcoder007.github.io/crimlab/reference/drftpsi.md)),
+a text, factor or logical column by the chi-square test of homogeneity
+([`drfthomog()`](https://rootcoder007.github.io/crimlab/reference/drfthomog.md)).
+[`drftcal()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)
+then says how often these screens fire on a table that has not changed
+at all, which is what a flag has to be read against.
+
+``` r
+
+set.seed(1)
+ref <- data.frame(age = rnorm(300, 35, 9),
+                  charge = sample(c("assault", "theft", "drugs"), 300, TRUE))
+cur <- data.frame(age = rnorm(300, 39, 9),
+                  charge = sample(c("assault", "theft", "drugs"), 300, TRUE))
+drfttab(ref, cur)
+#> drfttab: 2 columns, 1 flagged, 0 not testable (alpha 0.01, PSI above 0.25)
+#>  column    type        test statistic        p   psi nref ncur  flag
+#>     age numeric          ks     0.200 1.23e-05 0.309  300  300  TRUE
+#>  charge   label homogeneity     2.029 3.63e-01    NA  300  300 FALSE
+# how often the screens fire when nothing changed
+drftcal(ref, n = 20)
+#> drftcal: 20 half-splits of unchanged data at alpha 0.01
+#> any column flagged on 5% of splits; per-column level for a family-wise 0.01: 0.005
+#>  column  far
+#>  charge 0.05
+try(drfttab(ref, data.frame(other = 1)))
+#> Error : drfttab: `ref` and `cur` share no column.
+```
+
 ## Region maps
 
 ### Internal soundness of a region map

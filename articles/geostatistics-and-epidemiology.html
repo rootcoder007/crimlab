@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -545,9 +545,9 @@ fits the Weibull proportional hazards model with log-frailties of the
 areas under an intrinsic conditional autoregression, h(t) = rho t^(rho -
 1) exp(x beta + u_area) (Banerjee, Wall and Carlin 2003);
 <code><a href="../reference/sfrail.html">sfcure()</a></code> the promotion-time cure model (Chen, Ibrahim and
-Sinha 1999), <code>S(t) = exp(-theta (1 - exp(-G(t))))</code>, theta =
-exp(x beta + u_area) and G(t) = exp(c + rho log t), whose cure fraction
-is <code>exp(-theta)</code>. Both maximise the penalised likelihood, the
+Sinha 1999), S(t) = exp(-theta (1 - exp(-G(t)))), theta = exp(x beta +
+u_area) and G(t) = exp(c + rho log t), whose cure fraction is
+<code>exp(-theta)</code>. Both maximise the penalised likelihood, the
 penalty tau u’Qu / 2 with <code>Q</code> the Laplacian of the neighbour
 weights, by Newton-Raphson from 0 on the analytic gradient with a
 Hessian by central differences, the step halved while the objective

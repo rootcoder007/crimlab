@@ -47,7 +47,7 @@ custody and crime places.
 [`vignette("crimlab")`](https://rootcoder007.github.io/crimlab/articles/crimlab.md)
 walks through one example from each family.
 
-## What it takes
+## Input data
 
 The functions work on summary data, not on raw records:
 
@@ -66,7 +66,7 @@ The functions work on summary data, not on raw records:
   event time windows, reported figures, matched-pair differences and
   counts over time.
 
-## What it asks
+## Scope
 
 - Disparities: does visibility change who is stopped, what an odds ratio
   says about risk, whether hit rates can show bias, how a disparity per
@@ -111,7 +111,9 @@ The functions work on summary data, not on raw records:
 - Tables: cross-tabulation of records or of an aggregate table’s counts,
   with chi-square and likelihood-ratio tests, Fisher’s exact test,
   Cramer’s V with its interval, and the share on the diagonal
-  ([`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)).
+  ([`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md));
+  Cramer’s V alone, bias-corrected, from a table of counts
+  ([`cramerv()`](https://rootcoder007.github.io/crimlab/reference/cramerv.md)).
 - Time and contagion: Hawkes processes fitted to event times with a
   choice of kernels and baselines, their residuals and simulation
   ([`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md),
@@ -184,7 +186,15 @@ The functions work on summary data, not on raw records:
   ([`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)),
   and what the functions here would make of categorical inputs before an
   analysis
-  ([`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)).
+  ([`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md));
+  rules a table must satisfy, declared once and run before an analysis,
+  with the rows that break them: a value in a set, a number in a range,
+  no missing value, no repeated identifier, a pattern, an order, an
+  outlier, complete and distinct rows
+  ([`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md),
+  [`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md),
+  [`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+  and the other rule functions).
 - Police-reported crime: a severity-weighted index of counts by offence,
   per population and against a base period
   ([`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)),
@@ -319,6 +329,58 @@ The functions work on summary data, not on raw records:
   ([`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)),
   and whether distinct groups differ before their figures are pooled
   ([`dstntst()`](https://rootcoder007.github.io/crimlab/reference/dstntst.md)).
+- Survey proportions: an interval that holds near 0 and 1 (modified
+  Clopper-Pearson, modified Wilson or logit,
+  [`svypci()`](https://rootcoder007.github.io/crimlab/reference/svypci.md)),
+  and the release quality of an estimate by its counts and coefficient
+  of variation
+  ([`svyqual()`](https://rootcoder007.github.io/crimlab/reference/svyqual.md)),
+  beside the design-based estimates of
+  [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md).
+- Alcohol and drug use: a blood alcohol concentration from what was
+  drunk, by Widmark’s formula with fixed factors or the body-water
+  factors the Canadian surveys use
+  ([`ebac()`](https://rootcoder007.github.io/crimlab/reference/ebac.md)),
+  standard drinks by country
+  ([`stddrk()`](https://rootcoder007.github.io/crimlab/reference/stddrk.md)),
+  heavy drinking and the low-risk guideline
+  ([`hvydrk()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md),
+  [`lrdg()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md)),
+  and the scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST
+  ([`auditc()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+  [`dast10()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+  [`cudit()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+  [`canast()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)).
+- Drift between releases: whether a new release of a published table
+  still looks like the last, column by column
+  ([`drfttab()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md);
+  [`drftks()`](https://rootcoder007.github.io/crimlab/reference/drftks.md),
+  [`drftpsi()`](https://rootcoder007.github.io/crimlab/reference/drftpsi.md),
+  [`drfthomog()`](https://rootcoder007.github.io/crimlab/reference/drfthomog.md),
+  [`drftchisq()`](https://rootcoder007.github.io/crimlab/reference/drftchisq.md)
+  for one column), and how often such a screen fires on a table that has
+  not changed
+  ([`drftcal()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)).
+- Data from its publisher: where a dataset is now on the portal of a
+  police service, a statistical agency or a government
+  ([`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+  [`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+  [`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+  [`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+  [`scres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)),
+  a list of sources in Canada, the United States, the United Kingdom,
+  Europe and Australia
+  ([`srcls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+  [`srcurl()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)),
+  a download that reports the SHA-256 of what it wrote
+  ([`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)),
+  a director’s report of Ontario’s Special Investigations Unit by its
+  number
+  ([`ovrget()`](https://rootcoder007.github.io/crimlab/reference/ovrget.md)),
+  and the Indigenous health and census tables of the open data service
+  ([`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md),
+  [`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md)).
+  In R.
 - The footprint of the analysis itself: the energy a computation used
   and its emissions on the local grid, offline, with what was assumed
   rather than measured
@@ -840,6 +902,12 @@ relchk(tab, 0.44, ref = "B", event = "yes")
 d <- data.frame(sex = c("Male", "male", "Female", "Female", NA),
                 custody = c(TRUE, FALSE, TRUE, TRUE, FALSE))
 catchk(d, nmin = 2)
+
+# rules a table must satisfy, and the rows that break them
+d <- data.frame(year = c(2019, 2020, 2021, 2021),
+                div = c("11", "14", "14", "5X"))
+valrules(d, list(rulebtw("year", 2000, 2020),
+                 rulerx("div", "^[0-9]{2}$")))
 ```
 
 ### Proofs
@@ -974,9 +1042,22 @@ object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
 function of the R package but those that are in R only: the tables of
-the open data service
+the open data service and data from its publisher
 ([`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md),
-[`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md))
+[`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md),
+[`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md),
+[`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md),
+[`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`scres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`srcls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`srcurl()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md),
+[`ovrget()`](https://rootcoder007.github.io/crimlab/reference/ovrget.md)),
+a rule that holds an R function
+([`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md)),
 and the functions of placement volatility and alert complexity
 ([`plcvol()`](https://rootcoder007.github.io/crimlab/reference/plcvol.md),
 [`alrtcx()`](https://rootcoder007.github.io/crimlab/reference/alrtcx.md),

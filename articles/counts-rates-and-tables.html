@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -288,6 +288,31 @@ interval.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/ctabx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
+<div class="section level3">
+<h3 id="cramers-v-of-a-two-way-table">Cramer’s V of a two-way table<a class="anchor" aria-label="anchor" href="#cramers-v-of-a-two-way-table"></a>
+</h3>
+<p><code><a href="../reference/cramerv.html">cramerv()</a></code>: The strength of association in a contingency
+table as one number: 0 when the rows and columns are independent in the
+sample, 1 when each row holds a single column. It is the measure
+<code><a href="../reference/ctabx.html">ctabx()</a></code> reports beside its tests, given here on its own for
+a table that is already counted.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># use of force by weapon, counted</span></span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">6</span>, <span class="fl">2</span>, <span class="fl">9</span>, <span class="fl">14</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">11</span><span class="op">)</span>, <span class="fl">3</span>,</span>
+<span>              dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"knife"</span>, <span class="st">"gun"</span><span class="op">)</span>,</span>
+<span>                              <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hands"</span>, <span class="st">"CEW"</span>, <span class="st">"firearm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cramerv.html">cramerv</a></span><span class="op">(</span><span class="va">tab</span><span class="op">)</span></span>
+<span><span class="co">#&gt; cramerv: V = 0.5150056 (bias-corrected; uncorrected 0.5327594, 95% interval 0.3563396 to 0.6720259)</span></span>
+<span><span class="co">#&gt; chi-square 45.41321 on 4 df, p = 3.262244e-09, n = 80</span></span>
+<span><span class="co">#&gt; smallest expected count 3.2: report the exact test, ctabx(exact = TRUE)</span></span>
+<span><span class="fu"><a href="../reference/cramerv.html">cramerv</a></span><span class="op">(</span><span class="va">tab</span>, biascor <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">[[</span><span class="st">"v"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] 0.5327594</span></span>
+<span><span class="co"># independence: the corrected V is 0</span></span>
+<span><span class="fu"><a href="../reference/cramerv.html">cramerv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">[[</span><span class="st">"v"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] 0</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/cramerv.html">cramerv</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : cramerv: `tbl` must be a two-way table of counts (a numeric matrix or a 2-d table).</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="concentration">Concentration<a class="anchor" aria-label="anchor" href="#concentration"></a>
@@ -303,7 +328,7 @@ crime concentration (Weisburd 2015); with sparse counts much of the Gini
 comes from the units with no events at all, and a Poisson process at the
 same mean already leaves many units at zero (Bernasco and Steenbeek
 2017).</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="fl">200</span>, mu <span class="op">=</span> <span class="fl">2</span>, size <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span>
 <span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cconc.html">cconc</a></span><span class="op">(</span><span class="va">n</span>, nsim <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -324,7 +349,7 @@ same mean already leaves many units at zero (Bernasco and Steenbeek
 <span><span class="co"># the place of each incident, in order</span></span>
 <span><span class="fu"><a href="../reference/cconc.html">cconc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span>, <span class="fl">60</span>, <span class="cn">TRUE</span>, prob <span class="op">=</span> <span class="fl">8</span><span class="op">:</span><span class="fl">1</span><span class="op">)</span>, nsim <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">$</span><span class="va">grow</span><span class="op">$</span><span class="va">mhat</span></span>
 <span><span class="co">#&gt; [1] 2.254821</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/cconc-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -344,7 +369,7 @@ continuous Hill estimator 1 + n / sum log(x / xmin) for measurements
 such as distances. <code>ks</code> is the Kolmogorov-Smirnov distance
 between the tail and the fitted law: an exponent is only as good as that
 fit. The values at or below 0 are left out.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">400</span><span class="op">)</span><span class="op">^</span><span class="op">(</span><span class="op">-</span><span class="fl">1</span> <span class="op">/</span> <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/hilltl.html">hilltl</a></span><span class="op">(</span><span class="va">k</span>, xmin <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -367,7 +392,7 @@ list changes the odds of being on the other by at most a factor
 n2 / m] (<code>lower</code>, <code>upper</code>), and no data can narrow
 that box. Chapman’s estimate <code>(n1 + 1)(n2 + 1) / (m + 1) - 1</code>
 is nearly unbiased, with Seber’s standard error.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/crcap.html">crcap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n1 <span class="op">=</span> <span class="fl">500</span>, n2 <span class="op">=</span> <span class="fl">400</span>, m <span class="op">=</span> <span class="fl">80</span><span class="op">)</span>, kappa <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; crcap: two lists </span></span>
 <span><span class="co">#&gt;  petersen     lower     upper   chapman        se     floor </span></span>
@@ -392,7 +417,7 @@ is nearly unbiased, with Seber’s standard error.</p>
 <p><code><a href="../reference/dkfig.html">dkfig()</a></code>: What recorded crime and a victimisation survey
 together say about the crime that is never recorded, as intervals that
 hold under stated limits on the errors (Manski 2003).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/dkfig.html">dkfig</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.12</span>, <span class="fl">0.08</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">0.03</span>, amax <span class="op">=</span> <span class="fl">0.01</span>, bmax <span class="op">=</span> <span class="fl">0.2</span>, thr <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span>
 <span><span class="co">#&gt; dkfig: bounds on the dark figure</span></span>
 <span><span class="co">#&gt;      v    r         lo   hi        dlo  dhi    ratio       brk</span></span>
@@ -408,7 +433,7 @@ hold under stated limits on the errors (Manski 2003).</p>
 <span><span class="co">#&gt; dkfig: bounds on the dark figure</span></span>
 <span><span class="co">#&gt; incid offen ratio extra lower upper </span></span>
 <span><span class="co">#&gt;   5.0   8.0   1.6   0.6   5.0  15.0</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/dkfig.html">dkfig</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.12</span>, <span class="fl">0.08</span><span class="op">)</span>, r <span class="op">=</span> <span class="fl">0.03</span>, amax <span class="op">=</span> <span class="fl">0.01</span>, bmax <span class="op">=</span> <span class="fl">0.2</span>, thr <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/dkfig-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
@@ -427,7 +452,7 @@ places a value in each band (the midpoint, an end, or the geometric
 mean), expands a banded frequency table into one value per unit, and
 shows how much a statistic of those values depends on the cap assumed
 for an open top band.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1-5"</span>, <span class="st">"6-15"</span>, <span class="st">"16-30"</span>, <span class="st">"31-60"</span>, <span class="st">"Over 60"</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">25</span>, <span class="fl">15</span>, <span class="fl">12</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bandx.html">bandx</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">n</span>, stat <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
@@ -452,7 +477,7 @@ for an open top band.</p>
 <span><span class="co">#&gt; 10  713.93968 43.73259</span></span>
 <span><span class="co">#&gt; 11  933.27724 52.50609</span></span>
 <span><span class="co">#&gt; 12 1220.00000 63.97500</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/bandx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -469,7 +494,7 @@ to <code>k - 1</code>. Given the cells of an earlier period,
 <code>chg</code> holds every change the two columns allow, and an
 interval that spans 0 cannot tell a rise from a fall. See
 <code>proof("pbbnd")</code>.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pbbnd.html">pbbnd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1,240"</span>, <span class="st">"35"</span>, <span class="st">"&lt;5"</span>, <span class="st">"x"</span><span class="op">)</span>, rnd <span class="op">=</span> <span class="fl">5</span>, suplim <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt; pbbnd: what the published cells allow</span></span>
 <span><span class="co">#&gt;  value  lower  upper     status</span></span>
@@ -485,7 +510,7 @@ interval that spans 0 cannot tell a rise from a fall. See
 <span><span class="co">#&gt;  chglo chgup     pctlo    pctup ratelo rateup</span></span>
 <span><span class="co">#&gt;     15    25  14.63415 25.64103   2.35   2.45</span></span>
 <span><span class="co">#&gt;    -10     0 -44.44444  0.00000   0.25   0.35</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pbbnd.html">pbbnd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">15</span><span class="op">)</span>, rnd <span class="op">=</span> <span class="fl">5</span>, prev <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">20</span><span class="op">)</span>, pop <span class="op">=</span> <span class="fl">5e4</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/pbbnd-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
@@ -503,7 +528,7 @@ and the p-values adjusted for the number of comparisons (as
 <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>). With <code>rnd</code>, the counts are
 taken as rounded, and the envelope of the change they allow is added,
 with a percent interval that covers both.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2019</span><span class="op">:</span><span class="fl">2023</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                svc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>                n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">131</span>, <span class="fl">98</span>, <span class="fl">105</span>, <span class="fl">140</span>, <span class="fl">30</span>, <span class="fl">28</span>, <span class="fl">41</span>, <span class="fl">25</span>, <span class="fl">33</span><span class="op">)</span><span class="op">)</span></span>
@@ -531,7 +556,7 @@ with a percent interval that covers both.</p>
 <span><span class="co">#&gt;  0.14803218 0.2960644  FALSE     8    18  26.229508  70.58824 -11.610446 145.863553</span></span>
 <span><span class="co">#&gt;  0.06401750 0.1707133  FALSE   -21   -11 -48.275862 -28.57143 -64.464747   2.692906</span></span>
 <span><span class="co">#&gt;  0.35814330 0.5730293  FALSE     3    13  10.909091  57.77778 -23.859990 131.538008</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/yoypx.html">yoypx</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">n</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, <span class="va">d</span><span class="op">$</span><span class="va">svc</span>, rnd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
 <p><img src="counts-rates-and-tables_files/figure-html/yoypx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
@@ -548,7 +573,7 @@ the rates where there is a population, and does a short series trend.
 are easy to forget on a deadline: exact intervals and p-values adjusted
 over every comparison, and the envelope that rounding in the release
 allows.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2019</span><span class="op">:</span><span class="fl">2023</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                svc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>                n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">131</span>, <span class="fl">98</span>, <span class="fl">105</span>, <span class="fl">140</span>, <span class="fl">30</span>, <span class="fl">28</span>, <span class="fl">41</span>, <span class="fl">25</span>, <span class="fl">33</span><span class="op">)</span>,</span>

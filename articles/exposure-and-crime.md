@@ -282,6 +282,55 @@ plot(f)
 
 ![](exposure-and-crime_files/figure-html/expgmm-plot-1.png)
 
+## The parts of a fitted regression
+
+[`racc()`](https://rootcoder007.github.io/crimlab/reference/racc.md):
+The fits of
+[`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+[`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md),
+[`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
+[`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md),
+[`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md),
+[`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md),
+[`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md),
+[`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+and
+[`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
+are lists, and the usual accessors read them:
+[`coef()`](https://rdrr.io/r/stats/coef.html) gives the estimates by
+term, [`confint()`](https://rdrr.io/r/stats/confint.html) their
+intervals, [`vcov()`](https://rdrr.io/r/stats/vcov.html) the covariance
+matrix of the estimates and
+[`nobs()`](https://rdrr.io/r/stats/nobs.html) the rows the fit used.
+
+``` r
+
+set.seed(1)
+d <- data.frame(u = rep(1:20, each = 6), x = rnorm(120))
+d$y <- 1 + 0.5 * d$x + rnorm(120)
+f <- ivfe(d, "y", x = "x", fe = "u")
+coef(f)
+#>         x 
+#> 0.4803809
+confint(f)
+#>       lower     upper
+#> x 0.1880123 0.7727495
+#> attr(,"level")
+#> [1] 0.95
+vcov(f)
+#>            x
+#> x 0.01951251
+nobs(f)
+#> [1] 120
+```
+
+``` r
+
+plot(f)
+```
+
+![](exposure-and-crime_files/figure-html/racc-plot-1.png)
+
 ## Wind-direction instruments
 
 [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md):
@@ -448,7 +497,7 @@ place, leads and lags in one call, and returns one table of
 coefficients, the same day first. This is the placebo of Bondy, Roth and
 Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and
 forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table
-9: 100 days); `shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)` runs
+9: 100 days); shifts = c(-365, -100, -31, -7, 7, 31, 100, 365) runs
 both.
 
 ``` r

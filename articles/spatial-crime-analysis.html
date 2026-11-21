@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -299,21 +299,21 @@ windows [s, s + tw) that start at each distinct incident time. A
 cylinder holding <code>c</code> incidents, of <code>n_C</code> in its
 circle (at any time) and <code>n_W</code> in its window (anywhere),
 expects e = n_C n_W / n when place and time are independent, and scores
-the Poisson log-likelihood ratio c log(c / e) + (n - c) log((n - c) / (n
-- e)) when <code>c &gt; e</code>, 0 otherwise (Kulldorff 1997). The most
-likely cluster has the largest ratio; secondary clusters follow in order
-of their ratio, each the best of its circle among those whose circles
-overlap none chosen before. Each p-value compares the cluster’s ratio
-with the largest ratio of the whole scan with the times shuffled among
-the locations <code>nsim</code> times from <code>seed</code>, so a
-secondary cluster’s p-value is conservative. The shuffles run over the
-incidents in the order of their coordinates and times, so the clusters
-and the p-values do not depend on the order of the rows; a tie in the
-ratio goes to the centre first in that order. That the ratio is never
-negative is proved in Lean: see <code>proof("kscan")</code>. The work
-grows as the number of locations times <code>length(r)</code> times the
-distinct times times <code>length(tw)</code>, for the scan and for each
-permutation.</p>
+the Poisson log-likelihood ratio c log(c / e) + (n - c)
+<code>log((n - c) / (n - e))</code> when <code>c &gt; e</code>, 0
+otherwise (Kulldorff 1997). The most likely cluster has the largest
+ratio; secondary clusters follow in order of their ratio, each the best
+of its circle among those whose circles overlap none chosen before. Each
+p-value compares the cluster’s ratio with the largest ratio of the whole
+scan with the times shuffled among the locations <code>nsim</code> times
+from <code>seed</code>, so a secondary cluster’s p-value is
+conservative. The shuffles run over the incidents in the order of their
+coordinates and times, so the clusters and the p-values do not depend on
+the order of the rows; a tie in the ratio goes to the centre first in
+that order. That the ratio is never negative is proved in Lean: see
+<code>proof("kscan")</code>. The work grows as the number of locations
+times <code>length(r)</code> times the distinct times times
+<code>length(tw)</code>, for the scan and for each permutation.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">0</span>, <span class="fl">20</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">5</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -441,13 +441,13 @@ less the coefficients.</p>
 <h2 id="direct-indirect-and-total-effects-of-a-spatial-lag-model">Direct, indirect and total effects of a spatial lag model<a class="anchor" aria-label="anchor" href="#direct-indirect-and-total-effects-of-a-spatial-lag-model"></a>
 </h2>
 <p><code><a href="../reference/spill.html">spill()</a></code>: In a model with a spatial lag of the outcome, y
-= rho W y + X beta + W X theta + e, a change in covariate <code>k</code>
-at every unit moves the outcomes by S_k = (I - rho W)^-1 (beta_k I +
-theta_k W): the mean of its diagonal is the direct effect, the mean row
-sum the total, and their difference the indirect effect, the spillover
-to other units (LeSage and Pace 2009). An analysis that reads
-<code>beta_k</code> alone can report “no effect” where the effect is all
-spillover. With row-standardised weights the total is
+= rho W y + X beta + W X <code>theta + e</code>, a change in covariate
+<code>k</code> at every unit moves the outcomes by S_k = (I - rho W)^-1
+(beta_k I + theta_k W): the mean of its diagonal is the direct effect,
+the mean row sum the total, and their difference the indirect effect,
+the spillover to other units (LeSage and Pace 2009). An analysis that
+reads <code>beta_k</code> alone can report “no effect” where the effect
+is all spillover. With row-standardised weights the total is
 <code>(beta_k + theta_k) / (1 - rho)</code>, proved in Lean: see
 <code>proof("spill")</code>. Standard errors are by the delta method in
 <code>rho</code>, <code>beta_k</code> and <code>theta_k</code>, with the

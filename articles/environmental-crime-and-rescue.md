@@ -170,11 +170,11 @@ together across units, the test Andreatta et al. (2023, p. 1376) run on
 the residuals of their waste-crime models before deciding a spatial
 model is not needed. For each pair of units the correlation `rho_ab` of
 their values over the `T_ab` periods they share, about the means over
-those periods; CD = sum sqrt(T_ab) rho_ab / sqrt(m) over the `m` pairs,
-which for a balanced panel of `N` units and `T` periods is sqrt(2 T / (N
-(N - 1))) sum rho_ab, standard normal under no dependence. Pairs that
-share fewer than two periods, or along which a unit does not vary, are
-left out. This is the statistic of `plm::pcdtest(test = "cd")`. For
+those periods; CD = sum sqrt(T_ab) rho_ab / `sqrt(m)` over the `m`
+pairs, which for a balanced panel of `N` units and `T` periods is sqrt(2
+T / (N (N - 1))) sum rho_ab, standard normal under no dependence. Pairs
+that share fewer than two periods, or along which a unit does not vary,
+are left out. This is the statistic of `plm::pcdtest(test = "cd")`. For
 dependence between neighbours rather than across all pairs, use
 [`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)
 on each period’s residuals, as Andreatta et al. also do.

@@ -225,6 +225,35 @@ plot(res)
 
 ![](counts-rates-and-tables_files/figure-html/ctabx-plot-1.png)
 
+### Cramer’s V of a two-way table
+
+[`cramerv()`](https://rootcoder007.github.io/crimlab/reference/cramerv.md):
+The strength of association in a contingency table as one number: 0 when
+the rows and columns are independent in the sample, 1 when each row
+holds a single column. It is the measure
+[`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
+reports beside its tests, given here on its own for a table that is
+already counted.
+
+``` r
+
+# use of force by weapon, counted
+tab <- matrix(c(30, 6, 2, 9, 14, 3, 1, 4, 11), 3,
+              dimnames = list(c("none", "knife", "gun"),
+                              c("hands", "CEW", "firearm")))
+cramerv(tab)
+#> cramerv: V = 0.5150056 (bias-corrected; uncorrected 0.5327594, 95% interval 0.3563396 to 0.6720259)
+#> chi-square 45.41321 on 4 df, p = 3.262244e-09, n = 80
+#> smallest expected count 3.2: report the exact test, ctabx(exact = TRUE)
+cramerv(tab, biascor = FALSE)[["v"]]
+#> [1] 0.5327594
+# independence: the corrected V is 0
+cramerv(matrix(c(10, 20, 10, 20), 2))[["v"]]
+#> [1] 0
+try(cramerv(1:4))
+#> Error : cramerv: `tbl` must be a two-way table of counts (a numeric matrix or a 2-d table).
+```
+
 ## Concentration
 
 ### Concentration of crime across places, people or units

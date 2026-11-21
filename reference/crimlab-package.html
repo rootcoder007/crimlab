@@ -15,7 +15,7 @@ Statistical methods for courts, corrections, policing, forensics and sociolegal 
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,14 +84,18 @@ Statistical methods for courts, corrections, policing, forensics and sociolegal 
     <h2 id="notice-of-a-newer-release">Notice of a newer release<a class="anchor" aria-label="anchor" href="#notice-of-a-newer-release"></a></h2>
 
 
-<p>In an interactive session, attaching the package says in one line when
-a newer release exists. The page of the latest release is asked for at
-most once a day, with a limit of two seconds, and the answer is kept in
-<code>tools::R_user_dir("crimlab", "cache")</code>; nothing is sent but that
-request, and a failure is silent. A session that is not interactive
-(a script, a check, a test) never asks. <code>options(crimlab.update = FALSE)</code>
-before the package is attached, or the environment variable
-<code>CRIMLAB_NO_UPDATE_CHECK</code> set to anything, turns it off.</p>
+<p>The package makes no request on its own. <code><a href="updchk.html">updchk()</a></code> asks the release
+page once, when called. A notice at attach is off unless turned on:
+with <code>options(crimlab.update = TRUE)</code> before the package is attached
+(in <code>.Rprofile</code>, say), or the environment variable
+<code>CRIMLAB_UPDATE_CHECK</code> set to <code>1</code>, an interactive session then says in
+one line when a newer release exists. The page of the latest release
+is asked for at most once a day, with a limit of two seconds, and the
+answer is kept in <code>tools::R_user_dir("crimlab", "cache")</code>; nothing is
+sent but that request, and a failure is silent. A session that is not
+interactive (a script, a check, a test) never asks.
+<code>options(crimlab.update = FALSE)</code>, or unsetting the variable, turns the
+notice off again.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

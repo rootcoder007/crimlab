@@ -1,5 +1,125 @@
 # Changelog
 
+## crimlab 0.1.0
+
+- Rules a table must satisfy.
+  [`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+  runs a list of rules on a data frame and returns the ones that failed,
+  with the rows that broke them. The ready-made rules cover the usual
+  checks: a value in a set
+  ([`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  a number in a range
+  ([`rulebtw()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  no missing value
+  ([`rulenull()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  no repeated value
+  ([`ruleuniq()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  a pattern
+  ([`rulerx()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  an order
+  ([`ruleincr()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  an outlier by the median absolute deviation
+  ([`rulemad()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  complete rows
+  ([`rulecmpl()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)),
+  distinct rows
+  ([`ruledstn()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md))
+  and a number of columns
+  ([`rulecolcnt()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)).
+  A ready-made rule is data, so the same rules run from the command line
+  and in Python, Go, Rust, Java and JavaScript.
+  [`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+  declares a rule from any R function, in R.
+- Drift of a whole table.
+  [`drfttab()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)
+  compares two releases of a table column by column (Kolmogorov-Smirnov
+  and the population stability index for numbers, the chi-square test of
+  homogeneity for labels) and flags the columns that moved.
+  [`drftcal()`](https://rootcoder007.github.io/crimlab/reference/drfttab.md)
+  says how often those screens fire on a table that has not changed,
+  from random half-splits that are the same in every language for a
+  seed.
+- Alcohol and drug use, in every language.
+  [`ebac()`](https://rootcoder007.github.io/crimlab/reference/ebac.md)
+  estimates a blood alcohol concentration from standard drinks by
+  Widmark’s formula, with the fixed factors of Matthews and
+  Miller (1979) or, given a height, the body-water factors of Seidl,
+  Jensen and Alt (2000) that the Canadian Postsecondary Education
+  Alcohol and Drug Use Survey uses for its `ebac_tot`; its help page
+  says how to reproduce that variable.
+  [`stddrk()`](https://rootcoder007.github.io/crimlab/reference/stddrk.md)
+  counts standard drinks by a country’s grams.
+  [`hvydrk()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md)
+  and
+  [`lrdg()`](https://rootcoder007.github.io/crimlab/reference/hvydrk.md)
+  are the survey’s flags of heavy drinking (four or more drinks for
+  women, five or more for men) and of drinking above the daily limit of
+  Canada’s low-risk guideline.
+  [`auditc()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+  [`dast10()`](https://rootcoder007.github.io/crimlab/reference/auditc.md),
+  [`cudit()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  and
+  [`canast()`](https://rootcoder007.github.io/crimlab/reference/auditc.md)
+  score the AUDIT and AUDIT-C, the DAST-10, the CUDIT-R and the cannabis
+  items of the ASSIST.
+- Intervals for a survey proportion.
+  [`svypci()`](https://rootcoder007.github.io/crimlab/reference/svypci.md)
+  gives, from an estimate and its design-based standard error, the
+  modified Clopper-Pearson interval of Korn and Graubard (1998), the
+  modified Wilson interval, the logit interval or the Wald interval; the
+  first three are the ones statistical agencies ask for near 0 and 1.
+  [`svyqual()`](https://rootcoder007.github.io/crimlab/reference/svyqual.md)
+  grades an estimate as acceptable, marginal or unacceptable by its
+  unweighted counts and coefficient of variation, with Health Canada’s
+  thresholds by default.
+- Presets for two public files of Health Canada, which the user
+  supplies: the Canadian Postsecondary Education Alcohol and Drug Use
+  Survey 2021-22 (`cpads-canast`, `cpads-lrdg`, `cpads-hvydrk`,
+  `cpads-can12`) and the Canadian Substance Use Survey 2023
+  (`csus-canast`, `csus-alc7d`). A preset’s recode `num:a,b` reads
+  numbers with the codes a and b missing.
+- [`cramerv()`](https://rootcoder007.github.io/crimlab/reference/cramerv.md):
+  Cramer’s V of a two-way table of counts, bias-corrected (Bergsma 2013)
+  or not, with its interval, the chi-square test and the smallest
+  expected count.
+- Data from its publisher, in R.
+  [`ckanres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  and
+  [`ckanls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  list the files of a dataset and search a CKAN portal,
+  [`socres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  describes a Socrata dataset,
+  [`arcres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  an ArcGIS layer, and
+  [`scres()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  gives the address of a Statistics Canada table.
+  [`srcls()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  lists sources of police, court and correctional data in Canada, the
+  United States, the United Kingdom, Europe and Australia,
+  [`srcurl()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  asks the publisher where one of them is now, and
+  [`srcget()`](https://rootcoder007.github.io/crimlab/reference/ckanres.md)
+  downloads a file and reports its SHA-256.
+  [`ovrget()`](https://rootcoder007.github.io/crimlab/reference/ovrget.md)
+  saves a director’s report of Ontario’s Special Investigations Unit by
+  its number.
+  [`indtabs()`](https://rootcoder007.github.io/crimlab/reference/indtabs.md)
+  and
+  [`indiex()`](https://rootcoder007.github.io/crimlab/reference/indiex.md)
+  find the Indigenous health and census tables of the open data service.
+  No address of a file is written in the package: each is read from the
+  portal at the call.
+- The notice of a newer release is off unless asked for. The package
+  makes no request when it is attached or imported.
+  [`updchk()`](https://rootcoder007.github.io/crimlab/reference/updchk.md)
+  asks once, when called. `options(crimlab.update = TRUE)` in R, or the
+  environment variable `CRIMLAB_UPDATE_CHECK=1` in R and Python, turns
+  the notice on; `options(crimlab.update = FALSE)`, or unsetting the
+  variable, turns it off again. The command-line program asks only with
+  `crimlab --update`, as before.
+- The installers `install.sh` and `install.ps1` check the release key by
+  default and show each step.
+
 ## crimlab 0.0.4
 
 - Fixed: `spill` from the command-line program, and from the Python, Go,

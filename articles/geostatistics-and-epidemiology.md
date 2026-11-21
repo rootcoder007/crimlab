@@ -501,10 +501,10 @@ fits the Weibull proportional hazards model with log-frailties of the
 areas under an intrinsic conditional autoregression, h(t) = rho
 t^(rho - 1) exp(x beta + u_area) (Banerjee, Wall and Carlin 2003);
 [`sfcure()`](https://rootcoder007.github.io/crimlab/reference/sfrail.md)
-the promotion-time cure model (Chen, Ibrahim and Sinha 1999),
-`S(t) = exp(-theta (1 - exp(-G(t))))`, theta = exp(x beta + u_area) and
-G(t) = exp(c + rho log t), whose cure fraction is `exp(-theta)`. Both
-maximise the penalised likelihood, the penalty tau u’Qu / 2 with `Q` the
+the promotion-time cure model (Chen, Ibrahim and Sinha 1999), S(t) =
+exp(-theta (1 - exp(-G(t)))), theta = exp(x beta + u_area) and G(t) =
+exp(c + rho log t), whose cure fraction is `exp(-theta)`. Both maximise
+the penalised likelihood, the penalty tau u’Qu / 2 with `Q` the
 Laplacian of the neighbour weights, by Newton-Raphson from 0 on the
 analytic gradient with a Hessian by central differences, the step halved
 while the objective falls, until a step is below `tol` (200 iterations

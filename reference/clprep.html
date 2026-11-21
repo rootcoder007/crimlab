@@ -23,7 +23,7 @@ against them."><meta property="og:image" content="https://rootcoder007.github.io
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -126,7 +126,8 @@ with attributes <code>preset</code>, <code>generic</code>, <code>source</code>, 
 folder), one per preset and argument: <code>preset</code>, <code>generic</code>, <code>arg</code>, <code>column</code>
 (the dataset's column), <code>recode</code>, <code>filter</code>, <code>units</code>, <code>note</code>, <code>source</code>. Python
 reads the same file. A <code>recode</code> is one of: empty (the column as it is); <code>fac</code>
-(a factor, one effect per value); <code>num</code> (numbers); <code>pct</code> (numbers over 100);
+(a factor, one effect per value); <code>num</code> (numbers; <code>num:a,b</code> with the codes
+a and b missing, as a survey's 998 and 999); <code>pct</code> (numbers over 100);
 <code>one</code> (a 1 for every row); <code>flag</code> (1 for yes, y, true, t, 1 or a positive
 number, 0 otherwise); <code>dum</code> (one 0 or 1 column per value but the first, named
 by the column and the value); <code>sub:a,b</code> (characters a to b, as a year from an

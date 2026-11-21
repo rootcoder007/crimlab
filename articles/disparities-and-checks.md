@@ -310,6 +310,88 @@ catchk(factor(c("b", "a", "b"), levels = c("a", "b", "c")), ref = "b")
 #> x: never seen: "c"; seen fewer than 5 times: "a", "b"; reference "b": seen fewer than nmin times
 ```
 
+### Declare rules a table must satisfy, and check them
+
+[`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md),
+[`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md):
+[`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+declares one rule: a name, a function that says whether the data pass,
+the column it reads (or the whole table), how serious a failure is and
+the message to give.
+[`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+runs a list of rules on a data frame and returns the ones that failed,
+with the rows that broke them. The ready-made rules
+([`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+and the others) cover the usual checks, so that they are written once
+and not by hand.
+
+``` r
+
+d <- data.frame(id = c(1, 2, 2, 4), age = c(34, -1, 51, NA),
+                charge = c("assault", "theft", "theft", "arson"))
+r <- list(
+  rul("age_not_negative", function(v) is.na(v) | v >= 0, col = "age",
+      msg = "an age is negative"),
+  ruleuniq("id", sev = "fatal"),
+  rulenull("age"),
+  ruleinset("charge", c("assault", "theft", "drugs"))
+)
+v <- valrules(d, r)
+v
+#> valrules: 4 rules, 4 failed (1 fatal)
+#>   warning  age_not_negative: an age is negative (1 of 4 rows); rows 2
+#>   fatal  id_unique: Column 'id' has duplicate values (1 of 4 rows); rows 3
+#>   warning  age_not_null: Column 'age' has missing values (1 of 4 rows); rows 4
+#>   warning  charge_in_set: Column 'charge' has values outside the allowed set (1 of 4 rows); rows 4
+v[["id_unique"]][["rows"]]
+#> [1] 3
+# a table that passes
+length(valrules(d[1, ], r))
+#> [1] 0
+# a rule written as data
+valrules(d, list(rule = "btw", col = "age", lo = 0, hi = 120))
+#> valrules: 1 rules, 1 failed (0 fatal)
+#>   warning  age_between: Column 'age' has values outside [0, 120] (1 of 4 rows); rows 2
+try(rul("", function(v) TRUE))
+#> Error : rul: `name` must be one non-empty string.
+```
+
+### Ready-made rules
+
+[`ruleinset()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md),
+[`rulebtw()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md),
+[`rulenull()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md),
+[`ruleuniq()`](https://rootcoder007.github.io/crimlab/reference/ruleinset.md)
+and others: The checks that account for most of what a table is asked: a
+value in a set, a number in a range, no missing value, no repeated
+identifier, a pattern, an order, an outlier, complete rows, distinct
+rows, a number of columns. Each returns a rule for
+[`valrules()`](https://rootcoder007.github.io/crimlab/reference/rul.md),
+as [`rul()`](https://rootcoder007.github.io/crimlab/reference/rul.md)
+does.
+
+``` r
+
+d <- data.frame(year = c(2019, 2020, 2021, 2021),
+                n = c(410, 395, 9000, 402),
+                div = c("11", "14", "14", "5X"))
+valrules(d, list(
+  rulebtw("year", 2000, 2026),
+  ruleincr("year", strict = TRUE),
+  rulemad("n", 5),
+  rulerx("div", "^[0-9]{2}$"),
+  ruledstn(c("year", "div")),
+  rulecolcnt(3),
+  rulecmpl()
+))
+#> valrules: 7 rules, 3 failed (0 fatal)
+#>   warning  year_increasing: Column 'year' is not strictly increasing
+#>   warning  n_within_mads: Column 'n' has values more than 5 MADs from its median (1 of 4 rows); rows 3
+#>   warning  div_regex: Column 'div' has values not matching /^[0-9]{2}$/ (1 of 4 rows); rows 4
+try(rulebtw("year", 2026, 2000))
+#> Error : rulebtw: `lo` must not be above `hi`.
+```
+
 ## Shares
 
 ### Share of a total, in percent

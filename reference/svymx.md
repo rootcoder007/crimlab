@@ -105,6 +105,10 @@ the weights (the estimated population), the degrees of freedom, and
 Kish's effective sample size `(sum w)^2 / sum w^2` and the design effect
 of the weights `n sum w^2 / (sum w)^2`.
 
+A `clpre` list from
+[`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+may be given as `y`: its elements fill the arguments.
+
 ## References
 
 Lumley, T. (2004). Analysis of complex survey samples. *Journal of

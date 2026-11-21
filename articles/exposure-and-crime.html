@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -334,13 +334,46 @@ The residual (<code>err</code>):</p>
 <p><img src="exposure-and-crime_files/figure-html/expgmm-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
+<h2 id="the-parts-of-a-fitted-regression">The parts of a fitted regression<a class="anchor" aria-label="anchor" href="#the-parts-of-a-fitted-regression"></a>
+</h2>
+<p><code><a href="../reference/racc.html">racc()</a></code>: The fits of <code><a href="../reference/ppmlfe.html">ppmlfe()</a></code>,
+<code><a href="../reference/ivfe.html">ivfe()</a></code>, <code><a href="../reference/ppmlcf.html">ppmlcf()</a></code>, <code><a href="../reference/expgmm.html">expgmm()</a></code>,
+<code><a href="../reference/fepnl.html">fepnl()</a></code>, <code><a href="../reference/gmmpnl.html">gmmpnl()</a></code>, <code><a href="../reference/didfe.html">didfe()</a></code>,
+<code><a href="../reference/rdloc.html">rdloc()</a></code> and <code><a href="../reference/sarml.html">sarml()</a></code> are lists, and the usual
+accessors read them: <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code> gives the estimates by term,
+<code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> their intervals, <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> the
+covariance matrix of the estimates and <code><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs()</a></code> the rows the
+fit used.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span></span>
+<span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ivfe.html">ivfe</a></span><span class="op">(</span><span class="va">d</span>, <span class="st">"y"</span>, x <span class="op">=</span> <span class="st">"x"</span>, fe <span class="op">=</span> <span class="st">"u"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         x </span></span>
+<span><span class="co">#&gt; 0.4803809</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       lower     upper</span></span>
+<span><span class="co">#&gt; x 0.1880123 0.7727495</span></span>
+<span><span class="co">#&gt; attr(,"level")</span></span>
+<span><span class="co">#&gt; [1] 0.95</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            x</span></span>
+<span><span class="co">#&gt; x 0.01951251</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 120</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span></code></pre></div>
+<p><img src="exposure-and-crime_files/figure-html/racc-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
 <h2 id="wind-direction-instruments">Wind-direction instruments<a class="anchor" aria-label="anchor" href="#wind-direction-instruments"></a>
 </h2>
 <p><code><a href="../reference/windiv.html">windiv()</a></code>: Turns wind directions into indicators of the
 sector the wind blows from, one sector left out, optionally one set per
 area so that the same wind may act differently in different parts of a
 city; from hourly directions it first makes one per day.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/windiv.html">windiv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      w90_180 w180_270 w270_0</span></span>
 <span><span class="co">#&gt; [1,]       0        0      0</span></span>
@@ -387,7 +420,7 @@ ground level and temperatures at circa 750 m altitude (925 hectopascals
 (hPa) pressure level)”. On most days the air cools with height; in an
 inversion it is warmer above than at the ground, and pollutants are
 trapped near the ground.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/invsn.html">invsn</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">5</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">6</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   diff inv</span></span>
 <span><span class="co">#&gt; 1   -2   0</span></span>
@@ -418,7 +451,7 @@ move from day to day (Bao and Da 2026) or from a fixed set of sources
 (Ayesh 2023), for the instrumental-variable estimators
 <code><a href="../reference/ivfe.html">ivfe()</a></code>, <code><a href="../reference/ppmlcf.html">ppmlcf()</a></code> and
 <code><a href="../reference/expgmm.html">expgmm()</a></code>.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># two plumes on day 1, one on day 2; four county points (planar, km)</span></span>
 <span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">50</span>, <span class="fl">0</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">180</span>, <span class="fl">270</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -467,7 +500,7 @@ instrument of the landing direction at Frankfurt Airport: aircraft land
 westbound (course 250 degrees) unless the tailwind on that course
 exceeds 2.6 m/s, so the days of the eastbound approach, and which
 municipalities lie under the noise, follow from the wind.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># wind from the east (70 degrees) at 4 m/s is a 4 m/s tailwind westbound</span></span>
 <span><span class="fu"><a href="../reference/tailwd.html">tailwd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">70</span>, <span class="fl">340</span>, <span class="fl">250</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  4.000000e+00 -7.347881e-16 -4.000000e+00</span></span>
@@ -485,10 +518,9 @@ from other days of the same place, leads and lags in one call, and
 returns one table of coefficients, the same day first. This is the
 placebo of Bondy, Roth and Sager (2020, table A1 and footnote 27: 7, 31
 and 365 days back and forward) and of Herrnstadt, Heyes, Muehlegger and
-Saberian (2019, table 9: 100 days);
-<code>shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)</code> runs
-both.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+Saberian (2019, table 9: 100 days); shifts = c(-365, -100, -31, -7, 7,
+31, 100, 365) runs both.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated: crime responds to same-day pollution only</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">80</span>, area <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span></span>
@@ -504,7 +536,7 @@ both.</p>
 <span><span class="co">#&gt;      7 -0.0088918 0.005132 -0.018950 0.001167 8.316e-02 876</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/plcday-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/plcday-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -519,7 +551,7 @@ upwind side shares the day’s weather and everything else about the day
 near that road, so it is the control for the downwind side; the side
 fixed effects take out what differs between the two sides on every
 day.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated: a road along the x axis, areas on both sides, crime up 10%</span></span>
 <span><span class="co"># on the downwind side</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
@@ -549,7 +581,7 @@ day.</p>
 <span><span class="co">#&gt;   1600 -0.07013 0.02327 -0.11574 -0.02453 0.002577 154</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">u</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/updwn-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># the Poisson model and two distance rings</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/updwn.html">updwn</a></span><span class="op">(</span><span class="va">d</span>, <span class="st">"crimes"</span>, <span class="st">"ax"</span>, <span class="st">"ay"</span>, <span class="st">"day"</span>, <span class="st">"wind"</span>, <span class="va">road</span>, band <span class="op">=</span> <span class="fl">1600</span>,</span>
 <span>              norm <span class="op">=</span> <span class="st">"pois"</span>, dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">500</span>, <span class="fl">1600</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -559,7 +591,7 @@ day.</p>
 <span><span class="co">#&gt;           hi        rr</span></span>
 <span><span class="co">#&gt; 1 0.24631225 1.1197946</span></span>
 <span><span class="co">#&gt; 2 0.05257017 0.9625708</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">u</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/updwn-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -573,7 +605,7 @@ monitors (assigned to areas beforehand, for example by inverse squared
 distance from the three nearest, as Bondy, Roth and Sager do) or from
 crimlab’s dispersion functions (<code><a href="../reference/pgsig.html">gplume()</a></code>,
 <code><a href="../reference/plmfld.html">plmfld()</a></code>).</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  area <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>,</span>
 <span>  day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -598,7 +630,7 @@ recent papers from a daily smoke-plume record by place: the presence of
 a plume; the presence adjusted to the plumes that reached the ground;
 plume density classes; smoke-attributable fine particles; and counts by
 month.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated plumes and PM2.5 in two places over 120 days</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>place <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">120</span><span class="op">)</span>,</span>
@@ -632,7 +664,7 @@ them: the effect by day in the run, as Lee and Lee (2026, equation 3,
 p. 12) estimate it, Crime = b1 Day1 + b2 Day2 + b3 Day3+ + …, which
 shows whether the effect fades as people adapt (it rises on the first
 and second smoke days and falls from the third in their 21 cities).</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>area <span class="op">=</span> <span class="fl">1</span>, day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">8</span>, smoke <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">d</span>, <span class="fu"><a href="../reference/exprun.html">exprun</a></span><span class="op">(</span><span class="va">d</span>, <span class="st">"smoke"</span>, <span class="st">"area"</span>, <span class="st">"day"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   area day smoke run run1 run2 run3p</span></span>
@@ -659,7 +691,7 @@ and second smoke days and falls from the third in their 21 cities).</p>
 <span><span class="co">#&gt;  run3p -0.03799 0.05251 -0.7234 4.694e-01 -0.14091 0.06493 0.9627</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/exprun-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/exprun-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -669,7 +701,7 @@ and second smoke days and falls from the third in their 21 cities).</p>
 <p><code><a href="../reference/hetfx.html">hetfx()</a></code>: Estimates the effect of an exposure separately
 for each level of a moderator (household wealth, income quantile, rural
 or urban, offence context) and tests whether the effects are equal.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated: pollution matters in poor areas only</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">60</span>, area <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span></span>
@@ -685,7 +717,7 @@ or urban, offence context) and tests whether the effects are equal.</p>
 <span><span class="co">#&gt; Wald test of equal effects: 41.96 on 1 df, p = 9.31e-11</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">h</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/hetfx-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">h</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/hetfx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -702,7 +734,7 @@ region nested in the same weekday of same month from the same year”
 wildfire PM2.5 driven by wind speed, the 2-day moving average of
 exposure (<code>ma</code>), and errors clustered by calendar year-month
 (the default <code>clus</code> here).</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2023-01-01"</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0</span><span class="op">:</span><span class="fl">364</span>, area <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">$</span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">15</span>, <span class="fl">4</span><span class="op">)</span></span>
@@ -743,7 +775,7 @@ exposure (<code>ma</code>), and errors clustered by calendar year-month
 <span><span class="co">#&gt; [1]  1.4930239 -0.7746229  3.8124944</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">h</span>, terms <span class="op">=</span> <span class="st">"no2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/ccross-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">h</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/ccross-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -755,7 +787,7 @@ effects<a class="anchor" aria-label="anchor" href="#two-exposures-together-their
 smoke and heat) act together on a count, as a surface of rate ratios
 over both, the effect of one at chosen levels of the other, and a test
 of the interaction.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">150</span>, city <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">$</span><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">25</span>, <span class="fl">4</span><span class="op">)</span></span>
@@ -776,7 +808,7 @@ of the interaction.</p>
 <span><span class="co">#&gt; Wald test of no interaction: NA on 12 df, p = NA</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/jntx-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">j</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/jntx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -787,7 +819,7 @@ of the interaction.</p>
 of its bins, the reference bin left out, fits the model, and tests
 whether the bins matter and whether their effects follow a straight
 line.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, area <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">$</span><span class="va">aqi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">4</span>, <span class="fl">0.1</span><span class="op">)</span></span>
@@ -806,7 +838,7 @@ line.</p>
 <span><span class="co">#&gt;  linear 14.72  3 0.0020678</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">b</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/dosebin-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">b</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/dosebin-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -817,7 +849,7 @@ correction<a class="anchor" aria-label="anchor" href="#effects-by-offence-type-i
 <p><code><a href="../reference/typefx.html">typefx()</a></code>: Fits the same model to several outcomes
 (assault, robbery, burglary, property crime, …) and adjusts the p-values
 for the number of outcomes tested.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">60</span>, area <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">$</span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>, <span class="fl">20</span>, <span class="fl">5</span><span class="op">)</span></span>
@@ -832,7 +864,7 @@ for the number of outcomes tested.</p>
 <span><span class="co">#&gt;    theft -0.002616 0.006038 -0.01445 0.009219 0.6648421 0.6648421 720</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/typefx-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/typefx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -854,7 +886,7 @@ each grid point; they used ArcGIS Pro and state neither the power nor
 the neighbours, so give both); Wesselbaum (2022) matches each crime “to
 the measures of the nearest weather, pollution station”
 (<code>k = 1</code>).</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, pm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/idwint.html">idwint</a></span><span class="op">(</span><span class="va">m</span><span class="op">$</span><span class="va">x</span>, <span class="va">m</span><span class="op">$</span><span class="va">y</span>, <span class="va">m</span><span class="op">$</span><span class="va">pm</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   val used</span></span>
@@ -882,7 +914,7 @@ Gaussian kernel of their space-time distance, so that the coefficients
 vary over places and periods. They relate robbery, domestic violence and
 fraud in the local government areas of New South Wales to the air
 quality index month by month.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>u <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, v <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, t <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">d</span><span class="op">$</span><span class="va">aqi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">)</span></span>
@@ -920,7 +952,7 @@ rules of “at least 10% support … and at least 20% confidence”
 here) in R’s arules package; with two variables these are all its rules,
 the empty left-hand side included as arules includes it by default
 (<code>empty</code>).</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html" class="external-link">cut</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, <span class="fl">5</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vl"</span>, <span class="st">"l"</span>, <span class="st">"m"</span>, <span class="st">"mh"</span>, <span class="st">"vh"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ipv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html" class="external-link">cut</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, <span class="fl">5</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vl"</span>, <span class="st">"l"</span>, <span class="st">"m"</span>, <span class="st">"mh"</span>, <span class="st">"vh"</span><span class="op">)</span><span class="op">)</span></span>
@@ -946,7 +978,7 @@ of a balanced panel at possibly different times, estimated as the
 generalized synthetic control of Xu (2017): a model of the untreated
 outcome fitted to the units never treated, then carried to each treated
 unit through its periods before adoption.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span>, yr <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
@@ -966,7 +998,7 @@ unit through its periods before adoption.</p>
 distributed lag (CS-ARDL) long-run effects of Chudik et al. (2016) as
 Ditzen (2021, sec. 3.2) sets them out, from the unit estimates of
 <code><a href="../reference/ccepnl.html">ccepnl()</a></code>.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fl">30</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">tt</span>, prov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">25</span><span class="op">)</span><span class="op">)</span></span>
@@ -992,7 +1024,7 @@ Ditzen (2021, sec. 3.2) sets them out, from the unit estimates of
 <span><span class="co">#&gt;   term        est         se         z            p         lo         hi</span></span>
 <span><span class="co">#&gt; 1    x  0.8218133 0.10435066  7.875497 3.393915e-15  0.6172897  1.0263368</span></span>
 <span><span class="co">#&gt; 2   dx -0.2750372 0.06408953 -4.291453 1.775074e-05 -0.4006504 -0.1494241</span></span></code></pre></div>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="exposure-and-crime_files/figure-html/lrcce-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -1004,7 +1036,7 @@ each covariate is coarsened into bins, the rows are grouped by their
 bins on every covariate at once, and only the groups (strata) holding
 both treated and control rows are kept, so that a later regression
 compares like with like without extrapolating.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>pov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">14</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span></span>
@@ -1039,7 +1071,7 @@ variance inflation of each predictor and the correlations among them,
 the Durbin-Watson statistic of the residuals, each row’s leverage,
 studentised residuals and Cook’s distance, and the expected count, with
 its standard error and interval, for a month of given weather.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 84 months of weather and assaults, simulated</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>temp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">84</span>, <span class="fl">26</span>, <span class="fl">8</span><span class="op">)</span>, hum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">84</span>, <span class="fl">10</span>, <span class="fl">60</span><span class="op">)</span>,</span>

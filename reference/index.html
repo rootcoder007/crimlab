@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">crimlab</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -980,7 +980,7 @@
       </dl></div><div class="section level2">
       <h2 id="checks">Checks<a class="anchor" aria-label="anchor" href="#checks"></a></h2>
 
-      <div class="section-desc"><p>Which labelling of a table reproduces a reported contrast, and an audit of categorical inputs.</p></div>
+      <div class="section-desc"><p>Which labelling of a table reproduces a reported contrast, an audit of categorical inputs, and rules a table must satisfy, declared once and run before an analysis.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -1000,6 +1000,20 @@
 
         </dt>
         <dd>Audit categorical inputs before an analysis</dd>
+
+        <dt>
+
+          <code><a href="rul.html">rul()</a></code> <code><a href="rul.html">valrules()</a></code>
+
+        </dt>
+        <dd>Declare rules a table must satisfy, and check them</dd>
+
+        <dt>
+
+          <code><a href="ruleinset.html">ruleinset()</a></code> <code><a href="ruleinset.html">rulebtw()</a></code> <code><a href="ruleinset.html">rulenull()</a></code> <code><a href="ruleinset.html">ruleuniq()</a></code> <code><a href="ruleinset.html">rulerx()</a></code> <code><a href="ruleinset.html">ruleincr()</a></code> <code><a href="ruleinset.html">rulemad()</a></code> <code><a href="ruleinset.html">rulecmpl()</a></code> <code><a href="ruleinset.html">ruledstn()</a></code> <code><a href="ruleinset.html">rulecolcnt()</a></code>
+
+        </dt>
+        <dd>Ready-made rules</dd>
       </dl></div><div class="section level2">
       <h2 id="counts-rates-and-tables">Counts, rates and tables<a class="anchor" aria-label="anchor" href="#counts-rates-and-tables"></a></h2>
 
@@ -1044,6 +1058,13 @@
 
         </dt>
         <dd>Cross-tabulation with tests and measures of association</dd>
+
+        <dt>
+
+          <code><a href="cramerv.html">cramerv()</a></code>
+
+        </dt>
+        <dd>Cramer's V of a two-way table</dd>
       </dl></div><div class="section level2">
       <h2 id="police-reported-crime">Police-reported crime<a class="anchor" aria-label="anchor" href="#police-reported-crime"></a></h2>
 
@@ -1996,7 +2017,7 @@
       </dl></div><div class="section level2">
       <h2 id="surveys">Surveys<a class="anchor" aria-label="anchor" href="#surveys"></a></h2>
 
-      <div class="section-desc"><p>Design-based means, totals, proportions, ratios and variances by domain from stratified, clustered and weighted samples.</p></div>
+      <div class="section-desc"><p>Design-based means, totals, proportions, ratios and variances by domain from stratified, clustered and weighted samples; intervals for a proportion that hold near 0 and 1; and the release quality of an estimate.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -2009,6 +2030,20 @@
 
         </dt>
         <dd>Design-based estimates from a complex survey</dd>
+
+        <dt>
+
+          <code><a href="svypci.html">svypci()</a></code>
+
+        </dt>
+        <dd>Confidence interval of a survey proportion</dd>
+
+        <dt>
+
+          <code><a href="svyqual.html">svyqual()</a></code>
+
+        </dt>
+        <dd>Release quality of a survey estimate</dd>
 
         <dt>
 
@@ -2048,6 +2083,13 @@
 
         </dt>
         <dd>crimlab: Statistical Toolkit for Criminology and Sociolegal Research</dd>
+
+        <dt>
+
+          <code><a href="updchk.html">updchk()</a></code>
+
+        </dt>
+        <dd>Ask whether a newer release exists</dd>
 
         <dt>
 
@@ -3046,6 +3088,43 @@
         </dt>
         <dd>Check a coded table of oversight reports</dd>
       </dl></div><div class="section level2">
+      <h2 id="alcohol-and-drug-use">Alcohol and drug use<a class="anchor" aria-label="anchor" href="#alcohol-and-drug-use"></a></h2>
+
+      <div class="section-desc"><p>A blood alcohol concentration from what was drunk (Widmark, with the body-water factors the Canadian surveys use), standard drinks by country, heavy drinking and the low-risk guideline, and the scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ebac.html">ebac()</a></code>
+
+        </dt>
+        <dd>Estimated blood alcohol concentration (Widmark)</dd>
+
+        <dt>
+
+          <code><a href="stddrk.html">stddrk()</a></code>
+
+        </dt>
+        <dd>Standard drinks in a volume of a beverage</dd>
+
+        <dt>
+
+          <code><a href="hvydrk.html">hvydrk()</a></code> <code><a href="hvydrk.html">lrdg()</a></code>
+
+        </dt>
+        <dd>Heavy drinking, and drinking above the low-risk guideline</dd>
+
+        <dt>
+
+          <code><a href="auditc.html">auditc()</a></code> <code><a href="auditc.html">dast10()</a></code> <code><a href="auditc.html">cudit()</a></code> <code><a href="auditc.html">canast()</a></code>
+
+        </dt>
+        <dd>Scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST</dd>
+      </dl></div><div class="section level2">
       <h2 id="shares">Shares<a class="anchor" aria-label="anchor" href="#shares"></a></h2>
 
       <div class="section-desc"><p>Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.</p></div>
@@ -3186,6 +3265,13 @@
 
         </dt>
         <dd>Chi-square test of homogeneity of two categorical samples</dd>
+
+        <dt>
+
+          <code><a href="drfttab.html">drfttab()</a></code> <code><a href="drfttab.html">drftcal()</a></code>
+
+        </dt>
+        <dd>Drift of a whole table between two releases</dd>
       </dl></div><div class="section level2">
       <h2 id="change-tables-out">Change tables out<a class="anchor" aria-label="anchor" href="#change-tables-out"></a></h2>
 
@@ -3717,7 +3803,7 @@
       </dl></div><div class="section level2">
       <h2 id="open-data">Open data<a class="anchor" aria-label="anchor" href="#open-data"></a></h2>
 
-      <div class="section-desc"><p>Tables of the project’s open data service, loaded by their key and used only when they match the SHA-256 the service’s manifest lists.</p></div>
+      <div class="section-desc"><p>Tables of the project’s open data service, loaded by their key and used only when they match the SHA-256 the service’s manifest lists; and data straight from its publisher, police services, statistical agencies and open data portals in Canada, the United States, the United Kingdom, Europe and Australia, found where the portal says it is now.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -3730,6 +3816,34 @@
 
         </dt>
         <dd>Tables of the open data service</dd>
+
+        <dt>
+
+          <code><a href="indtabs.html">indtabs()</a></code>
+
+        </dt>
+        <dd>The tables of the data service about Indigenous peoples</dd>
+
+        <dt>
+
+          <code><a href="indiex.html">indiex()</a></code>
+
+        </dt>
+        <dd>Statistics Canada tables on Indigenous peoples, by subject</dd>
+
+        <dt>
+
+          <code><a href="ckanres.html">ckanres()</a></code> <code><a href="ckanres.html">ckanls()</a></code> <code><a href="ckanres.html">socres()</a></code> <code><a href="ckanres.html">arcres()</a></code> <code><a href="ckanres.html">srcget()</a></code> <code><a href="ckanres.html">srcls()</a></code> <code><a href="ckanres.html">srcurl()</a></code> <code><a href="ckanres.html">scres()</a></code>
+
+        </dt>
+        <dd>Open data from the publisher's portal</dd>
+
+        <dt>
+
+          <code><a href="ovrget.html">ovrget()</a></code>
+
+        </dt>
+        <dd>Fetch one police oversight report</dd>
       </dl></div><div class="section level2">
       <h2 id="placement-volatility-and-alert-complexity">Placement volatility and alert complexity<a class="anchor" aria-label="anchor" href="#placement-volatility-and-alert-complexity"></a></h2>
 
