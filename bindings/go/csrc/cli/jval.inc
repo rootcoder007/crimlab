@@ -1093,4 +1093,124 @@ bool adxflag(Ctx &c, Val &out, double fdef, double mdef, bool atl) {
 bool hvydrk(Ctx &c, Val &out) { return adxflag(c, out, 4, 5, true); }
 bool lrdg(Ctx &c, Val &out) { return adxflag(c, out, 2, 3, false); }
 
+// svypci() and svyqual() (R/svyci.R).
+
+bool svypci(Ctx &c, Val &out) {
+  static const char *const ms[] = {"beta", "wilson", "logit", "wald"};
+  int m = 0;
+  CK(pickd(c, "method", ms, 4, 0, m));
+  bool trunc = true;
+  CK(flagj(c, "trunc", true, trunc));
+  std::vector<double> est, se, n, df;
+  CK(adnum(c, "est", est));
+  CK(adnum(c, "se", se));
+  CK(adnum(c, "n", n));
+  if (c.has("df")) {
+    CK(adnum(c, "df", df));
+  } else {
+    for (double v : n) df.push_back(std::isnan(v) ? NA : v - 1);
+  }
+  for (double v : est) {
+    if (v < 0 || v > 1) return ckstop(c, "`est` must be proportions, from 0 to 1");
+  }
+  for (double v : se) {
+    if (v < 0) return ckstop(c, "`se` must be numbers from 0");
+  }
+  for (double v : n) {
+    if (v < 2 || v != std::floor(v)) return ckstop(c, "`n` must be whole numbers of at least 2");
+  }
+  for (double v : df) {
+    if (v < 1) return ckstop(c, "`df` must be at least 1");
+  }
+  const double level = c.has("level") ? adone(c["level"]) : 0.95;
+  if (!(level > 0 && level < 1)) return ckstop(c, "`level` must be one number in (0, 1)");
+  std::size_t k = 0;
+  for (std::size_t q : {est.size(), se.size(), n.size(), df.size()}) k = std::max(k, q);
+  for (std::size_t q : {est.size(), se.size(), n.size(), df.size()}) {
+    if (q != 1 && q != k) return ckstop(c, "the arguments must have one length, or length 1");
+  }
+  const double a = 1 - level, z = clab_qnorm(1 - a / 2);
+  std::vector<double> lo(k, NA), hi(k, NA), ne(k, NA), ev(k, NA);
+  for (std::size_t i = 0; i < k; ++i) {
+    const double p = adat(est, i), s = adat(se, i), nn = adat(n, i), d = adat(df, i);
+    ev[i] = std::isnan(p) ? NA : p;
+    if (std::isnan(p) || std::isnan(s) || std::isnan(nn) || std::isnan(d)) continue;
+    const double tq = clab_qt(1 - a / 2, d, 1);
+    double e = nn;
+    if (p > 0 && p < 1 && s > 0) {
+      const double r = clab_qt(1 - a / 2, nn - 1, 1) / tq;
+      e = p * (1 - p) / (s * s) * r * r;
+      if (trunc) e = std::fmin(nn, e);
+    }
+    ne[i] = e;
+    const double x = p * e;
+    if (m == 0) {
+      lo[i] = x > 0 ? clab_qbeta(a / 2, x, e - x + 1, 1) : 0;
+      hi[i] = x < e ? clab_qbeta(1 - a / 2, x + 1, e - x, 1) : 1;
+    } else if (m == 1) {
+      const double mid = p + z * z / (2 * e), half = z * std::sqrt(p * (1 - p) / e + z * z / (4 * e * e));
+      lo[i] = (mid - half) / (1 + z * z / e);
+      hi[i] = (mid + half) / (1 + z * z / e);
+    } else if (m == 2) {
+      if (p > 0 && p < 1) {
+        const double l = std::log(p / (1 - p)), h = tq * s / (p * (1 - p));
+        lo[i] = 1 / (1 + std::exp(-(l - h)));
+        hi[i] = 1 / (1 + std::exp(-(l + h)));
+      }
+    } else {
+      lo[i] = p - tq * s;
+      hi[i] = p + tq * s;
+    }
+  }
+  Frame f;
+  f.num("est", ev);
+  f.num("lo", lo);
+  f.num("hi", hi);
+  f.num("neff", ne);
+  out = f.o;
+  return true;
+}
+
+// Numbers from 0 (null: missing), or the refusal.
+inline bool adpos(Ctx &c, const char *nm, std::vector<double> &v) {
+  CK(adnum(c, nm, v));
+  for (double x : v) {
+    if (x < 0) return ckstop(c, "`%s` must be numbers from 0", nm);
+  }
+  return true;
+}
+
+bool svyqual(Ctx &c, Val &out) {
+  std::vector<double> cv, n, d;
+  CK(adpos(c, "cv", cv));
+  CK(adpos(c, "n", n));
+  const bool hasd = c.has("d");
+  if (hasd) CK(adpos(c, "d", d));
+  static const char *const tn[] = {"cvlo", "cvhi", "nmin", "dmin"};
+  double t[4] = {16.6, 33.3, 10, 50};
+  for (int i = 0; i < 4; ++i) {
+    if (c.has(tn[i])) t[i] = adone(c[tn[i]]);
+    if (!(t[i] >= 0)) return ckstop(c, "`%s` must be one number from 0", tn[i]);
+  }
+  if (t[0] > t[1]) return ckstop(c, "`cvlo` must not be above `cvhi`");
+  std::size_t k = std::max(cv.size(), n.size());
+  if (hasd) k = std::max(k, d.size());
+  if ((cv.size() != 1 && cv.size() != k) || (n.size() != 1 && n.size() != k) ||
+      (hasd && d.size() != 1 && d.size() != k)) {
+    return ckstop(c, "the arguments must have one length, or length 1");
+  }
+  Val v = varr();
+  for (std::size_t i = 0; i < k; ++i) {
+    const double x = adat(cv, i), nn = adat(n, i), dd = hasd ? adat(d, i) : 0;
+    // few: 1 too few, 0 enough, -1 not known
+    int few = std::isnan(nn) ? -1 : nn < t[2];
+    if (hasd) few = few == 1 || (!std::isnan(dd) && dd < t[3]) ? 1 : (few == -1 || std::isnan(dd) ? -1 : 0);
+    if (few == 1 || (!std::isnan(x) && x > t[1])) v.a.push_back(vstr("unacceptable"));
+    else if (few == -1 || std::isnan(x)) v.a.push_back(Val());
+    else v.a.push_back(vstr(x <= t[0] ? "acceptable" : "marginal"));
+  }
+  out = unbox(v);
+  return true;
+}
+
 }  // namespace vr

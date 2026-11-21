@@ -8911,7 +8911,7 @@ def svypci(est: Any, se: Any, n: Any, df: Any = None, method: Any = "beta", leve
     --------
     >>> r = svypci(est=0.12, se=0.021, n=400, df=38, method="wilson")
     >>> round(r['lo'][0], 4), round(r['hi'][0], 4)
-    (0.0836, 0.1691)
+    (0.0839, 0.1689)
     """
     return jcall("svypci", est=est, se=se, n=n, df=df, method=method, level=level, trunc=trunc)
 

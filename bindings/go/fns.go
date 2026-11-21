@@ -70,6 +70,12 @@ func Cudit(args string) (string, error) { return Jrun("cudit", args) }
 // Canast runs canast() of the R package (arguments: x; ? marks an optional one).
 func Canast(args string) (string, error) { return Jrun("canast", args) }
 
+// Svypci runs svypci() of the R package (arguments: est se n df? method? level? trunc?; ? marks an optional one).
+func Svypci(args string) (string, error) { return Jrun("svypci", args) }
+
+// Svyqual runs svyqual() of the R package (arguments: cv n d? cvlo? cvhi? nmin? dmin?; ? marks an optional one).
+func Svyqual(args string) (string, error) { return Jrun("svyqual", args) }
+
 // Vodtst runs vodtst() of the R package (arguments: day night ref? shift?; ? marks an optional one).
 func Vodtst(args string) (string, error) { return Jrun("vodtst", args) }
 

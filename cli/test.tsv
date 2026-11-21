@@ -1898,3 +1898,24 @@ cudit	{"x":[[0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0]]}	!cudit: item 8 must be scored 
 canast	{"x":[[1,0,0,0,0,0],[3,2,0,0,0,0],[4,4,3,3,2,2],[1,null,0,0,0,0]]}	{"total":[2,8,37,null],"level":["low","moderate","high",null]}
 canast	{"x":[[1,0,0,0,3,0],[0,0,0,0,0,0]]}	!canast: item 5 must be answered 0 to 2.
 canast	{"x":[[1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]}	!canast: `x` must be a numeric matrix or data frame of 6 columns (the ASSIST items on cannabis).
+svypci	{"est":0.87431693989071035,"se":0.02035947724462743,"n":183,"df":14,"trunc":false}	{"est":[0.87431693989071035],"lo":[0.82370221084750106],"hi":[0.91470449212686533],"neff":[224.35480051873245]}
+svypci	{"est":0.87431693989071035,"se":0.02035947724462743,"n":183,"df":14}	{"est":[0.87431693989071035],"lo":[0.8174026072974051],"hi":[0.91863246908745388],"neff":[183]}
+svypci	{"est":0.87431693989071035,"se":0.02035947724462743,"n":183,"df":14,"method":"logit"}	{"est":[0.87431693989071035],"lo":[0.82379889238300186],"hi":[0.91190007702439324],"neff":[183]}
+svypci	{"est":0.12,"se":0.021000000000000001,"n":400,"df":38,"method":"wilson"}	{"est":[0.12],"lo":[0.083850725619547081],"hi":[0.16886128086684907],"neff":[225.82399225124018]}
+svypci	{"est":0.12,"se":0.021000000000000001,"n":400,"df":38,"method":"wald","level":0.90000000000000002}	{"est":[0.12],"lo":[0.084594956336498522],"hi":[0.15540504366350147],"neff":[228.98508567078545]}
+svypci	{"est":[0,1,0.5,null],"se":0.02,"n":100,"df":20}	{"est":[0,1,0.5,null],"lo":[0,0.96378330735482354,0.39832112950330101,null],"hi":[0.036216692645176463,1,0.60167887049669899,null],"neff":[100,100,100,null]}
+svypci	{"est":[0,1,0.5],"se":0.02,"n":100,"df":20,"method":"logit"}	{"est":[0,1,0.5],"lo":[null,null,0.45837727857071864],"hi":[null,null,0.54162272142928147],"neff":[100,100,100]}
+svypci	{"est":[0,1,0.29999999999999999],"se":[0.02,0.02,0],"n":[100,100,200],"method":"wilson"}	{"est":[0,1,0.29999999999999999],"lo":[0,0.96300650179301428,0.24074744682371402],"hi":[0.036993498206985657,1,0.36679068372719259],"neff":[100,100,200]}
+svypci	{"est":1.2,"se":0.10000000000000001,"n":400}	!svypci: `est` must be proportions, from 0 to 1.
+svypci	{"est":0.20000000000000001,"se":-0.10000000000000001,"n":400}	!svypci: `se` must be numbers from 0.
+svypci	{"est":0.20000000000000001,"se":0.10000000000000001,"n":1}	!svypci: `n` must be whole numbers of at least 2.
+svypci	{"est":0.20000000000000001,"se":0.10000000000000001,"n":100,"df":0}	!svypci: `df` must be at least 1.
+svypci	{"est":0.20000000000000001,"se":0.10000000000000001,"n":100,"level":1}	!svypci: `level` must be one number in (0, 1).
+svypci	{"est":[0.10000000000000001,0.20000000000000001],"se":[0.10000000000000001,0.20000000000000001,0.29999999999999999],"n":100}	!svypci: the arguments must have one length, or length 1.
+svyqual	{"cv":[8,20,40,8,8,16.600000000000001,16.699999999999999,33.299999999999997,33.399999999999999],"n":[120,60,30,6,40,10,10,10,10],"d":[900,500,300,200,45,50,50,50,50]}	["acceptable","marginal","unacceptable","unacceptable","unacceptable","acceptable","marginal","marginal","unacceptable"]
+svyqual	{"cv":[12,12],"n":[35,9]}	["acceptable","unacceptable"]
+svyqual	{"cv":[null,null,50,10],"n":[50,5,null,null]}	[null,"unacceptable","unacceptable",null]
+svyqual	{"cv":20,"n":30,"d":60,"dmin":100}	"unacceptable"
+svyqual	{"cv":-1,"n":10}	!svyqual: `cv` must be numbers from 0.
+svyqual	{"cv":10,"n":10,"cvlo":40}	!svyqual: `cvlo` must not be above `cvhi`.
+svyqual	{"cv":[1,2],"n":[1,2,3]}	!svyqual: the arguments must have one length, or length 1.

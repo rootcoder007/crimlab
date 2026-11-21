@@ -50,6 +50,34 @@ res <- svymx(d$victim, d$w, d$region, d$block, stat = "prop")
 plot(res)
 ```
 
+## Confidence interval of a survey proportion
+
+`svypci()`: An interval for a proportion estimated from a complex survey, from the estimate and its design-based standard error (those of `svymx()`, say). The usual interval, the estimate plus and minus a multiple of its standard error (Wald), is too narrow for a small sample or a proportion near 0 or 1, and can leave the range 0 to 1; statistical agencies ask for one of the three others here instead.
+
+```{r svypci}
+# 12% of 400 respondents, standard error 2.1 points, 38 design df
+svypci(0.12, 0.021, 400, df = 38)
+for (m in c("beta", "wilson", "logit", "wald")) {
+  print(svypci(0.12, 0.021, 400, df = 38, method = m))
+}
+# near 0 the Wald interval leaves the range; the others do not
+svypci(0.01, 0.008, 400, df = 38, method = "wald")
+svypci(0.01, 0.008, 400, df = 38, method = "wilson")
+try(svypci(1.2, 0.1, 400))
+```
+
+## Release quality of a survey estimate
+
+`svyqual()`: Grades an estimate by the rule of Health Canada's guides to the Canadian surveys of alcohol and drug use (Health Canada 2022, Table 1): by the unweighted number of observations behind it and by its coefficient of variation. `"acceptable"`: at least `nmin` observations with the characteristic (and, for a proportion, at least `dmin` in the domain) and a coefficient of variation of at most `cvlo` per cent. `"marginal"`: the same counts and a coefficient above `cvlo` up to `cvhi`; to be released with a warning. `"unacceptable"`: fewer observations, or a coefficient above `cvhi`; not to be released.
+
+```{r svyqual}
+svyqual(cv = c(8, 20, 40, 8, 8), n = c(120, 60, 30, 6, 40),
+        d = c(900, 500, 300, 200, 45))
+# a mean or a total: no denominator
+svyqual(12, 35)
+try(svyqual(-1, 10))
+```
+
 ## Rao-Scott chi-square test for a survey table
 
 `rscchi()`: The test of independence of two categorical variables in a two-way table from a stratified, clustered and weighted sample (a victimisation or justice survey, say), with Rao and Scott's corrections for the design, to go with the estimates of `svymx()` and the tables of `ctabx()`. Pearson's statistic on such data is too large: the design makes the cell proportions vary more than simple random sampling, and the corrections divide it by the design effects.
