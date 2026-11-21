@@ -148,6 +148,26 @@ scres("35-10-0177-01")
 }
 try(srcurl("nowhere"))
 }
+\references{
+Wilkinson, M. D., Dumontier, M., Aalbersberg, I. J., Appleton, G.,
+et al. (2016). The FAIR Guiding Principles for scientific data
+management and stewardship. \emph{Scientific Data}, 3, 160018.
+\doi{10.1038/sdata.2016.18}
+
+CKAN Association. \emph{CKAN API guide}.
+\url{https://docs.ckan.org/en/latest/api/}
+
+Tyler Technologies. \emph{Socrata Open Data API: API endpoints}.
+\url{https://dev.socrata.com/docs/endpoints}
+
+Esri. \emph{ArcGIS REST APIs}. \url{https://developers.arcgis.com/rest/}
+
+Statistics Canada. \emph{Web Data Service (WDS) user guide}.
+\url{https://www.statcan.gc.ca/en/developers/wds/user-guide}
+
+Eurostat. \emph{Web services: access to the data by API (SDMX 2.1)}.
+\url{https://ec.europa.eu/eurostat/web/main/data/web-services}
+}
 \seealso{
 \code{\link[=odtab]{odtab()}} for the tables the project's service mirrors and
 checks; \code{\link[=ovrget]{ovrget()}} for one oversight report.

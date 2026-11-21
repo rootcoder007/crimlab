@@ -91,6 +91,25 @@
 #'   `"socrata"`, `"arcgis"`, `"statcan"`, `"url"` or `"page"`), `portal`
 #'   and `id`. `srcurl()` one address: for a CKAN dataset the first CSV
 #'   file's (else the first file's), for a page or a portal its own.
+#' @references
+#'   Wilkinson, M. D., Dumontier, M., Aalbersberg, I. J., Appleton, G.,
+#'   et al. (2016). The FAIR Guiding Principles for scientific data
+#'   management and stewardship. *Scientific Data*, 3, 160018.
+#'   \doi{10.1038/sdata.2016.18}
+#'
+#'   CKAN Association. *CKAN API guide*.
+#'   <https://docs.ckan.org/en/latest/api/>
+#'
+#'   Tyler Technologies. *Socrata Open Data API: API endpoints*.
+#'   <https://dev.socrata.com/docs/endpoints>
+#'
+#'   Esri. *ArcGIS REST APIs*. <https://developers.arcgis.com/rest/>
+#'
+#'   Statistics Canada. *Web Data Service (WDS) user guide*.
+#'   <https://www.statcan.gc.ca/en/developers/wds/user-guide>
+#'
+#'   Eurostat. *Web services: access to the data by API (SDMX 2.1)*.
+#'   <https://ec.europa.eu/eurostat/web/main/data/web-services>
 #' @seealso [odtab()] for the tables the project's service mirrors and
 #'   checks; [ovrget()] for one oversight report.
 #' @examples
@@ -357,6 +376,12 @@ scres <- function(pid, lang = c("en", "fr")) {
 #' @inheritParams odtab
 #' @return A data frame with a row per table: `key`, `rows`,
 #'   `description`, `licence` and `source`.
+#' @references
+#'   Statistics Canada. *Indigenous Population Profile, 2021 Census of
+#'   Population*. Ottawa.
+#'
+#'   Statistics Canada. *Statistics Canada Open Licence*.
+#'   <https://www.statcan.gc.ca/en/reference/licence>
 #' @seealso [odtab()] and [odls()]; [indiex()] for the tables by subject.
 #' @examples
 #' \dontrun{
@@ -443,6 +468,12 @@ indtabs <- function(
 #' @inheritParams odtab
 #' @return The rows of [indtabs()] for the subject; with `load = TRUE`,
 #'   the first of those tables as a data frame.
+#' @references
+#'   Statistics Canada. *Indigenous Population Profile, 2021 Census of
+#'   Population*. Ottawa.
+#'
+#'   Statistics Canada. *Statistics Canada Open Licence*.
+#'   <https://www.statcan.gc.ca/en/reference/licence>
 #' @seealso [indtabs()], [odtab()]; [sctidy()] and [scests()] to read a
 #'   Statistics Canada table once loaded.
 #' @examples
@@ -511,6 +542,12 @@ indiex <- function(
 #' @inheritParams ckanres
 #' @return As [srcget()]: invisibly, a list of `path`, `bytes`, `sha256`
 #'   and `url`.
+#' @references
+#'   Special Investigations Unit Act, 2019, S.O. 2019, c. 1, Sched. 5
+#'   (Ontario).
+#'
+#'   Special Investigations Unit. *Director's reports*.
+#'   <https://www.siu.on.ca/en/directors_reports.php>
 #' @seealso [ovrtxt()], [ovrpar()]; [srcls()] for other sources.
 #' @examples
 #' \dontrun{

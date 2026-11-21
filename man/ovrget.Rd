@@ -42,6 +42,13 @@ substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)
 }
 try(ovrget(0, tempfile()))
 }
+\references{
+Special Investigations Unit Act, 2019, S.O. 2019, c. 1, Sched. 5
+(Ontario).
+
+Special Investigations Unit. \emph{Director's reports}.
+\url{https://www.siu.on.ca/en/directors_reports.php}
+}
 \seealso{
 \code{\link[=ovrtxt]{ovrtxt()}}, \code{\link[=ovrpar]{ovrpar()}}; \code{\link[=srcls]{srcls()}} for other sources.
 }

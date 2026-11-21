@@ -54,6 +54,13 @@ x <- indiex("lifeexp", load = TRUE)
 }
 try(indiex("weather"))
 }
+\references{
+Statistics Canada. \emph{Indigenous Population Profile, 2021 Census of
+Population}. Ottawa.
+
+Statistics Canada. \emph{Statistics Canada Open Licence}.
+\url{https://www.statcan.gc.ca/en/reference/licence}
+}
 \seealso{
 \code{\link[=indtabs]{indtabs()}}, \code{\link[=odtab]{odtab()}}; \code{\link[=sctidy]{sctidy()}} and \code{\link[=scests]{scests()}} to read a
 Statistics Canada table once loaded.

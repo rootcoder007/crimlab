@@ -47,6 +47,13 @@ t[, c("key", "rows")]
 }
 try(indtabs(pat = ""))
 }
+\references{
+Statistics Canada. \emph{Indigenous Population Profile, 2021 Census of
+Population}. Ottawa.
+
+Statistics Canada. \emph{Statistics Canada Open Licence}.
+\url{https://www.statcan.gc.ca/en/reference/licence}
+}
 \seealso{
 \code{\link[=odtab]{odtab()}} and \code{\link[=odls]{odls()}}; \code{\link[=indiex]{indiex()}} for the tables by subject.
 }
