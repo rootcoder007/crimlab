@@ -663,6 +663,16 @@ reference:
       - ovrsoc
       - ovrkwd
       - ovrchk
+  - title: Alcohol and drug use
+    desc: A blood alcohol concentration from what was drunk (Widmark, with
+      the body-water factors the Canadian surveys use), standard drinks by
+      country, heavy drinking and the low-risk guideline, and the scores of
+      the AUDIT, the DAST-10, the CUDIT-R and the ASSIST.
+    contents:
+      - ebac
+      - stddrk
+      - hvydrk
+      - auditc
   - title: Shares
     desc: Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.
     contents:

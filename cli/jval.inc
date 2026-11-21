@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// cramerv() (R/crv.R), drfttab() and drftcal() (R/drtab.R), and
-// valrules() with its ready-made rules (R/rul.R) for clab_jrun(). The
+// cramerv() (R/crv.R), drfttab() and drftcal() (R/drtab.R), valrules()
+// with its ready-made rules (R/rul.R), and the alcohol and drug use
+// functions (R/adx.R) for clab_jrun(). The
 // Monte Carlo p-value of a sparse table of labels is drawn by R's own
 // generator, so drfttab() leaves such a column untested here and says so
 // in its note, as drfthomog() refuses that branch. A rule that holds an R
@@ -728,5 +729,368 @@ bool valrules(Ctx &c, Val &out) {
   }
   return true;
 }
+
+// ebac(), stddrk(), hvydrk(), lrdg(), auditc(), dast10(), cudit() and
+// canast() (R/adx.R).
+
+// Numbers given as one number or an array (null: missing); absent: none.
+inline bool adnum(Ctx &c, const char *nm, std::vector<double> &v) {
+  v.clear();
+  const Val &o = c[nm];
+  bool ok = o.t == Val::NUM || o.t == Val::ARR;
+  for (std::size_t i = 0; ok && i < vlen(o); ++i) {
+    const Val &e = o.t == Val::ARR ? o.a[i] : o;
+    double z = 0;
+    if (e.t == Val::NUM) v.push_back(e.n);
+    else if (e.t == Val::NUL) v.push_back(NA);
+    else if (snum(e, z)) v.push_back(z);
+    else ok = false;
+  }
+  if (!ok || v.empty()) return ckstop(c, "`%s` must be numeric", nm);
+  return true;
+}
+
+// One finite number, or NaN.
+inline double adone(const Val &o) {
+  const Val &e = one(o);
+  return e.t == Val::NUM && std::isfinite(e.n) ? e.n : NaN;
+}
+
+inline double adat(const std::vector<double> &v, std::size_t i) { return v.size() == 1 ? v[0] : v[i]; }
+
+bool ebac(Ctx &c, Val &out) {
+  static const char *const un[] = {"kg", "lb"};
+  int u = 0;
+  CK(pickd(c, "unit", un, 2, 0, u));
+  std::vector<double> d, w, h(1, 0.0), r;
+  CK(adnum(c, "drinks", d));
+  CK(adnum(c, "weight", w));
+  if (c.has("hours")) CK(adnum(c, "hours", h));
+  for (double x : d) {
+    if (x < 0) return ckstop(c, "`drinks` must be numbers from 0");
+  }
+  for (double x : w) {
+    if (x <= 0) return ckstop(c, "`weight` must be positive numbers");
+  }
+  for (double x : h) {
+    if (x < 0) return ckstop(c, "`hours` must be numbers from 0");
+  }
+  std::vector<double> ht;
+  if (c.has("height")) {
+    CK(adnum(c, "height", ht));
+    for (double x : ht) {
+      if (x <= 0) return ckstop(c, "`height` must be positive numbers");
+    }
+  }
+  if (!c.has("r")) {
+    const Val &s = c["sex"];
+    std::vector<int> male;
+    bool ok = s.t == Val::NUL || s.t == Val::STR || (s.t == Val::ARR && !s.a.empty());
+    if (s.t == Val::NUL) male.push_back(1);
+    for (std::size_t i = 0; ok && s.t != Val::NUL && i < vlen(s); ++i) {
+      const Val &e = s.t == Val::ARR ? s.a[i] : s;
+      ok = e.t == Val::STR && (e.s == "male" || e.s == "female");
+      if (ok) male.push_back(e.s == "male");
+    }
+    if (!ok) return ckstop(c, "`sex` must be \"male\" or \"female\"");
+    if (ht.empty()) {
+      for (int k : male) r.push_back(k ? 0.73 : 0.66);
+    } else {
+      // the factor of Seidl, Jensen and Alt (2000) from weight and height
+      const std::size_t q = std::max(std::max(male.size(), w.size()), ht.size());
+      for (std::size_t k : {male.size(), w.size(), ht.size()}) {
+        if (k != 1 && k != q) return ckstop(c, "the arguments must have one length, or length 1");
+      }
+      for (std::size_t i = 0; i < q; ++i) {
+        const double kg = u == 1 ? adat(w, i) * 0.45359237 : adat(w, i), cm = adat(ht, i);
+        const double f = (male.size() == 1 ? male[0] : male[i]) ? 0.31608 - 0.004821 * kg + 0.004632 * cm
+                                                                 : 0.31223 - 0.006446 * kg + 0.004466 * cm;
+        if (f <= 0) return ckstop(c, "the weight and height give a factor that is not positive");
+        r.push_back(std::isnan(f) ? NA : f);
+      }
+    }
+  } else {
+    CK(adnum(c, "r", r));
+    for (double x : r) {
+      if (x <= 0) return ckstop(c, "`r` must be positive numbers");
+    }
+  }
+  const double beta = c.has("beta") ? adone(c["beta"]) : 0.015;
+  if (!(beta >= 0)) return ckstop(c, "`beta` must be one number from 0");
+  const double g = c.has("grams") ? adone(c["grams"]) : 14;
+  if (!(g > 0)) return ckstop(c, "`grams` must be one positive number");
+  const std::size_t n = std::max(std::max(d.size(), w.size()), std::max(h.size(), r.size()));
+  for (std::size_t k : {d.size(), w.size(), h.size(), r.size()}) {
+    if (k != 1 && k != n) return ckstop(c, "the arguments must have one length, or length 1");
+  }
+  std::vector<double> o(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    const double kg = u == 1 ? adat(w, i) * 0.45359237 : adat(w, i);
+    const double v = g * adat(d, i) / (10 * adat(r, i) * kg) - beta * adat(h, i);
+    o[i] = std::isnan(v) ? NA : std::fmax(0.0, v);
+  }
+  out = unbox(vnums(o));
+  return true;
+}
+
+bool stddrk(Ctx &c, Val &out) {
+  static const char *const sd[] = {"ca", "us", "uk", "au", "who"};
+  static const double gs[] = {13.45, 14, 8, 10, 10};
+  int s = 0;
+  CK(pickd(c, "std", sd, 5, 0, s));
+  std::vector<double> v, a;
+  CK(adnum(c, "vol", v));
+  CK(adnum(c, "abv", a));
+  for (double x : v) {
+    if (x < 0) return ckstop(c, "`vol` must be numbers from 0");
+  }
+  for (double x : a) {
+    if (x < 0 || x > 100) return ckstop(c, "`abv` must be per cent, from 0 to 100");
+  }
+  const double g = c.has("grams") ? adone(c["grams"]) : gs[s];
+  if (!(g > 0)) return ckstop(c, "`grams` must be one positive number");
+  const std::size_t n = std::max(v.size(), a.size());
+  if ((v.size() != 1 && v.size() != n) || (a.size() != 1 && a.size() != n)) {
+    return ckstop(c, "the arguments must have one length, or length 1");
+  }
+  std::vector<double> o(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    const double x = adat(v, i) * adat(a, i) / 100 * 0.789 / g;
+    o[i] = std::isnan(x) ? NA : x;
+  }
+  out = unbox(vnums(o));
+  return true;
+}
+
+// .adxmat(): the answers, a matrix (an array of rows) or a data frame (an
+// object of columns) of numbers, as rows of k columns; k is k1 or k2.
+bool adxmat(Ctx &c, std::size_t k1, std::size_t k2, const char *what, std::vector<std::vector<double>> &m,
+            std::size_t &k) {
+  const Val &x = c["x"];
+  m.clear();
+  k = 0;
+  bool ok = true;
+  auto cell = [&](const Val &e, double &z) {
+    if (e.t == Val::NUM) z = e.n;
+    else if (e.t == Val::NUL) z = NA;
+    else if (!snum(e, z)) ok = false;
+  };
+  if (x.t == Val::OBJ) {
+    k = x.a.size();
+    std::size_t n = 0;
+    for (const Val &col : x.a) {
+      ok = ok && (col.t == Val::ARR || col.t == Val::NUM || col.t == Val::NUL);
+      n = std::max(n, vlen(col));
+    }
+    m.assign(n, std::vector<double>(k, NA));
+    for (std::size_t j = 0; ok && j < k; ++j) {
+      const Val &col = x.a[j];
+      if (vlen(col) != n) ok = false;
+      for (std::size_t i = 0; ok && i < n; ++i) cell(col.t == Val::ARR ? col.a[i] : col, m[i][j]);
+    }
+  } else if (x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR) {
+    k = x.a[0].a.size();
+    for (const Val &row : x.a) {
+      ok = ok && row.t == Val::ARR && row.a.size() == k;
+      if (!ok) break;
+      std::vector<double> r(k, NA);
+      for (std::size_t j = 0; ok && j < k; ++j) cell(row.a[j], r[j]);
+      m.push_back(r);
+    }
+  } else {
+    ok = false;
+  }
+  if (!ok || (k != k1 && k != k2)) return ckstop(c, "`x` must be a numeric matrix or data frame of %s", what);
+  return true;
+}
+
+// .adxrng(): items scored 0 to 4, the items t1 and t2 (from 1; 0: none)
+// 0, 2 or 4.
+bool adxrng(Ctx &c, const std::vector<std::vector<double>> &m, std::size_t k, std::size_t t1, std::size_t t2) {
+  for (std::size_t j = 0; j < k; ++j) {
+    const bool two = j + 1 == t1 || j + 1 == t2;
+    for (const std::vector<double> &r : m) {
+      const double v = r[j];
+      if (std::isnan(v)) continue;
+      if (two ? !(v == 0 || v == 2 || v == 4) : !(v == 0 || v == 1 || v == 2 || v == 3 || v == 4)) {
+        return two ? ckstop(c, "item %d must be scored 0, 2 or 4", sat<int>(j) + 1)
+                   : ckstop(c, "item %d must be scored 0 to 4", sat<int>(j) + 1);
+      }
+    }
+  }
+  return true;
+}
+
+inline double adsum(const std::vector<double> &r, std::size_t from, std::size_t to) {
+  double s = 0;
+  for (std::size_t j = from; j < to; ++j) {
+    if (std::isnan(r[j])) return NA;
+    s += r[j];
+  }
+  return s;
+}
+
+// A column of labels, a missing one null.
+inline Val adlab(const std::vector<double> &t, const double *cut, const char *const *lab, int n) {
+  Val v = varr();
+  for (double x : t) {
+    if (std::isnan(x)) {
+      v.a.push_back(Val());
+      continue;
+    }
+    int k = 0;
+    while (k + 1 < n && x >= cut[k + 1]) ++k;
+    v.a.push_back(vstr(lab[k]));
+  }
+  return v;
+}
+
+bool auditc(Ctx &c, Val &out) {
+  std::vector<std::vector<double>> m;
+  std::size_t k = 0;
+  CK(adxmat(c, 10, 3, "10 columns (the AUDIT) or 3 (the AUDIT-C)", m, k));
+  CK(adxrng(c, m, k, 9, 10));
+  const std::size_t n = m.size();
+  std::vector<int> male;
+  const Val &s = c["sex"];
+  if (s.t != Val::NUL) {
+    bool ok = s.t == Val::STR || s.t == Val::ARR;
+    for (std::size_t i = 0; ok && i < vlen(s); ++i) {
+      const Val &e = s.t == Val::ARR ? s.a[i] : s;
+      ok = e.t == Val::STR && (e.s == "male" || e.s == "female");
+      if (ok) male.push_back(e.s == "male");
+    }
+    if (!ok || (male.size() != 1 && male.size() != n)) {
+      return ckstop(c, "`sex` must be \"male\" or \"female\", one or one per row");
+    }
+  }
+  std::vector<double> total, c3;
+  std::vector<int> cpos;
+  for (std::size_t i = 0; i < n; ++i) {
+    c3.push_back(adsum(m[i], 0, 3));
+    total.push_back(k == 10 ? adsum(m[i], 0, 10) : NA);
+    if (male.empty() || std::isnan(c3[i])) cpos.push_back(-1);
+    else cpos.push_back(c3[i] >= ((male.size() == 1 ? male[0] : male[i]) ? 4 : 3));
+  }
+  static const double cut[] = {0, 8, 16, 20};
+  static const char *const lab[] = {"low", "hazardous", "harmful", "dependence"};
+  Frame f;
+  f.num("total", total);
+  f.num("auditc", c3);
+  f.add("zone", adlab(total, cut, lab, 4));
+  f.lgl("cpos", cpos.data(), cpos.size());
+  out = f.o;
+  return true;
+}
+
+bool dast10(Ctx &c, Val &out) {
+  std::vector<std::vector<double>> m;
+  std::size_t k = 0;
+  CK(adxmat(c, 10, 10, "10 columns (the DAST-10)", m, k));
+  for (std::size_t j = 0; j < k; ++j) {
+    for (const std::vector<double> &r : m) {
+      if (!std::isnan(r[j]) && r[j] != 0 && r[j] != 1) {
+        return ckstop(c, "item %d must be 0 (no) or 1 (yes)", sat<int>(j) + 1);
+      }
+    }
+  }
+  std::vector<double> total;
+  for (std::vector<double> &r : m) {
+    r[2] = 1 - r[2];
+    total.push_back(adsum(r, 0, 10));
+  }
+  static const double cut[] = {0, 1, 3, 6, 9};
+  static const char *const lab[] = {"none", "low", "moderate", "substantial", "severe"};
+  Frame f;
+  f.num("total", total);
+  f.add("level", adlab(total, cut, lab, 5));
+  out = f.o;
+  return true;
+}
+
+bool cudit(Ctx &c, Val &out) {
+  std::vector<std::vector<double>> m;
+  std::size_t k = 0;
+  CK(adxmat(c, 8, 8, "8 columns (the CUDIT-R)", m, k));
+  CK(adxrng(c, m, k, 8, 0));
+  std::vector<double> total;
+  for (const std::vector<double> &r : m) total.push_back(adsum(r, 0, 8));
+  static const double cut[] = {0, 8, 12};
+  static const char *const lab[] = {"low", "hazardous", "disorder"};
+  Frame f;
+  f.num("total", total);
+  f.add("level", adlab(total, cut, lab, 3));
+  out = f.o;
+  return true;
+}
+
+bool canast(Ctx &c, Val &out) {
+  static const double w[6][5] = {{0, 2, 3, 4, 6}, {0, 3, 4, 5, 6}, {0, 4, 5, 6, 7},
+                                 {0, 5, 6, 7, 8}, {0, 3, 6, 0, 0}, {0, 3, 6, 0, 0}};
+  std::vector<std::vector<double>> m;
+  std::size_t k = 0;
+  CK(adxmat(c, 6, 6, "6 columns (the ASSIST items on cannabis)", m, k));
+  for (std::size_t j = 0; j < 6; ++j) {
+    const int top = j < 4 ? 4 : 2;
+    for (std::vector<double> &r : m) {
+      const double v = r[j];
+      if (std::isnan(v)) continue;
+      if (v != std::floor(v) || v < 0 || v > top) {
+        return ckstop(c, "item %d must be answered 0 to %d", sat<int>(j) + 1, top);
+      }
+    }
+  }
+  std::vector<double> total;
+  for (std::vector<double> &r : m) {
+    for (std::size_t j = 0; j < 6; ++j) {
+      if (!std::isnan(r[j])) r[j] = w[j][sat<std::size_t>(r[j])];
+    }
+    total.push_back(adsum(r, 0, 6));
+  }
+  static const double cut[] = {0, 4, 27};
+  static const char *const lab[] = {"low", "moderate", "high"};
+  Frame f;
+  f.num("total", total);
+  f.add("level", adlab(total, cut, lab, 3));
+  out = f.o;
+  return true;
+}
+
+// .adxflag(): drinks against the threshold of each sex, at or above it
+// (atl) or above it.
+bool adxflag(Ctx &c, Val &out, double fdef, double mdef, bool atl) {
+  std::vector<double> d;
+  CK(adnum(c, "drinks", d));
+  for (double x : d) {
+    if (x < 0) return ckstop(c, "`drinks` must be numbers from 0");
+  }
+  const Val &s = c["sex"];
+  std::vector<int> male;
+  bool ok = s.t == Val::STR || (s.t == Val::ARR && !s.a.empty());
+  for (std::size_t i = 0; ok && i < vlen(s); ++i) {
+    const Val &e = s.t == Val::ARR ? s.a[i] : s;
+    ok = e.t == Val::STR && (e.s == "male" || e.s == "female");
+    if (ok) male.push_back(e.s == "male");
+  }
+  if (!ok) return ckstop(c, "`sex` must be \"male\" or \"female\"");
+  const double f = c.has("f") ? adone(c["f"]) : fdef, m = c.has("m") ? adone(c["m"]) : mdef;
+  if (!(f >= 0)) return ckstop(c, "`f` must be one number from 0");
+  if (!(m >= 0)) return ckstop(c, "`m` must be one number from 0");
+  const std::size_t n = std::max(d.size(), male.size());
+  if ((d.size() != 1 && d.size() != n) || (male.size() != 1 && male.size() != n)) {
+    return ckstop(c, "the arguments must have one length, or length 1");
+  }
+  Val v = varr();
+  for (std::size_t i = 0; i < n; ++i) {
+    const double x = adat(d, i), t = (male.size() == 1 ? male[0] : male[i]) ? m : f;
+    if (std::isnan(x)) v.a.push_back(Val());
+    else v.a.push_back(vbool(atl ? x >= t : x > t));
+  }
+  out = unbox(v);
+  return true;
+}
+
+bool hvydrk(Ctx &c, Val &out) { return adxflag(c, out, 4, 5, true); }
+bool lrdg(Ctx &c, Val &out) { return adxflag(c, out, 2, 3, false); }
 
 }  // namespace vr

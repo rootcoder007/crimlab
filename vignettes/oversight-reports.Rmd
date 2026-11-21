@@ -172,7 +172,8 @@ try(indiex("weather"))
 srcls()[, c("key", "publisher", "kind")]
 ## Not run:
 ##D # needs the internet
-##D f <- ckanres("https://data.ontario.ca", "jahn-settlement-data-inmates-ontario")
+##D f <- ckanres("https://data.ontario.ca",
+##D              "jahn-settlement-data-inmates-ontario")
 ##D head(f[, c("name", "format", "modified")])
 ##D s <- socres("data.cityofchicago.org", "dpt3-jri9")
 ##D s$columns

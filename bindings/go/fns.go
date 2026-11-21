@@ -46,6 +46,30 @@ func Ruledstn(args string) (string, error) { return Jrun("ruledstn", args) }
 // Rulecolcnt runs rulecolcnt() of the R package (arguments: n sev?; ? marks an optional one).
 func Rulecolcnt(args string) (string, error) { return Jrun("rulecolcnt", args) }
 
+// Ebac runs ebac() of the R package (arguments: drinks weight hours? sex? height? r? beta? grams? unit?; ? marks an optional one).
+func Ebac(args string) (string, error) { return Jrun("ebac", args) }
+
+// Stddrk runs stddrk() of the R package (arguments: vol abv std? grams?; ? marks an optional one).
+func Stddrk(args string) (string, error) { return Jrun("stddrk", args) }
+
+// Hvydrk runs hvydrk() of the R package (arguments: drinks sex f? m?; ? marks an optional one).
+func Hvydrk(args string) (string, error) { return Jrun("hvydrk", args) }
+
+// Lrdg runs lrdg() of the R package (arguments: drinks sex f? m?; ? marks an optional one).
+func Lrdg(args string) (string, error) { return Jrun("lrdg", args) }
+
+// Auditc runs auditc() of the R package (arguments: x sex?; ? marks an optional one).
+func Auditc(args string) (string, error) { return Jrun("auditc", args) }
+
+// Dast10 runs dast10() of the R package (arguments: x; ? marks an optional one).
+func Dast10(args string) (string, error) { return Jrun("dast10", args) }
+
+// Cudit runs cudit() of the R package (arguments: x; ? marks an optional one).
+func Cudit(args string) (string, error) { return Jrun("cudit", args) }
+
+// Canast runs canast() of the R package (arguments: x; ? marks an optional one).
+func Canast(args string) (string, error) { return Jrun("canast", args) }
+
 // Vodtst runs vodtst() of the R package (arguments: day night ref? shift?; ? marks an optional one).
 func Vodtst(args string) (string, error) { return Jrun("vodtst", args) }
 

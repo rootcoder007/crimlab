@@ -23,7 +23,7 @@ set.seed(1)
 library(crimlab)
 ```
 
-Lineup performance, calibration of a toxicology method, post-mortem redistribution and the time since death.
+Lineup performance, calibration of a toxicology method, post-mortem redistribution and the time since death, and alcohol and drug use: a blood alcohol concentration from what was drunk and the scores of screening questionnaires.
 
 Each section is one help page: what the function is for, the example of its
 help page as it runs, and the plot of its result where the package draws
@@ -155,4 +155,72 @@ soil <- c(Ca = 30, P = 15, Fe = 5, Sr = 1, Pb = 0.5, Zn = 0.5)
 x <- rbind(dirsim(5, lime, 1e6, seed = 1), dirsim(5, soil, 1e6, seed = 2))
 round(x)
 clrilr(x)[, "Ca"]
+```
+
+# Alcohol and drug use
+
+## Estimated blood alcohol concentration (Widmark)
+
+`ebac()`: The blood alcohol concentration a person would have after a number of standard drinks, by Widmark's formula: the alcohol drunk, spread over the share of the body that takes it up, less what has been eliminated since drinking began. It is the estimate surveys of drinking report (an "eBAC") and toxicologists use for back-calculation; it is not a measurement, and a person's own rate of elimination and body water move it by a third either way.
+
+```{r ebac}
+# four drinks in two hours, 180 lb
+ebac(4, 180, 2, unit = "lb")
+# the same person at 0, 1, 2 and 3 hours, and a woman of the same weight
+ebac(4, 81.6, 0:3)
+ebac(4, 81.6, 2, sex = "female")
+# the survey's way: body water from weight and height, 13.6 g a drink
+ebac(5, 62, 3, sex = "female", height = 164, beta = 0.017, grams = 13.6)
+# over 0.08?
+ebac(c(2, 5), c(70, 70), 1) >= 0.08
+try(ebac(4, 0, 2))
+```
+
+## Standard drinks in a volume of a beverage
+
+`stddrk()`: The number of standard drinks in `vol` millilitres of a beverage of `abv` per cent alcohol by volume: the grams of ethanol (the volume of ethanol times its density, 0.789 g per mL at 20 degrees Celsius) over the grams a country calls one drink. Countries differ by a factor of two and more (Kalinowski and Humphreys 2016), so a count of drinks means nothing without the standard it was counted in.
+
+```{r stddrk}
+# a 341 mL bottle of 5% beer, a 142 mL glass of 12% wine, 43 mL of 40%
+# spirits: one Canadian standard drink each
+stddrk(c(341, 142, 43), c(5, 12, 40))
+# a 750 mL bottle of 13% wine, by four standards
+sapply(c("ca", "us", "uk", "au"), function(s) stddrk(750, 13, s))
+try(stddrk(341, 500))
+```
+
+## Heavy drinking, and drinking above the low-risk guideline
+
+`hvydrk()`, `lrdg()`: Two flags from a number of standard drinks and a sex, as the Canadian surveys of alcohol and drug use derive them (Health Canada 2022). `hvydrk()`: heavy drinking, four or more drinks for women and five or more for men on one occasion, the measure of Wechsler et al. (1995). `lrdg()`: more drinks in a day than the daily limit of Canada's Low-Risk Alcohol Drinking Guidelines for chronic harm, two for women and three for men (Stockwell et al. 2012).
+
+```{r hvydrk}
+d <- c(2, 3, 4, 5, NA)
+hvydrk(d, "female")
+hvydrk(d, "male")
+lrdg(d, c("female", "male", "male", "female", "male"))
+# another definition: six drinks for everyone
+hvydrk(d, "female", f = 6, m = 6)
+try(hvydrk(-1, "male"))
+```
+
+## Scores of the AUDIT, the DAST-10, the CUDIT-R and the ASSIST
+
+`auditc()`, `dast10()`, `cudit()`, `canast()`: Scores four screening questionnaires from their item answers, one row per respondent and one column per item, in the order of the questionnaire. An answer outside the scoring of its item is refused, not scored: a miscoded column must not pass for a low score.
+
+```{r auditc}
+# made-up answers of three respondents
+a <- rbind(c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+           c(3, 2, 2, 1, 1, 0, 1, 1, 0, 2),
+           c(4, 4, 4, 3, 3, 2, 3, 3, 4, 4))
+auditc(a, sex = c("female", "male", "male"))
+# the first three items alone are the AUDIT-C
+auditc(a[, 1:3], sex = "female")
+dast10(rbind(c(1, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+             c(1, 1, 0, 1, 1, 0, 1, 1, 0, 1)))
+cudit(rbind(c(1, 0, 0, 0, 0, 0, 0, 0),
+            c(4, 3, 2, 1, 2, 1, 2, 4)))
+# weekly use, a monthly desire, no problems: moderate risk
+canast(rbind(c(1, 0, 0, 0, 0, 0), c(3, 2, 0, 0, 0, 0),
+             c(4, 4, 3, 3, 2, 2)))
+try(auditc(cbind(a[, 1:9], 3)))
 ```

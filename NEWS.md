@@ -16,6 +16,18 @@
   the columns that moved. `drftcal()` says how often those screens fire on
   a table that has not changed, from random half-splits that are the same
   in every language for a seed.
+* Alcohol and drug use, in every language. `ebac()` estimates a blood
+  alcohol concentration from standard drinks by Widmark's formula, with
+  the fixed factors of Matthews and Miller (1979) or, given a height, the
+  body-water factors of Seidl, Jensen and Alt (2000) that the Canadian
+  Postsecondary Education Alcohol and Drug Use Survey uses for its
+  `ebac_tot`; its help page says how to reproduce that variable.
+  `stddrk()` counts standard drinks by a country's grams. `hvydrk()` and
+  `lrdg()` are the survey's flags of heavy drinking (four or more drinks
+  for women, five or more for men) and of drinking above the daily limit
+  of Canada's low-risk guideline. `auditc()`, `dast10()`, `cudit()` and
+  `canast()` score the AUDIT and AUDIT-C, the DAST-10, the CUDIT-R and
+  the cannabis items of the ASSIST.
 * `cramerv()`: Cramer's V of a two-way table of counts, bias-corrected
   (Bergsma 2013) or not, with its interval, the chi-square test and the
   smallest expected count.

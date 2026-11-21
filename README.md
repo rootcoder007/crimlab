@@ -196,6 +196,12 @@ The functions work on summary data, not on raw records:
   `misspat()`, `misssmry()`, `mcartst()`, `duprows()`), which
   distribution describes a variable (`dstfit()`), and whether
   distinct groups differ before their figures are pooled (`dstntst()`).
+* Alcohol and drug use: a blood alcohol concentration from what was
+  drunk, by Widmark's formula with fixed factors or the body-water
+  factors the Canadian surveys use (`ebac()`), standard drinks by country
+  (`stddrk()`), heavy drinking and the low-risk guideline (`hvydrk()`,
+  `lrdg()`), and the scores of the AUDIT, the DAST-10, the CUDIT-R and
+  the ASSIST (`auditc()`, `dast10()`, `cudit()`, `canast()`).
 * Drift between releases: whether a new release of a published table
   still looks like the last, column by column (`drfttab()`; `drftks()`,
   `drftpsi()`, `drfthomog()`, `drftchisq()` for one column), and how often

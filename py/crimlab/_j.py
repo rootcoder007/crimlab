@@ -8789,3 +8789,113 @@ def rulecolcnt(n: Any, sev: Any = "warning") -> Any:
     'Expected 3 columns'
     """
     return jcall("rulecolcnt", n=n, sev=sev)
+
+def ebac(drinks: Any, weight: Any, hours: Any = 0, sex: Any = "male", height: Any = None, r: Any = None,
+         beta: Any = 0.015, grams: Any = 14, unit: Any = "kg") -> Any:
+    """Estimated blood alcohol concentration (Widmark).
+
+    The arguments and the result are those of R's ``ebac()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(ebac(drinks=4, weight=180, hours=2, unit="lb"), 4)
+    0.064
+    >>> round(ebac(drinks=4, weight=62, hours=3, sex="female", height=164, beta=0.0017, grams=13.6), 2)
+    0.13
+    """
+    return jcall("ebac", drinks=drinks, weight=weight, hours=hours, sex=sex, height=height, r=r, beta=beta,
+                 grams=grams, unit=unit)
+
+def stddrk(vol: Any, abv: Any, std: Any = "ca", grams: Any = None) -> Any:
+    """Standard drinks in a volume of a beverage.
+
+    The arguments and the result are those of R's ``stddrk()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> [round(v, 2) for v in stddrk(vol=[341, 142, 43], abv=[5, 12, 40])]
+    [1.0, 1.0, 1.01]
+    """
+    return jcall("stddrk", vol=vol, abv=abv, std=std, grams=grams)
+
+def hvydrk(drinks: Any, sex: Any, f: Any = 4, m: Any = 5) -> Any:
+    """Heavy drinking: four or more drinks for women, five or more for men.
+
+    The arguments and the result are those of R's ``hvydrk()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> hvydrk(drinks=[3, 4, 5], sex="female")
+    [False, True, True]
+    """
+    return jcall("hvydrk", drinks=drinks, sex=sex, f=f, m=m)
+
+def lrdg(drinks: Any, sex: Any, f: Any = 2, m: Any = 3) -> Any:
+    """Drinking above the daily limit of Canada's low-risk guideline.
+
+    The arguments and the result are those of R's ``lrdg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> lrdg(drinks=[2, 3, 4], sex="male")
+    [False, False, True]
+    """
+    return jcall("lrdg", drinks=drinks, sex=sex, f=f, m=m)
+
+def auditc(x: Any, sex: Any = None) -> Any:
+    """Scores of the AUDIT and the AUDIT-C.
+
+    The arguments and the result are those of R's ``auditc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = auditc(x=[[3, 2, 2, 1, 1, 0, 1, 1, 0, 2]], sex="male")
+    >>> r['total'], r['auditc'], r['zone'], r['cpos']
+    ([13.0], [7.0], ['hazardous'], [True])
+    """
+    return jcall("auditc", x=x, sex=sex)
+
+def dast10(x: Any) -> Any:
+    """Score of the DAST-10.
+
+    The arguments and the result are those of R's ``dast10()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> dast10(x=[[1, 1, 0, 1, 1, 0, 1, 1, 0, 1]])['level']
+    ['substantial']
+    """
+    return jcall("dast10", x=x)
+
+def cudit(x: Any) -> Any:
+    """Score of the CUDIT-R.
+
+    The arguments and the result are those of R's ``cudit()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cudit(x=[[4, 3, 2, 1, 2, 1, 2, 4]])['total']
+    [19.0]
+    """
+    return jcall("cudit", x=x)
+
+def canast(x: Any) -> Any:
+    """Cannabis score of the ASSIST.
+
+    The arguments and the result are those of R's ``canast()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = canast(x=[[3, 2, 0, 0, 0, 0]])
+    >>> r['total'], r['level']
+    ([8.0], ['moderate'])
+    """
+    return jcall("canast", x=x)

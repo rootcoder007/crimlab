@@ -1070,7 +1070,15 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(rulecolcnt(1)), c("rule", "name", "sev", "msg", "n")),
     list(quote(srcls()),
          c("key", "publisher", "what", "kind", "portal", "id")),
-    list(quote(srcurl("uk-police")), NULL)
+    list(quote(srcurl("uk-police")), NULL),
+    list(quote(ebac(4, 80, 2)), NULL),
+    list(quote(stddrk(341, 5)), NULL),
+    list(quote(hvydrk(5, "male")), NULL),
+    list(quote(lrdg(3, "female")), NULL),
+    list(quote(auditc(matrix(1, 1, 3))), c("total", "auditc", "zone", "cpos")),
+    list(quote(dast10(matrix(0, 1, 10))), c("total", "level")),
+    list(quote(cudit(matrix(0, 1, 8))), c("total", "level")),
+    list(quote(canast(matrix(0, 1, 6))), c("total", "level"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))
