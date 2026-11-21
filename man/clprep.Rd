@@ -38,7 +38,8 @@ The presets are rows of \code{presets.tsv} (in the installed package's \code{pre
 folder), one per preset and argument: \code{preset}, \code{generic}, \code{arg}, \code{column}
 (the dataset's column), \code{recode}, \code{filter}, \code{units}, \code{note}, \code{source}. Python
 reads the same file. A \code{recode} is one of: empty (the column as it is); \code{fac}
-(a factor, one effect per value); \code{num} (numbers); \code{pct} (numbers over 100);
+(a factor, one effect per value); \code{num} (numbers; \verb{num:a,b} with the codes
+a and b missing, as a survey's 998 and 999); \code{pct} (numbers over 100);
 \code{one} (a 1 for every row); \code{flag} (1 for yes, y, true, t, 1 or a positive
 number, 0 otherwise); \code{dum} (one 0 or 1 column per value but the first, named
 by the column and the value); \verb{sub:a,b} (characters a to b, as a year from an

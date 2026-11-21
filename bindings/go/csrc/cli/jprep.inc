@@ -337,9 +337,18 @@ bool prc(Pr &p, const Col *x, const std::string &s, std::size_t n, V &v) {
   bool warn = false;
   if (s == "fac") {
     v.c = factor(cx);
-  } else if (s == "num" || s == "pct") {
+  } else if (s == "num" || s == "pct" || s.rfind("num:", 0) == 0) {
     v.c = asnum(cx, warn);
     if (warn) p.coerce();
+    if (s.size() > 4) {
+      // num:a,b: the codes a and b are missing values
+      for (const std::string &code : split(s.substr(4), ',')) {
+        const double k = std::strtod(code.c_str(), nullptr);
+        for (double &d : v.c.d) {
+          if (d == k) d = NA;
+        }
+      }
+    }
     if (s == "pct") {
       for (double &d : v.c.d) d /= 100;
     }
