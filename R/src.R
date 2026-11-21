@@ -141,14 +141,7 @@ ckanls <- function(portal, q, rows = 50L) {
   fn <- "ckanls"
   portal <- .srweb(portal, "portal", fn)
   q <- .rlstr(q, "q", fn)
-  if (
-    !is.numeric(rows) ||
-      length(rows) != 1L ||
-      !is.finite(rows) ||
-      rows < 1 ||
-      rows > 1000 ||
-      rows != floor(rows)
-  ) {
+  if (!.srwhole(rows, 1000)) {
     .ckstop(fn, "`rows` must be a whole number from 1 to 1000")
   }
   r <- .srckan(
@@ -175,20 +168,7 @@ ckanls <- function(portal, q, rows = 50L) {
 #' @export
 socres <- function(domain, id) {
   fn <- "socres"
-  base <- .srweb(
-    if (
-      is.character(domain) &&
-        length(domain) == 1L &&
-        !is.na(domain) &&
-        !grepl("^https?://", domain)
-    ) {
-      paste0("https://", domain)
-    } else {
-      domain
-    },
-    "domain",
-    fn
-  )
+  base <- .srweb(.srhost(domain), "domain", fn)
   id <- .rlstr(id, "id", fn)
   if (!grepl("^[a-z0-9]{4}-[a-z0-9]{4}$", id)) {
     .ckstop(fn, "`id` must be a Socrata identifier, such as \"ijzp-q8t2\"")
@@ -348,13 +328,8 @@ scres <- function(pid, lang = c("en", "fr")) {
     sprintf("the table `%s`", pid),
     fn
   )
-  u <- if (is.list(r)) .srchr(r[["object"]]) else NA_character_
-  if (
-    !is.list(r) ||
-      !identical(.srchr(r[["status"]]), "SUCCESS") ||
-      is.na(u) ||
-      !grepl("^https://", u)
-  ) {
+  u <- .scurl(r)
+  if (is.na(u)) {
     .ckstop(fn, "Statistics Canada did not find the table `%s`", pid)
   }
   u
@@ -548,14 +523,7 @@ indiex <- function(
 ovrget <- function(drid, dest, lang = c("en", "fr"), over = FALSE, wait = 120) {
   fn <- "ovrget"
   lang <- .ckmarg("lang", fn)
-  if (
-    !is.numeric(drid) ||
-      length(drid) != 1L ||
-      !is.finite(drid) ||
-      drid < 1 ||
-      drid != floor(drid) ||
-      drid > .Machine$integer.max
-  ) {
+  if (!.srwhole(drid, .Machine$integer.max)) {
     .ckstop(
       fn,
       paste(
@@ -972,4 +940,37 @@ ovrget <- function(drid, dest, lang = c("en", "fr"), over = FALSE, wait = 120) {
     .ckstop(fn, "%s exists; `over = TRUE` replaces it", dest)
   }
   invisible(NULL)
+}
+
+
+#' One whole number from 1 to `hi`?
+#' @noRd
+.srwhole <- function(v, hi) {
+  is.numeric(v) &&
+    length(v) == 1L &&
+    is.finite(v) &&
+    v >= 1 &&
+    v <= hi &&
+    v == floor(v)
+}
+
+#' A host name given without its scheme takes https.
+#' @noRd
+.srhost <- function(domain) {
+  bare <- is.character(domain) &&
+    length(domain) == 1L &&
+    !is.na(domain) &&
+    !grepl("^https?://", domain)
+  if (bare) paste0("https://", domain) else domain
+}
+
+#' The address in Statistics Canada's answer `r`, or NA when it found no
+#' table.
+#' @noRd
+.scurl <- function(r) {
+  if (!is.list(r) || !identical(.srchr(r[["status"]]), "SUCCESS")) {
+    return(NA_character_)
+  }
+  u <- .srchr(r[["object"]])
+  if (is.na(u) || !grepl("^https://", u)) NA_character_ else u
 }

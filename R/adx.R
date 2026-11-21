@@ -184,13 +184,7 @@ stddrk <- function(
   if (any(abv < 0 | abv > 100, na.rm = TRUE)) {
     .ckstop(fn, "`abv` must be per cent, from 0 to 100")
   }
-  if (is.null(grams)) {
-    grams <- c(ca = 13.45, us = 14, uk = 8, au = 10, who = 10)[[std]]
-  } else if (
-    !is.numeric(grams) || length(grams) != 1L || !is.finite(grams) || grams <= 0
-  ) {
-    .ckstop(fn, "`grams` must be one positive number")
-  }
+  grams <- .adxgr(grams, std, fn)
   n <- max(length(vol), length(abv))
   if (!all(c(length(vol), length(abv)) %in% c(1L, n))) {
     .ckstop(fn, "the arguments must have one length, or length 1")
@@ -619,4 +613,21 @@ lrdg <- function(drinks, sex, f = 2, m = 3) {
     .ckstop(fn, "the weight and height give a factor that is not positive")
   }
   r
+}
+
+
+#' The grams of a standard drink: those given, or the country's.
+#' @noRd
+.adxgr <- function(grams, std, fn) {
+  if (is.null(grams)) {
+    return(c(ca = 13.45, us = 14, uk = 8, au = 10, who = 10)[[std]])
+  }
+  ok <- is.numeric(grams) &&
+    length(grams) == 1L &&
+    is.finite(grams) &&
+    grams > 0
+  if (!ok) {
+    .ckstop(fn, "`grams` must be one positive number")
+  }
+  grams
 }
