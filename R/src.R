@@ -258,19 +258,7 @@ srcget <- function(url, dest, over = FALSE, wait = 600) {
   fn <- "srcget"
   url <- .srweb(url, "url", fn, file = TRUE)
   over <- .ckflag(over, "over", fn)
-  if (
-    !is.character(dest) || length(dest) != 1L || is.na(dest) || !nzchar(dest)
-  ) {
-    .ckstop(fn, "`dest` must be one file path")
-  }
-  if (
-    !is.numeric(wait) || length(wait) != 1L || !is.finite(wait) || wait <= 0
-  ) {
-    .ckstop(fn, "`wait` must be one positive number of seconds")
-  }
-  if (file.exists(dest) && !over) {
-    .ckstop(fn, "%s exists; `over = TRUE` replaces it", dest)
-  }
+  .srdest(dest, wait, over, fn)
   tmp <- paste0(dest, ".part")
   .odget(url, tmp, wait, "the file", fn)
   if (!file.rename(tmp, dest)) {
@@ -965,4 +953,23 @@ ovrget <- function(drid, dest, lang = c("en", "fr"), over = FALSE, wait = 120) {
     )
   }
   r[["result"]]
+}
+
+#' dest and wait of srcget() checked; a file in the way is refused.
+#' @noRd
+.srdest <- function(dest, wait, over, fn) {
+  if (
+    !is.character(dest) || length(dest) != 1L || is.na(dest) || !nzchar(dest)
+  ) {
+    .ckstop(fn, "`dest` must be one file path")
+  }
+  if (
+    !is.numeric(wait) || length(wait) != 1L || !is.finite(wait) || wait <= 0
+  ) {
+    .ckstop(fn, "`wait` must be one positive number of seconds")
+  }
+  if (file.exists(dest) && !over) {
+    .ckstop(fn, "%s exists; `over = TRUE` replaces it", dest)
+  }
+  invisible(NULL)
 }
