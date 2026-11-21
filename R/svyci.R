@@ -108,6 +108,84 @@ svypci <- function(
   data.frame(est = est, lo = ci[[1L]], hi = ci[[2L]], neff = ne)
 }
 
+#' Release quality of a survey estimate
+#'
+#' Grades an estimate by the rule of Health Canada's guides to the
+#' Canadian surveys of alcohol and drug use (Health Canada 2022, Table
+#' 1): by the unweighted number of observations behind it and by its
+#' coefficient of variation. `"acceptable"`: at least `nmin` observations
+#' with the characteristic (and, for a proportion, at least `dmin` in the
+#' domain) and a coefficient of variation of at most `cvlo` per cent.
+#' `"marginal"`: the same counts and a coefficient above `cvlo` up to
+#' `cvhi`; to be released with a warning. `"unacceptable"`: fewer
+#' observations, or a coefficient above `cvhi`; not to be released.
+#'
+#' The thresholds are arguments: other agencies set others, and Statistics
+#' Canada's own have changed over the years.
+#'
+#' Errors: `cv` not numeric or negative; `n` or `d` not numeric or
+#' negative; a threshold that is not one number from 0, or `cvlo` above
+#' `cvhi`; arguments of different lengths (a length of 1 is repeated).
+#'
+#' @param cv The coefficient of variation of the estimate, in per cent (as
+#'   [svymx()] reports it).
+#' @param n The unweighted number of observations with the characteristic
+#'   (the numerator of a proportion; for a mean or a total, the
+#'   observations that contribute).
+#' @param d For a proportion, the unweighted number of observations in the
+#'   domain (the denominator); `NULL` (the default) for a mean or a
+#'   total.
+#' @param cvlo,cvhi The coefficients of variation, in per cent, up to
+#'   which an estimate is acceptable and marginal.
+#' @param nmin,dmin The fewest observations: with the characteristic, and
+#'   in the domain.
+#' @return A character vector: `"acceptable"`, `"marginal"` or
+#'   `"unacceptable"`; `NA` where the counts suffice and `cv` is missing.
+#' @references
+#'   Health Canada (2022). *Canadian Postsecondary Education Alcohol and
+#'   Drug Use Survey, 2021-22: Public Use Microdata File user guide*.
+#'   Section 7.3 and Table 1, quality level guidelines for estimates.
+#' @seealso [svymx()] and [svypci()].
+#' @examples
+#' svyqual(cv = c(8, 20, 40, 8, 8), n = c(120, 60, 30, 6, 40),
+#'         d = c(900, 500, 300, 200, 45))
+#' # a mean or a total: no denominator
+#' svyqual(12, 35)
+#' try(svyqual(-1, 10))
+#' @export
+svyqual <- function(
+  cv,
+  n,
+  d = NULL,
+  cvlo = 16.6,
+  cvhi = 33.3,
+  nmin = 10,
+  dmin = 50
+) {
+  fn <- "svyqual"
+  cv <- .svynn(cv, "cv", fn)
+  n <- .svynn(n, "n", fn)
+  if (!is.null(d)) {
+    d <- .svynn(d, "d", fn)
+  }
+  .svythr(list(cvlo = cvlo, cvhi = cvhi, nmin = nmin, dmin = dmin), fn)
+  len <- c(length(cv), length(n), if (!is.null(d)) length(d))
+  k <- max(len)
+  if (!all(len %in% c(1L, k))) {
+    .ckstop(fn, "the arguments must have one length, or length 1")
+  }
+  cv <- rep_len(cv, k)
+  few <- rep_len(n, k) < nmin
+  if (!is.null(d)) {
+    few <- few | rep_len(d, k) < dmin
+  }
+  lab <- c("acceptable", "marginal", "unacceptable")
+  out <- lab[1L + (cv > cvlo) + (cv > cvhi)]
+  out[!is.na(few) & few] <- "unacceptable"
+  out[is.na(few) & !(!is.na(cv) & cv > cvhi)] <- NA_character_
+  out
+}
+
 #' The arguments of svypci() checked, each of one length.
 #' @noRd
 .svyck <- function(est, se, n, df, level, fn) {
@@ -186,101 +264,29 @@ svypci <- function(
   )
 }
 
-#' Release quality of a survey estimate
-#'
-#' Grades an estimate by the rule of Health Canada's guides to the
-#' Canadian surveys of alcohol and drug use (Health Canada 2022, Table
-#' 1): by the unweighted number of observations behind it and by its
-#' coefficient of variation. `"acceptable"`: at least `nmin` observations
-#' with the characteristic (and, for a proportion, at least `dmin` in the
-#' domain) and a coefficient of variation of at most `cvlo` per cent.
-#' `"marginal"`: the same counts and a coefficient above `cvlo` up to
-#' `cvhi`; to be released with a warning. `"unacceptable"`: fewer
-#' observations, or a coefficient above `cvhi`; not to be released.
-#'
-#' The thresholds are arguments: other agencies set others, and Statistics
-#' Canada's own have changed over the years.
-#'
-#' Errors: `cv` not numeric or negative; `n` or `d` not numeric or
-#' negative; a threshold that is not one number from 0, or `cvlo` above
-#' `cvhi`; arguments of different lengths (a length of 1 is repeated).
-#'
-#' @param cv The coefficient of variation of the estimate, in per cent (as
-#'   [svymx()] reports it).
-#' @param n The unweighted number of observations with the characteristic
-#'   (the numerator of a proportion; for a mean or a total, the
-#'   observations that contribute).
-#' @param d For a proportion, the unweighted number of observations in the
-#'   domain (the denominator); `NULL` (the default) for a mean or a
-#'   total.
-#' @param cvlo,cvhi The coefficients of variation, in per cent, up to
-#'   which an estimate is acceptable and marginal.
-#' @param nmin,dmin The fewest observations: with the characteristic, and
-#'   in the domain.
-#' @return A character vector: `"acceptable"`, `"marginal"` or
-#'   `"unacceptable"`; `NA` where the counts suffice and `cv` is missing.
-#' @references
-#'   Health Canada (2022). *Canadian Postsecondary Education Alcohol and
-#'   Drug Use Survey, 2021-22: Public Use Microdata File user guide*.
-#'   Section 7.3 and Table 1, quality level guidelines for estimates.
-#' @seealso [svymx()] and [svypci()].
-#' @examples
-#' svyqual(cv = c(8, 20, 40, 8, 8), n = c(120, 60, 30, 6, 40),
-#'         d = c(900, 500, 300, 200, 45))
-#' # a mean or a total: no denominator
-#' svyqual(12, 35)
-#' try(svyqual(-1, 10))
-#' @export
-svyqual <- function(
-  cv,
-  n,
-  d = NULL,
-  cvlo = 16.6,
-  cvhi = 33.3,
-  nmin = 10,
-  dmin = 50
-) {
-  fn <- "svyqual"
-  num <- function(v, what) {
-    if (!is.numeric(v) || !length(v)) {
-      .ckstop(fn, "`%s` must be numeric", what)
-    }
-    if (any(v < 0, na.rm = TRUE)) {
-      .ckstop(fn, "`%s` must be numbers from 0", what)
-    }
-    as.numeric(v)
+#' Numbers from 0, or the refusal of fn.
+#' @noRd
+.svynn <- function(v, what, fn) {
+  if (!is.numeric(v) || !length(v)) {
+    .ckstop(fn, "`%s` must be numeric", what)
   }
-  cv <- num(cv, "cv")
-  n <- num(n, "n")
-  if (!is.null(d)) {
-    d <- num(d, "d")
+  if (any(v < 0, na.rm = TRUE)) {
+    .ckstop(fn, "`%s` must be numbers from 0", what)
   }
-  for (k in c("cvlo", "cvhi", "nmin", "dmin")) {
-    v <- get(k)
+  as.numeric(v)
+}
+
+#' The thresholds of svyqual() checked.
+#' @noRd
+.svythr <- function(thr, fn) {
+  for (k in names(thr)) {
+    v <- thr[[k]]
     if (!is.numeric(v) || length(v) != 1L || !is.finite(v) || v < 0) {
       .ckstop(fn, "`%s` must be one number from 0", k)
     }
   }
-  if (cvlo > cvhi) {
+  if (thr[["cvlo"]] > thr[["cvhi"]]) {
     .ckstop(fn, "`cvlo` must not be above `cvhi`")
   }
-  len <- c(length(cv), length(n), if (!is.null(d)) length(d))
-  k <- max(len)
-  if (!all(len %in% c(1L, k))) {
-    .ckstop(fn, "the arguments must have one length, or length 1")
-  }
-  cv <- rep_len(cv, k)
-  n <- rep_len(n, k)
-  few <- n < nmin
-  if (!is.null(d)) {
-    few <- few | rep_len(d, k) < dmin
-  }
-  out <- ifelse(
-    cv <= cvlo,
-    "acceptable",
-    ifelse(cv <= cvhi, "marginal", "unacceptable")
-  )
-  out[!is.na(few) & few] <- "unacceptable"
-  out[is.na(few) & !(!is.na(cv) & cv > cvhi)] <- NA_character_
-  out
+  invisible(NULL)
 }

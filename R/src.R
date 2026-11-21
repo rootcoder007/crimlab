@@ -372,6 +372,225 @@ scres <- function(pid, lang = c("en", "fr")) {
   u
 }
 
+#' The tables of the data service about Indigenous peoples
+#'
+#' Lists the tables of the project's open data service drawn from
+#' Statistics Canada's tables on Indigenous peoples and from the 2021
+#' Census Indigenous Population Profile, with their descriptions, sizes
+#' and licences, optionally those whose description matches a pattern.
+#' [odtab()] loads one by its key.
+#'
+#' Only openly licensed tables of aggregates are mirrored. The data of
+#' the First Nations Information Governance Centre (the First Nations
+#' Regional Health Survey and its companions) are governed by the OCAP
+#' principles of ownership, control, access and possession, and are not;
+#' they are asked for from the Centre.
+#'
+#' Errors: `pat` not one non-empty string or not a valid regular
+#' expression; those of [odls()].
+#'
+#' @param pat A regular expression matched against the descriptions
+#'   without regard to case, or `NULL` (all tables).
+#' @inheritParams odtab
+#' @return A data frame with a row per table: `key`, `rows`,
+#'   `description`, `licence` and `source`.
+#' @seealso [odtab()] and [odls()]; [indiex()] for the tables by subject.
+#' @examples
+#' \dontrun{
+#' # needs the internet
+#' t <- indtabs("mental health")
+#' t[, c("key", "rows")]
+#' }
+#' try(indtabs(pat = ""))
+#' @export
+indtabs <- function(
+  pat = NULL,
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
+) {
+  fn <- "indtabs"
+  if (!is.null(pat)) {
+    pat <- .rlstr(pat, "pat", fn)
+    if (inherits(try(grepl(pat, ""), silent = TRUE), "try-error")) {
+      .ckstop(fn, "`pat` is not a valid regular expression")
+    }
+  }
+  base <- .odbase(base, fn)
+  ds <- Filter(
+    function(d) {
+      is.list(d) &&
+        is.character(d[["key"]]) &&
+        grepl("^(statcan_indigenous|census2021_ipp)/", d[["key"]])
+    },
+    .odman(base, fn)[["datasets"]]
+  )
+  meta <- function(k) {
+    vapply(
+      ds,
+      function(d) {
+        m <- d[["meta"]]
+        v <- if (is.list(m)) .srchr(m[[k]]) else NA_character_
+        if (is.na(v)) "" else v
+      },
+      "",
+      USE.NAMES = FALSE
+    )
+  }
+  out <- data.frame(
+    key = vapply(ds, function(d) d[["key"]], ""),
+    rows = .odfld(ds, "rows", NA_real_),
+    description = meta("description"),
+    licence = meta("license"),
+    source = meta("source"),
+    stringsAsFactors = FALSE
+  )
+  if (!is.null(pat)) {
+    out <- out[
+      grepl(pat, out[["description"]], ignore.case = TRUE),
+      ,
+      drop = FALSE
+    ]
+  }
+  rownames(out) <- NULL
+  out
+}
+
+#' Statistics Canada tables on Indigenous peoples, by subject
+#'
+#' The tables of the project's open data service that hold what is most
+#' often asked for about First Nations people, Metis and Inuit: health
+#' indicators, perceived mental health, wellbeing, suicidal thoughts, the
+#' census counts of population and of households, life expectancy and
+#' infant mortality. `indiex()` finds the tables of one subject among
+#' those [indtabs()] lists, and with `load = TRUE` loads the first.
+#'
+#' The package holds no data: the tables are Statistics Canada's, mirrored
+#' by the service under the Statistics Canada Open Licence and loaded and
+#' checked by [odtab()]. A subject is matched by words in a table's
+#' description, so a table the service adds later is found without a new
+#' release; a subject with no table there gives a data frame of no rows.
+#'
+#' Errors: `name` not one of the subjects; `load` not `TRUE` or `FALSE`;
+#' with `load`, a subject with no table; those of [indtabs()] and
+#' [odtab()].
+#'
+#' @param name The subject: `"health"`, `"mentalhealth"`, `"wellbeing"`,
+#'   `"suicide"`, `"censuspop"`, `"censushh"`, `"lifeexp"` or
+#'   `"infantmort"`.
+#' @param load `TRUE` loads the first table found, with [odtab()].
+#' @inheritParams odtab
+#' @return The rows of [indtabs()] for the subject; with `load = TRUE`,
+#'   the first of those tables as a data frame.
+#' @seealso [indtabs()], [odtab()]; [sctidy()] and [scests()] to read a
+#'   Statistics Canada table once loaded.
+#' @examples
+#' \dontrun{
+#' # needs the internet
+#' indiex("mentalhealth")[, c("key", "rows")]
+#' x <- indiex("lifeexp", load = TRUE)
+#' }
+#' try(indiex("weather"))
+#' @export
+indiex <- function(
+  name = c(
+    "health",
+    "mentalhealth",
+    "wellbeing",
+    "suicide",
+    "censuspop",
+    "censushh",
+    "lifeexp",
+    "infantmort"
+  ),
+  load = FALSE,
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
+) {
+  fn <- "indiex"
+  name <- .ckmarg("name", fn)
+  load <- .ckflag(load, "load", fn)
+  pat <- c(
+    health = "health indicator|chronic condition|health characteristic",
+    mentalhealth = "mental health",
+    wellbeing = "well-?being|life satisfaction",
+    suicide = "suicid",
+    censuspop = "population|identity",
+    censushh = "household|dwelling",
+    lifeexp = "life expectancy",
+    infantmort = "infant mortal"
+  )[[name]]
+  t <- .clas(fn, indtabs(pat, base = base))
+  if (name %in% c("censuspop", "censushh")) {
+    t <- t[startsWith(t[["key"]], "census2021_ipp/"), , drop = FALSE]
+    rownames(t) <- NULL
+  }
+  if (!load) {
+    return(t)
+  }
+  if (!nrow(t)) {
+    .ckstop(fn, "the service holds no table on `%s`", name)
+  }
+  .clas(fn, odtab(t[["key"]][1L], base = base))
+}
+
+#' Fetch one police oversight report
+#'
+#' Downloads a director's report of Ontario's Special Investigations
+#' Unit by its report number, as the page the Unit serves, to a file.
+#' [ovrtxt()] then gives its text and [ovrpar()] codes it into fields.
+#'
+#' The report number is the `drid` in the address of a report's page. The
+#' Unit publishes each report in English and in French.
+#'
+#' Errors: `drid` not one positive whole number; `lang` not `"en"` or
+#' `"fr"`; those of [srcget()].
+#'
+#' @param drid The report number: one positive whole number.
+#' @param lang `"en"` (the default) or `"fr"`.
+#' @inheritParams ckanres
+#' @return As [srcget()]: invisibly, a list of `path`, `bytes`, `sha256`
+#'   and `url`.
+#' @seealso [ovrtxt()], [ovrpar()]; [srcls()] for other sources.
+#' @examples
+#' \dontrun{
+#' # needs the internet
+#' f <- ovrget(1234, tempfile(fileext = ".html"))
+#' substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)
+#' }
+#' try(ovrget(0, tempfile()))
+#' @export
+ovrget <- function(drid, dest, lang = c("en", "fr"), over = FALSE, wait = 120) {
+  fn <- "ovrget"
+  lang <- .ckmarg("lang", fn)
+  if (
+    !is.numeric(drid) ||
+      length(drid) != 1L ||
+      !is.finite(drid) ||
+      drid < 1 ||
+      drid != floor(drid) ||
+      drid > .Machine$integer.max
+  ) {
+    .ckstop(
+      fn,
+      paste(
+        "`drid` must be one positive report number",
+        "(the drid of the report's address)"
+      )
+    )
+  }
+  .clas(
+    fn,
+    srcget(
+      sprintf(
+        "https://www.siu.on.ca/%s/directors_report_details.php?drid=%d",
+        lang,
+        as.integer(drid)
+      ),
+      dest,
+      over = over,
+      wait = wait
+    )
+  )
+}
+
 #' The sources srcls() lists: key, publisher, what, kind, portal, id. Each
 #' was resolved against its portal when it was added; the test of the
 #' registry does so again when run with the network. A source with no id
@@ -746,223 +965,4 @@ scres <- function(pid, lang = c("en", "fr")) {
     )
   }
   r[["result"]]
-}
-
-#' The tables of the data service about Indigenous peoples
-#'
-#' Lists the tables of the project's open data service drawn from
-#' Statistics Canada's tables on Indigenous peoples and from the 2021
-#' Census Indigenous Population Profile, with their descriptions, sizes
-#' and licences, optionally those whose description matches a pattern.
-#' [odtab()] loads one by its key.
-#'
-#' Only openly licensed tables of aggregates are mirrored. The data of
-#' the First Nations Information Governance Centre (the First Nations
-#' Regional Health Survey and its companions) are governed by the OCAP
-#' principles of ownership, control, access and possession, and are not;
-#' they are asked for from the Centre.
-#'
-#' Errors: `pat` not one non-empty string or not a valid regular
-#' expression; those of [odls()].
-#'
-#' @param pat A regular expression matched against the descriptions
-#'   without regard to case, or `NULL` (all tables).
-#' @inheritParams odtab
-#' @return A data frame with a row per table: `key`, `rows`,
-#'   `description`, `licence` and `source`.
-#' @seealso [odtab()] and [odls()]; [indiex()] for the tables by subject.
-#' @examples
-#' \dontrun{
-#' # needs the internet
-#' t <- indtabs("mental health")
-#' t[, c("key", "rows")]
-#' }
-#' try(indtabs(pat = ""))
-#' @export
-indtabs <- function(
-  pat = NULL,
-  base = getOption("crimlab.data", "https://data.crimlab.dev")
-) {
-  fn <- "indtabs"
-  if (!is.null(pat)) {
-    pat <- .rlstr(pat, "pat", fn)
-    if (inherits(try(grepl(pat, ""), silent = TRUE), "try-error")) {
-      .ckstop(fn, "`pat` is not a valid regular expression")
-    }
-  }
-  base <- .odbase(base, fn)
-  ds <- Filter(
-    function(d) {
-      is.list(d) &&
-        is.character(d[["key"]]) &&
-        grepl("^(statcan_indigenous|census2021_ipp)/", d[["key"]])
-    },
-    .odman(base, fn)[["datasets"]]
-  )
-  meta <- function(k) {
-    vapply(
-      ds,
-      function(d) {
-        m <- d[["meta"]]
-        v <- if (is.list(m)) .srchr(m[[k]]) else NA_character_
-        if (is.na(v)) "" else v
-      },
-      "",
-      USE.NAMES = FALSE
-    )
-  }
-  out <- data.frame(
-    key = vapply(ds, function(d) d[["key"]], ""),
-    rows = .odfld(ds, "rows", NA_real_),
-    description = meta("description"),
-    licence = meta("license"),
-    source = meta("source"),
-    stringsAsFactors = FALSE
-  )
-  if (!is.null(pat)) {
-    out <- out[
-      grepl(pat, out[["description"]], ignore.case = TRUE),
-      ,
-      drop = FALSE
-    ]
-  }
-  rownames(out) <- NULL
-  out
-}
-
-#' Statistics Canada tables on Indigenous peoples, by subject
-#'
-#' The tables of the project's open data service that hold what is most
-#' often asked for about First Nations people, Metis and Inuit: health
-#' indicators, perceived mental health, wellbeing, suicidal thoughts, the
-#' census counts of population and of households, life expectancy and
-#' infant mortality. `indiex()` finds the tables of one subject among
-#' those [indtabs()] lists, and with `load = TRUE` loads the first.
-#'
-#' The package holds no data: the tables are Statistics Canada's, mirrored
-#' by the service under the Statistics Canada Open Licence and loaded and
-#' checked by [odtab()]. A subject is matched by words in a table's
-#' description, so a table the service adds later is found without a new
-#' release; a subject with no table there gives a data frame of no rows.
-#'
-#' Errors: `name` not one of the subjects; `load` not `TRUE` or `FALSE`;
-#' with `load`, a subject with no table; those of [indtabs()] and
-#' [odtab()].
-#'
-#' @param name The subject: `"health"`, `"mentalhealth"`, `"wellbeing"`,
-#'   `"suicide"`, `"censuspop"`, `"censushh"`, `"lifeexp"` or
-#'   `"infantmort"`.
-#' @param load `TRUE` loads the first table found, with [odtab()].
-#' @inheritParams odtab
-#' @return The rows of [indtabs()] for the subject; with `load = TRUE`,
-#'   the first of those tables as a data frame.
-#' @seealso [indtabs()], [odtab()]; [sctidy()] and [scests()] to read a
-#'   Statistics Canada table once loaded.
-#' @examples
-#' \dontrun{
-#' # needs the internet
-#' indiex("mentalhealth")[, c("key", "rows")]
-#' x <- indiex("lifeexp", load = TRUE)
-#' }
-#' try(indiex("weather"))
-#' @export
-indiex <- function(
-  name = c(
-    "health",
-    "mentalhealth",
-    "wellbeing",
-    "suicide",
-    "censuspop",
-    "censushh",
-    "lifeexp",
-    "infantmort"
-  ),
-  load = FALSE,
-  base = getOption("crimlab.data", "https://data.crimlab.dev")
-) {
-  fn <- "indiex"
-  name <- .ckmarg("name", fn)
-  load <- .ckflag(load, "load", fn)
-  pat <- c(
-    health = "health indicator|chronic condition|health characteristic",
-    mentalhealth = "mental health",
-    wellbeing = "well-?being|life satisfaction",
-    suicide = "suicid",
-    censuspop = "population|identity",
-    censushh = "household|dwelling",
-    lifeexp = "life expectancy",
-    infantmort = "infant mortal"
-  )[[name]]
-  t <- .clas(fn, indtabs(pat, base = base))
-  if (name %in% c("censuspop", "censushh")) {
-    t <- t[startsWith(t[["key"]], "census2021_ipp/"), , drop = FALSE]
-    rownames(t) <- NULL
-  }
-  if (!load) {
-    return(t)
-  }
-  if (!nrow(t)) {
-    .ckstop(fn, "the service holds no table on `%s`", name)
-  }
-  .clas(fn, odtab(t[["key"]][1L], base = base))
-}
-
-#' Fetch one police oversight report
-#'
-#' Downloads a director's report of Ontario's Special Investigations
-#' Unit by its report number, as the page the Unit serves, to a file.
-#' [ovrtxt()] then gives its text and [ovrpar()] codes it into fields.
-#'
-#' The report number is the `drid` in the address of a report's page. The
-#' Unit publishes each report in English and in French.
-#'
-#' Errors: `drid` not one positive whole number; `lang` not `"en"` or
-#' `"fr"`; those of [srcget()].
-#'
-#' @param drid The report number: one positive whole number.
-#' @param lang `"en"` (the default) or `"fr"`.
-#' @inheritParams ckanres
-#' @return As [srcget()]: invisibly, a list of `path`, `bytes`, `sha256`
-#'   and `url`.
-#' @seealso [ovrtxt()], [ovrpar()]; [srcls()] for other sources.
-#' @examples
-#' \dontrun{
-#' # needs the internet
-#' f <- ovrget(1234, tempfile(fileext = ".html"))
-#' substr(ovrtxt(readLines(f$path, warn = FALSE)), 1, 200)
-#' }
-#' try(ovrget(0, tempfile()))
-#' @export
-ovrget <- function(drid, dest, lang = c("en", "fr"), over = FALSE, wait = 120) {
-  fn <- "ovrget"
-  lang <- .ckmarg("lang", fn)
-  if (
-    !is.numeric(drid) ||
-      length(drid) != 1L ||
-      !is.finite(drid) ||
-      drid < 1 ||
-      drid != floor(drid) ||
-      drid > .Machine$integer.max
-  ) {
-    .ckstop(
-      fn,
-      paste(
-        "`drid` must be one positive report number",
-        "(the drid of the report's address)"
-      )
-    )
-  }
-  .clas(
-    fn,
-    srcget(
-      sprintf(
-        "https://www.siu.on.ca/%s/directors_report_details.php?drid=%d",
-        lang,
-        as.integer(drid)
-      ),
-      dest,
-      over = over,
-      wait = wait
-    )
-  )
 }

@@ -55,6 +55,10 @@ lrdg(d, c("female", "male", "male", "female", "male"))
 # another definition: six drinks for everyone
 hvydrk(d, "female", f = 6, m = 6)
 try(hvydrk(-1, "male"))
+# a survey's public file, by its preset: the codes 997 to 999 are not
+# answers, and the sex is coded 1 and 2
+d <- data.frame(alc13a = c(3, 5, 997, 2), dvdemq01 = c(1, 2, 1, 2))
+lrdg(clprep(d, "cpads-lrdg"))
 }
 \references{
 Wechsler, H., Dowdall, G. W., Davenport, A. and Rimm, E. B. (1995). A

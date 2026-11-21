@@ -131,56 +131,6 @@ ebac <- function(
   pmax(0, grams * drinks / (10 * r * kg) - beta * hours)
 }
 
-#' Numbers that are `what` ("numbers from 0": none negative; "positive
-#' numbers": none 0 or negative), or the refusal of fn.
-#' @noRd
-.adxnum <- function(v, name, fn, what) {
-  if (!is.numeric(v) || !length(v)) {
-    .ckstop(fn, "`%s` must be numeric", name)
-  }
-  bad <- if (what == "positive numbers") v <= 0 else v < 0
-  if (any(bad, na.rm = TRUE)) {
-    .ckstop(fn, "`%s` must be %s", name, what)
-  }
-  as.numeric(v)
-}
-
-#' The Widmark factor of ebac(): `r` as given, or that of `sex`, fixed or,
-#' with `height`, by Seidl, Jensen and Alt from the weight `kg`.
-#' @noRd
-.adxr <- function(sex, kg, height, r, fn) {
-  if (!is.null(height)) {
-    height <- .adxnum(height, "height", fn, "positive numbers")
-  }
-  if (!is.null(r)) {
-    return(.adxnum(r, "r", fn, "positive numbers"))
-  }
-  if (
-    !is.character(sex) ||
-      !length(sex) ||
-      anyNA(sex) ||
-      !all(sex %in% c("male", "female"))
-  ) {
-    .ckstop(fn, "`sex` must be \"male\" or \"female\"")
-  }
-  if (is.null(height)) {
-    return(ifelse(sex == "male", 0.73, 0.66))
-  }
-  len <- c(length(sex), length(kg), length(height))
-  if (!all(len %in% c(1L, max(len)))) {
-    .ckstop(fn, "the arguments must have one length, or length 1")
-  }
-  r <- ifelse(
-    sex == "male",
-    0.31608 - 0.004821 * kg + 0.004632 * height,
-    0.31223 - 0.006446 * kg + 0.004466 * height
-  )
-  if (any(r <= 0, na.rm = TRUE)) {
-    .ckstop(fn, "the weight and height give a factor that is not positive")
-  }
-  r
-}
-
 #' Standard drinks in a volume of a beverage
 #'
 #' The number of standard drinks in `vol` millilitres of a beverage of
@@ -538,6 +488,10 @@ canast <- function(x) {
 #' # another definition: six drinks for everyone
 #' hvydrk(d, "female", f = 6, m = 6)
 #' try(hvydrk(-1, "male"))
+#' # a survey's public file, by its preset: the codes 997 to 999 are not
+#' # answers, and the sex is coded 1 and 2
+#' d <- data.frame(alc13a = c(3, 5, 997, 2), dvdemq01 = c(1, 2, 1, 2))
+#' lrdg(clprep(d, "cpads-lrdg"))
 #' @export
 hvydrk <- function(drinks, sex, f = 4, m = 5) {
   if (inherits(drinks, "clpre")) {
@@ -615,4 +569,54 @@ lrdg <- function(drinks, sex, f = 2, m = 3) {
     }
   }
   invisible(NULL)
+}
+
+#' Numbers that are `what` ("numbers from 0": none negative; "positive
+#' numbers": none 0 or negative), or the refusal of fn.
+#' @noRd
+.adxnum <- function(v, name, fn, what) {
+  if (!is.numeric(v) || !length(v)) {
+    .ckstop(fn, "`%s` must be numeric", name)
+  }
+  bad <- if (what == "positive numbers") v <= 0 else v < 0
+  if (any(bad, na.rm = TRUE)) {
+    .ckstop(fn, "`%s` must be %s", name, what)
+  }
+  as.numeric(v)
+}
+
+#' The Widmark factor of ebac(): `r` as given, or that of `sex`, fixed or,
+#' with `height`, by Seidl, Jensen and Alt from the weight `kg`.
+#' @noRd
+.adxr <- function(sex, kg, height, r, fn) {
+  if (!is.null(height)) {
+    height <- .adxnum(height, "height", fn, "positive numbers")
+  }
+  if (!is.null(r)) {
+    return(.adxnum(r, "r", fn, "positive numbers"))
+  }
+  if (
+    !is.character(sex) ||
+      !length(sex) ||
+      anyNA(sex) ||
+      !all(sex %in% c("male", "female"))
+  ) {
+    .ckstop(fn, "`sex` must be \"male\" or \"female\"")
+  }
+  if (is.null(height)) {
+    return(ifelse(sex == "male", 0.73, 0.66))
+  }
+  len <- c(length(sex), length(kg), length(height))
+  if (!all(len %in% c(1L, max(len)))) {
+    .ckstop(fn, "the arguments must have one length, or length 1")
+  }
+  r <- ifelse(
+    sex == "male",
+    0.31608 - 0.004821 * kg + 0.004632 * height,
+    0.31223 - 0.006446 * kg + 0.004466 * height
+  )
+  if (any(r <= 0, na.rm = TRUE)) {
+    .ckstop(fn, "the weight and height give a factor that is not positive")
+  }
+  r
 }
