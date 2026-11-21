@@ -16,8 +16,8 @@
 #
 # Release signing plugs in at the step "SSH signature of SHA256SUMS":
 # with the secret CLAB_SSH_SIGNING_KEY set it writes SHA256SUMS.sig,
-# which install.sh and install.ps1 check when CRIMLAB_SIGNER (or the key
-# written into them) is set.
+# which install.sh and install.ps1 check against the release key written
+# into them.
 name: release
 
 on:
@@ -272,14 +272,21 @@ jobs:
         run: |
           (cd r && exec python3 -m http.server 8471 --bind 127.0.0.1) > srv.log 2>&1 &
           sleep 2
+          # the scripts check the release key's signature; a run without
+          # the signing secret (a fork) has none to check
+          if [ ! -f r/latest/download/SHA256SUMS.sig ]; then
+            echo "::notice::SHA256SUMS is not signed in this run: installed with CRIMLAB_VERIFY=0"
+            export CRIMLAB_VERIFY=0
+          fi
           curl -fsS "$CRIMLAB_BASE/latest/download/install.sh" | sh
           "$HOME/.local/bin/crimlab" orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
           if [ "$RUNNER_OS" = Linux ]; then
             rm -f "$HOME/.local/bin/crimlab"
             curl -fsS "$CRIMLAB_BASE/latest/download/install.sh" | dash
             "$HOME/.local/bin/crimlab" -V
-            docker run --rm --network host -e CRIMLAB_BASE alpine:3.22 sh -c \
-              'wget -qO- "$CRIMLAB_BASE/latest/download/install.sh" | sh && ~/.local/bin/crimlab orrisk --or 2 --rate 0.1 --share 0.3' |
+            # Alpine has no ssh-keygen until openssh-keygen is added
+            docker run --rm --network host -e CRIMLAB_BASE -e CRIMLAB_VERIFY alpine:3.22 sh -c \
+              'apk add -q --no-cache openssh-keygen && wget -qO- "$CRIMLAB_BASE/latest/download/install.sh" | sh && ~/.local/bin/crimlab orrisk --or 2 --rate 0.1 --share 0.3' |
               grep 0.1475205
           fi
       - name: install.ps1
@@ -290,6 +297,10 @@ jobs:
         run: |
           Start-Process python -ArgumentList '-m', 'http.server', '8471', '--bind', '127.0.0.1' -WorkingDirectory r -WindowStyle Hidden
           Start-Sleep -Seconds 3
+          if (-not (Test-Path r/latest/download/SHA256SUMS.sig)) {
+            Write-Output '::notice::SHA256SUMS is not signed in this run: installed with CRIMLAB_VERIFY=0'
+            $env:CRIMLAB_VERIFY = '0'
+          }
           irm "$env:CRIMLAB_BASE/latest/download/install.ps1" | iex
           $o = & "$HOME\.local\bin\crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
           $o
